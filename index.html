@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบเช็คชื่อเวรประจำวัน ✨</title>
+  <!-- นำเข้าฟอนต์ Mitr -->
+  <link rel="preconnect" href="googleapis.com">
+  <link rel="preconnect" href="gstatic.com" crossorigin>
+  <link href="googleapis.com" rel="stylesheet">
+  <!-- Tailwind CSS สำหรับจัดสไตล์อย่างรวดเร็ว -->
+  <script src="tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Mitr', sans-serif;
+      background-color: #FBF9F1;
+      color: #333333;
+    }
+    .bg-primary { background-color: #92C7CF; }
+    .bg-secondary { background-color: #AAD7D9; }
+    .bg-card { background-color: #E5E1DA; }
+    
+    /* สไตล์ปรับแต่ง Checkbox ให้ดูเป็นมิตรน่ารัก */
+    input[type="checkbox"] {
+      width: 1.5rem;
+      height: 1.5rem;
+      accent-color: #92C7CF;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-10 px-4">
+
+  <!-- หัวข้อหลักของเว็บแอป -->
+  <header class="text-center mb-10">
+    <h1 class="text-3xl font-semibold text-gray-800 mb-2">🧹 ระบบเช็คชื่อเวรประจำวัน</h1>
+    <p class="text-gray-500 font-light">บันทึกการเข้าเวรและทำความสะอาดของพวกเราอย่างง่ายดาย</p>
+  </header>
+
+  <!-- แท็บเมนูเปลี่ยนหน้า -->
+  <div class="flex gap-4 mb-8">
+    <button id="tab-check" onclick="switchTab('check')" class="px-6 py-2 rounded-full font-medium bg-primary text-white shadow-sm transition">
+      ✍️ เช็คชื่อวันนี้
+    </button>
+    <button id="tab-history" onclick="switchTab('history')" class="px-6 py-2 rounded-full font-medium bg-card text-gray-700 shadow-sm transition">
+      📅 ดูย้อนหลัง
+    </button>
+  </div>
+
+  <!-- โซนที่ 1: หน้าจอสำหรับเช็คชื่อประจำวัน -->
+  <main id="view-check" class="w-full max-w-2xl bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-medium text-gray-700">รายชื่อสมาชิกเวรวันนี้</h2>
+      <input type="date" id="duty-date" class="border border-gray-300 rounded-xl px-3 py-1.5 text-sm outline-none focus:border-[#92C7CF]">
+    </div>
+
+    <!-- ตารางรายชื่อ (สามารถเพิ่มลบชื่อตรงนี้ได้ตามต้องการ) -->
+    <div class="divide-y divide-gray-100 mb-8" id="students-list">
+      <!-- ข้อมูลจำลองสมาชิกในกลุ่มเวร -->
+      <div class="flex items-center justify-between py-4 student-row" data-name="สมชาย ใจดี">
+        <span class="font-medium text-gray-700 text-lg">1. สมชาย ใจดี</span>
+        <div class="flex gap-6">
+          <label class="flex items-center gap-2 text-sm text-gray-600">
+            <input type="checkbox" class="chk-present"> มาเวร
+          </label>
+          <label class="flex items-center gap-2 text-sm text-gray-600">
+            <input type="checkbox" class="chk-done"> ทำความสะอาดแล้ว
+          </label>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between py-4 student-row" data-name="สมหญิง รักดี">
+        <span class="font-medium text-gray-700 text-lg">2. สมหญิง รักดี</span>
+        <div class="flex gap-6">
+          <label class="flex items-center gap-2 text-sm text-gray-600">
+            <input type="checkbox" class="chk-present"> มาเวร
+          </label>
+          <label class="flex items-center gap-2 text-sm text-gray-600">
+            <input type="checkbox" class="chk-done"> ทำความสะอาดแล้ว
+          </label>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between py-4 student-row" data-name="เด็กชาย ก้าวหน้า">
+        <span class="font-medium text-gray-700 text-lg">3. เด็กชาย ก้าวหน้า</span>
+        <div class="flex gap-6">
+          <label class="flex items-center gap-2 text-sm text-gray-600">
+            <input type="checkbox" class="chk-present"> มาเวร
+          </label>
+          <label class="flex items-center gap-2 text-sm text-gray-600">
+            <input type="checkbox" class="chk-done"> ทำความสะอาดแล้ว
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <button onclick="submitAttendance()" class="w-full bg-secondary text-gray-800 font-medium py-3 rounded-2xl hover:opacity-90 transition shadow-sm">
+      💾 บันทึกข้อมูลลงระบบถาวร
+    </button>
+  </main>
+
+  <!-- โซนที่ 2: หน้าจอสำหรับดูประวัติย้อนหลัง -->
+  <main id="view-history" class="w-full max-w-3xl bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hidden">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-medium text-gray-700">ประวัติการเข้าเวรทั้งหมด</h2>
+      <button onclick="loadHistoryData()" class="text-sm text-[#92C7CF] hover:underline">🔄 รีเฟรชข้อมูล</button>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-[#FBF9F1] text-gray-600 font-medium text-sm">
+            <th class="p-3 rounded-l-xl">วันที่</th>
+            <th class="p-3">รายชื่อ</th>
+            <th class="p-3">สถานะการมา</th>
+            <th class="p-3 rounded-r-xl">การทำความสะอาด</th>
+          </tr>
+        </thead>
+        <tbody id="history-table-body" class="text-gray-700 divide-y divide-gray-100">
+          <tr>
+            <td colspan="4" class="p-4 text-center text-gray-400 font-light">กำลังโหลดข้อมูลประวัติ...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- ส่วนของสคริปต์การประมวลผลและการเรียกใช้ JSONP -->
+  <script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxwQpjFXDmcbfNf4JwSQNJCcO5jr-P7T135YdQw_t8Rh55wK7EcjIDBgwpnB35S098MYg/exec";
+
+    // ตั้งค่าวันที่เริ่มต้นให้เป็นวันปัจจุบัน
+    document.getElementById('duty-date').valueAsDate = new Date();
+
+    // ฟังก์ชันสลับหน้าแท็บเมนู
+    function switchTab(tab) {
+      if (tab === 'check') {
+        document.getElementById('view-check').classList.remove('hidden');
+        document.getElementById('view-history').classList.add('hidden');
+        document.getElementById('tab-check').className = "px-6 py-2 rounded-full font-medium bg-primary text-white shadow-sm transition";
+        document.getElementById('tab-history').className = "px-6 py-2 rounded-full font-medium bg-card text-gray-700 shadow-sm transition";
+      } else {
+        document.getElementById('view-check').classList.add('hidden');
+        document.getElementById('view-history').classList.remove('hidden');
+        document.getElementById('tab-check').className = "px-6 py-2 rounded-full font-medium bg-card text-gray-700 shadow-sm transition";
+        document.getElementById('tab-history').className = "px-6 py-2 rounded-full font-medium bg-primary text-white shadow-sm transition";
+        loadHistoryData();
+      }
+    }
+
+    // ฟังก์ชันส่งข้อมูล JSONP
+    function sendJsonpRequest(url, callbackName) {
+      const script = document.createElement('script');
+      script.src = url;
+      script.id = 'jsonp-script';
+      
+      // ลบแท็กสคริปต์เก่าออกถ้าหากมีอยู่ก่อนแล้วเพื่อไม่ให้หน้าเว็บหนักเกินไป
+      const oldScript = document.getElementById('jsonp-script');
+      if (oldScript) oldScript.remove();
+      
+      document.body.appendChild(script);
+    }
+
+    // ฟังก์ชันรวบรวมข้อมูลและส่งไปบันทึก
+    function submitAttendance() {
+      const selectedDate = document.getElementById('duty-date').value;
+      if (!selectedDate) {
+        alert("กรุณาเลือกวันที่ก่อนบันทึกข้อมูลนะขรับ 📅");
+        return;
+      }
+
+      const rows = document.querySelectorAll('.student-row');
+      const dataToSave = [];
+
+      rows.forEach(row => {
+        const name = row.getAttribute('data-name');
+        const isPresent = row.querySelector('.chk-present').checked;
+        const isDone = row.querySelector('.chk-done').checked;
+        
+        dataToSave.push({
+          date: selectedDate,
+          name: name,
+          isPresent: isPresent,
+          isDone: isDone
+        });
+      });
+
+      // เข้ารหัสข้อมูลเป็น string เพื่อส่งผ่าน URL parameter
+      const encodedData = encodeURIComponent(JSON.stringify(dataToSave));
+      const jsonpUrl = `${WEB_APP_URL}?action=save&data=${encodedData}&callback=onSaveComplete`;
+      
+      sendJsonpRequest(jsonpUrl);
+    }
+
+    // ฟังก์ชันรับผลลัพธ์หลังจากบันทึกเสร็จ (Callback ของ JSONP)
+    function onSaveComplete(response) {
+      if (response.status === "success") {
+        alert("🎉 บันทึกข้อมูลเวรประจำวันเรียบร้อยแล้ว!");
+        // รีเซ็ตค่าฟอร์มกลับเป็นค่าว่างหลังบันทึกเสร็จเพื่อความสะอาดตา
+        document.querySelectorAll('input[type="checkbox"]').forEach(chk => chk.checked = false);
+      } else {
+        alert("เกิดข้อผิดพลาด: " + response.message);
+      }
+    }
+
+    // ฟังก์ชันเรียกประวัติข้อมูลย้อนหลัง
+    function loadHistoryData() {
+      const tableBody = document.getElementById('history-table-body');
+      tableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400 font-light">กำลังดึงข้อมูลล่าสุดจาก Google Sheets... ✨</td></tr>`;
+      
+      const jsonpUrl = `${WEB_APP_URL}?action=history&callback=onHistoryLoad`;
+      sendJsonpRequest(jsonpUrl);
+    }
+
+    // ฟังก์ชันเมื่อดึงประวัติย้อนหลังสำเร็จมาแสดงผลในตาราง
+    function onHistoryLoad(response) {
+      const tableBody = document.getElementById('history-table-body');
+      
+      if (response.status !== "success") {
+        tableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-400">ไม่สามารถโหลดข้อมูลได้: ${response.message}</td></tr>`;
+        return;
+      }
+
+      if (!response.data || response.data.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400 font-light">ยังไม่มีประวัติการเช็คชื่อในระบบเลย</td></tr>`;
+        return;
+      }
+
+      // วนลูปกลับหัวข้อมูลเพื่อให้รายการล่าสุดอยู่ด้านบนสุดของตาราง
+      let htmlContent = "";
+      response.data.reverse().forEach(item => {
+        // จัดรูปแบบการแสดงผลคำน่ารักๆ
+        const presentText = item.isPresent ? "🟢 มาเวร" : "🔴 ขาดเวร";
+        const doneText = item.isDone ? "⭐ ทำแล้ว" : "⏳ ยังไม่เสร็จ";
+        
+        // แปลงฟอร์แมตวันที่ให้อ่านง่ายขึ้น
+        const dateObj = new Date(item.date);
+        const formattedDate = dateObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+
+        htmlContent += `
+          <tr class="hover:bg-gray-50 transition">
+            <td class="p-3 font-medium text-gray-500">${formattedDate}</td>
+            <td class="p-3 font-semibold text-gray-700">${item.name}</td>
+            <td class="p-3 text-sm">${presentText}</td>
+            <td class="p-3 text-sm font-medium">${doneText}</td>
+          </tr>
+        `;
+      });
+
+      tableBody.innerHTML = htmlContent;
+    }
+  </script>
+</body>
+</html>
