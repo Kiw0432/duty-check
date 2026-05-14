@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>ระบบเช็คชื่อเวร</title>
+<title>ระบบเช็คชื่อเวรประจำวัน</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,19 +34,31 @@
 
 body{
   background:var(--c1);
-  color:var(--text);
   padding:14px;
+  color:var(--text);
 }
 
 .container{
-  max-width:760px;
+  max-width:700px;
   margin:auto;
+}
+
+.hidden{
+  display:none;
+}
+
+.card{
+  background:white;
+  border-radius:24px;
+  padding:20px;
+  margin-bottom:16px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.05);
 }
 
 .header{
   background:linear-gradient(135deg,var(--c3),var(--c4));
   color:white;
-  padding:22px;
+  padding:24px;
   border-radius:24px;
   margin-bottom:16px;
 }
@@ -55,18 +67,9 @@ body{
   font-size:1.7rem;
 }
 
-.card{
-  background:white;
-  border-radius:24px;
-  padding:18px;
-  margin-bottom:14px;
-  box-shadow:0 6px 18px rgba(0,0,0,0.05);
-}
-
-.login-box{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
+.label{
+  margin-bottom:8px;
+  font-size:0.92rem;
 }
 
 input,
@@ -74,32 +77,15 @@ select{
   width:100%;
   border:none;
   background:var(--c1);
-  padding:11px 14px;
+  padding:12px;
   border-radius:14px;
-  outline:none;
   margin-bottom:12px;
-}
-
-button{
-  border:none;
-  border-radius:14px;
-  padding:11px 14px;
-  cursor:pointer;
-  font-size:0.92rem;
-}
-
-.btn-main{
-  background:var(--c4);
-  color:white;
-}
-
-.btn-soft{
-  background:var(--c2);
+  outline:none;
 }
 
 .student-box{
   background:var(--c1);
-  border-radius:20px;
+  border-radius:18px;
   padding:18px;
   text-align:center;
   margin-bottom:16px;
@@ -110,9 +96,10 @@ button{
   font-weight:600;
 }
 
-.student-detail{
-  color:#8a7569;
-  font-size:0.9rem;
+.student-number,
+.student-id{
+  color:#8d776a;
+  font-size:0.92rem;
 }
 
 .switch-row{
@@ -124,18 +111,18 @@ button{
 }
 
 .switch{
-  width:58px;
-  height:32px;
+  width:60px;
+  height:34px;
   border-radius:999px;
-  background:#ccc;
+  background:#d7d7d7;
   position:relative;
   cursor:pointer;
 }
 
 .switch::after{
   content:'';
-  width:24px;
-  height:24px;
+  width:26px;
+  height:26px;
   background:white;
   border-radius:50%;
   position:absolute;
@@ -152,44 +139,58 @@ button{
   left:30px;
 }
 
+.button-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:16px;
+}
+
+button{
+  border:none;
+  border-radius:14px;
+  padding:12px;
+  cursor:pointer;
+  font-size:0.92rem;
+}
+
+.btn-main{
+  background:var(--c4);
+  color:white;
+}
+
+.btn-soft{
+  background:var(--c2);
+}
+
+.btn-save{
+  width:100%;
+  margin-top:12px;
+  background:#89b89a;
+  color:white;
+}
+
 .dashboard{
   display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:8px;
-  margin-top:14px;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:16px;
 }
 
 .dash-card{
   background:var(--c1);
+  padding:14px;
   border-radius:16px;
-  padding:10px;
   text-align:center;
 }
 
 .dash-card h2{
   color:var(--c4);
-  font-size:1.2rem;
 }
 
-.small-title{
-  font-size:0.8rem;
-}
-
-.small-section{
-  padding:14px;
-}
-
-.month-btn{
-  border:none;
-  background:var(--c2);
-  border-radius:999px;
-  padding:6px 12px;
+.small-btn{
+  padding:8px 12px;
   font-size:0.82rem;
-}
-
-.month-btn.active{
-  background:var(--c4);
-  color:white;
 }
 
 .table-wrapper{
@@ -202,44 +203,25 @@ table{
   margin-top:12px;
 }
 
-th{
+thead{
   background:var(--c2);
-  padding:10px;
-  font-size:0.85rem;
 }
 
-td{
+th,td{
   padding:10px;
   text-align:center;
+  font-size:0.88rem;
+}
+
+tbody tr{
   border-bottom:1px solid #eee;
-  font-size:0.84rem;
-}
-
-.badge{
-  padding:3px 8px;
-  border-radius:999px;
-  font-size:0.78rem;
-}
-
-.success{
-  background:#dff5e4;
-  color:#23763d;
-}
-
-.danger{
-  background:#ffe3e3;
-  color:#ba3939;
-}
-
-.hidden{
-  display:none;
 }
 
 .footer{
   text-align:center;
-  margin-top:14px;
-  color:#988173;
-  font-size:0.82rem;
+  margin-top:12px;
+  color:#8b776b;
+  font-size:0.85rem;
 }
 
 </style>
@@ -251,56 +233,103 @@ td{
 <div class="container">
 
 <div class="header">
-  <h1>📚 ระบบเช็คชื่อเวร</h1>
-  <p>Student Care Style 🌷</p>
+<h1>📚 ระบบเช็คชื่อเวร</h1>
+<p>Student Care Style 🌷</p>
 </div>
+
+<!-- LOGIN -->
 
 <div class="card">
 
-<h3 style="margin-bottom:12px;">
+<h2 style="margin-bottom:14px;">
 🔐 เข้าสู่ระบบ
-</h3>
+</h2>
 
-<div class="login-box">
+<input
+type="text"
+id="username"
+placeholder="ชื่อผู้ใช้"
+>
 
-<input type="text" id="username" placeholder="ชื่อผู้ใช้">
+<input
+type="password"
+id="password"
+placeholder="รหัสผ่าน"
+>
 
-<input type="password" id="password" placeholder="รหัสผ่าน">
+<div class="button-grid">
 
-<button class="btn-main" onclick="loginTeacher()">
+<button
+class="btn-main"
+onclick="loginTeacher()"
+>
 เข้าสู่ระบบครู
 </button>
 
-<button class="btn-soft" onclick="loginStudent()">
-เข้าชมแบบนักเรียน
+<button
+class="btn-soft"
+onclick="loginStudent()"
+>
+นักเรียนเข้าชม
 </button>
 
 </div>
 
-<div id="loginStatus"></div>
+<div
+id="loginStatus"
+style="margin-top:12px;"
+></div>
 
 </div>
+
+<!-- MAIN -->
 
 <div id="mainSystem" class="hidden">
 
 <div class="card">
 
+<div class="label">
+🔍 ค้นหาชื่อนักเรียน
+</div>
+
 <input
 type="text"
 id="searchInput"
-placeholder="🔍 ค้นหาชื่อ / รหัสนักเรียน"
+placeholder="ค้นหาชื่อ..."
 onkeyup="searchStudent()"
 >
 
-<select id="studentSelect" onchange="changeStudent()"></select>
+<div class="label">
+👨‍🎓 เลือกนักเรียน
+</div>
+
+<select
+id="studentSelect"
+onchange="changeStudent()"
+></select>
 
 <div class="student-box">
 
-<div class="student-detail" id="studentNo"></div>
+<div
+class="student-number"
+id="studentNo"
+>
+เลขที่ -
+</div>
 
-<div class="student-detail" id="studentId"></div>
+<div
+class="student-id"
+id="studentId"
+>
+รหัส -
+</div>
 
-<div class="student-name" id="studentName"></div>
+<div
+class="student-name"
+id="studentName"
+>
+กำลังโหลด...
+</div>
 
 </div>
 
@@ -328,23 +357,28 @@ onclick="toggleDone()"
 
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
+<div class="button-grid">
 
-<button class="btn-soft" onclick="prevStudent()">
+<button
+class="btn-soft"
+onclick="prevStudent()"
+>
 ⬅️ ก่อนหน้า
 </button>
 
-<button class="btn-main" onclick="nextStudent()">
+<button
+class="btn-main"
+onclick="nextStudent()"
+>
 ถัดไป ➡️
 </button>
 
 </div>
 
 <button
-class="btn-main"
 id="saveBtn"
+class="btn-save"
 onclick="saveData()"
-style="width:100%;margin-top:12px;"
 >
 💾 บันทึกข้อมูล
 </button>
@@ -352,22 +386,22 @@ style="width:100%;margin-top:12px;"
 <div class="dashboard">
 
 <div class="dash-card">
-<div class="small-title">ทั้งหมด</div>
+<div>ทั้งหมด</div>
 <h2 id="allStudentCount">0</h2>
 </div>
 
 <div class="dash-card">
-<div class="small-title">มาเรียน</div>
+<div>มาเรียน</div>
 <h2 id="checkedCount">0</h2>
 </div>
 
 <div class="dash-card">
-<div class="small-title">ทำเวร</div>
+<div>ทำเวร</div>
 <h2 id="doneCount">0</h2>
 </div>
 
 <div class="dash-card">
-<div class="small-title">ขาด</div>
+<div>ขาด</div>
 <h2 id="absentCount">0</h2>
 </div>
 
@@ -375,43 +409,62 @@ style="width:100%;margin-top:12px;"
 
 </div>
 
-<div class="card small-section">
+<!-- CHART -->
 
-<h3 style="font-size:1rem;">
-📊 สรุปรายเดือน
-</h3>
+<div class="card">
 
 <div
-id="monthButtons"
 style="
 display:flex;
-gap:6px;
-overflow:auto;
-margin:10px 0;
+justify-content:space-between;
+align-items:center;
+margin-bottom:12px;
 "
-></div>
+>
+
+<h2>📊 สรุปรายเดือน</h2>
+
+<button
+class="btn-soft small-btn"
+onclick="renderMonthlyChart()"
+>
+รีเฟรช
+</button>
+
+</div>
 
 <canvas id="monthlyChart"></canvas>
 
 </div>
 
-<div class="card small-section">
+<!-- HISTORY -->
 
-<h3 style="font-size:1rem;">
-🕒 ประวัติย้อนหลัง
-</h3>
+<div class="card">
+
+<div
+style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+"
+>
+
+<h2>🕒 ประวัติย้อนหลัง</h2>
 
 <select
 id="monthFilter"
+style="
+width:140px;
+margin:0;
+"
 onchange="renderHistory()"
-style="margin-top:10px;"
 >
-
 <option value="all">
 ทั้งหมด
 </option>
-
 </select>
+
+</div>
 
 <div class="table-wrapper">
 
@@ -422,19 +475,24 @@ style="margin-top:10px;"
 <tr>
 <th>วันที่</th>
 <th>เลขที่</th>
-<th>รหัส</th>
 <th>ชื่อ</th>
 <th>เช็คชื่อ</th>
-<th>ทำเวร</th>
+<th>เวร</th>
 </tr>
 
 </thead>
 
-<tbody id="historyTable"></tbody>
+<tbody id="historyTable">
+
+<tr>
+<td colspan="5">
+ยังไม่มีข้อมูล
+</td>
+</tr>
+
+</tbody>
 
 </table>
-
-</div>
 
 </div>
 
@@ -446,14 +504,15 @@ style="margin-top:10px;"
 
 </div>
 
-```html
+</div>
+
 <script>
 
 const SHEET_ID =
 "1lUs_-wKzkzG_zRnod5cQIfu_JDHpYDxe5SeKh2v5yrI";
 
 const APPS_SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbw6bwQPk6oDpyNP6uQyfuFBh0JQuQr1ozoK2jHInPgGASnPUNIPtcSI4irSgmNMbe2IWQ/exec";
+"https://script.google.com/macros/s/AKfycbzKdUS_8B6g7mj3sEcsx9pjZEPmwiWbqm7tuRLhIUvVy8_Cv6wDH42-Ww8UZ8Clk4Fubw/exec";
 
 const TEACHER_USER = "teacher";
 const TEACHER_PASS = "1234";
@@ -466,716 +525,671 @@ let currentIndex = 0;
 
 let monthlyChart;
 
-/* =========================
-   LOGIN
-========================= */
+/* LOGIN */
 
 function loginTeacher(){
 
-  const user =
-  document.getElementById("username").value;
+const user =
+document.getElementById("username").value;
 
-  const pass =
-  document.getElementById("password").value;
+const pass =
+document.getElementById("password").value;
 
-  if(
-    user === TEACHER_USER &&
-    pass === TEACHER_PASS
-  ){
+if(
+user === TEACHER_USER &&
+pass === TEACHER_PASS
+){
 
-    isTeacher = true;
+isTeacher = true;
 
-    document
-    .getElementById("loginStatus")
-    .innerHTML =
-    "✅ เข้าสู่ระบบครูสำเร็จ";
+document
+.getElementById("loginStatus")
+.innerHTML =
+"✅ เข้าสู่ระบบครูสำเร็จ";
 
-    startSystem();
+startSystem();
 
-  }else{
+}else{
 
-    alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
 
-  }
+}
 
 }
 
 function loginStudent(){
 
-  isTeacher = false;
+isTeacher = false;
 
-  document
-  .getElementById("loginStatus")
-  .innerHTML =
-  "👀 โหมดนักเรียน";
+document
+.getElementById("loginStatus")
+.innerHTML =
+"👀 โหมดนักเรียน";
 
-  startSystem();
+startSystem();
 
 }
 
-/* =========================
-   START SYSTEM
-========================= */
+/* START */
 
 function startSystem(){
 
-  document
-  .getElementById("mainSystem")
-  .classList
-  .remove("hidden");
+document
+.getElementById("mainSystem")
+.classList
+.remove("hidden");
 
-  if(!isTeacher){
+if(!isTeacher){
 
-    document
-    .getElementById("saveBtn")
-    .style.display = "none";
-
-  }
-
-  loadStudents();
-
-  buildMonthFilter();
-
-  renderHistory();
-
-  renderMonthlyChart();
+document
+.getElementById("saveBtn")
+.style.display = "none";
 
 }
 
-/* =========================
-   LOAD STUDENTS
-========================= */
+loadStudents();
+
+buildMonthFilter();
+
+renderHistory();
+
+renderMonthlyChart();
+
+}
+
+/* LOAD STUDENTS */
 
 async function loadStudents(){
 
-  try{
+try{
 
-    const url =
-    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx`;
+const url =
+`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx`;
 
-    const response =
-    await fetch(url);
+const response =
+await fetch(url);
 
-    const buffer =
-    await response.arrayBuffer();
+const buffer =
+await response.arrayBuffer();
 
-    const workbook =
-    XLSX.read(buffer,{type:"array"});
+const workbook =
+XLSX.read(buffer,{type:"array"});
 
-    const sheet =
-    workbook.Sheets[
-      workbook.SheetNames[0]
-    ];
+const sheet =
+workbook.Sheets[
+workbook.SheetNames[0]
+];
 
-    const json =
-    XLSX.utils.sheet_to_json(sheet);
+const json =
+XLSX.utils.sheet_to_json(sheet);
 
-    students =
-    json.map((item,index)=>({
+students =
+json.map((item,index)=>({
 
-      no:
-      item["เลขที่"] ||
-      index + 1,
+no:
+item["เลขที่"] ||
+index+1,
 
-      studentId:
-      item["เลขประจำตัวนักเรียน"] ||
-      "",
+studentId:
+item["เลขประจำตัวนักเรียน"] ||
+"",
 
-      name:
-      item["ชื่อ-นามสกุล"] ||
-      item["ชื่อ"] ||
-      "",
+name:
+item["ชื่อ-นามสกุล"] ||
+item["ชื่อ"] ||
+`นักเรียน ${index+1}`,
 
-      checked:false,
+checked:false,
 
-      done:false
+done:false
 
-    }));
+}));
 
-    renderSelect();
+renderSelect();
 
-    renderStudent();
+renderStudent();
 
-    updateStats();
+updateStats();
 
-  }catch(error){
+}catch(error){
 
-    console.log(error);
+console.log(error);
 
-    alert("โหลดข้อมูลไม่สำเร็จ");
-
-  }
+alert("โหลดข้อมูลไม่สำเร็จ");
 
 }
 
-/* =========================
-   RENDER SELECT
-========================= */
+}
+
+/* SELECT */
 
 function renderSelect(){
 
-  const select =
-  document.getElementById("studentSelect");
+const select =
+document.getElementById("studentSelect");
 
-  select.innerHTML = "";
+select.innerHTML = "";
 
-  students.forEach((student,index)=>{
+students.forEach((student,index)=>{
 
-    const option =
-    document.createElement("option");
+const option =
+document.createElement("option");
 
-    option.value = index;
+option.value = index;
 
-    option.text =
-    `${student.no} • ${student.name}`;
+option.text =
+`${student.no} • ${student.name}`;
 
-    select.appendChild(option);
+select.appendChild(option);
 
-  });
+});
 
 }
 
-/* =========================
-   RENDER STUDENT
-========================= */
+/* STUDENT */
 
 function renderStudent(){
 
-  const student =
-  students[currentIndex];
+const student =
+students[currentIndex];
 
-  document
-  .getElementById("studentNo")
-  .innerHTML =
-  `เลขที่ ${student.no}`;
+document
+.getElementById("studentNo")
+.innerHTML =
+`เลขที่ ${student.no}`;
 
-  document
-  .getElementById("studentId")
-  .innerHTML =
-  `รหัส ${student.studentId}`;
+document
+.getElementById("studentId")
+.innerHTML =
+`รหัส ${student.studentId}`;
 
-  document
-  .getElementById("studentName")
-  .innerHTML =
-  student.name;
+document
+.getElementById("studentName")
+.innerHTML =
+student.name;
 
-  document
-  .getElementById("studentSelect")
-  .value =
-  currentIndex;
+document
+.getElementById("studentSelect")
+.value =
+currentIndex;
 
-  updateSwitches();
+updateSwitches();
 
 }
 
-/* =========================
-   SWITCH
-========================= */
+/* SWITCH */
 
 function updateSwitches(){
 
-  document
-  .getElementById("checkSwitch")
-  .className =
-  students[currentIndex].checked
-  ? "switch active"
-  : "switch";
+document
+.getElementById("checkSwitch")
+.className =
+students[currentIndex].checked
+? "switch active"
+: "switch";
 
-  document
-  .getElementById("doneSwitch")
-  .className =
-  students[currentIndex].done
-  ? "switch active"
-  : "switch";
+document
+.getElementById("doneSwitch")
+.className =
+students[currentIndex].done
+? "switch active"
+: "switch";
 
 }
 
 function toggleCheck(){
 
-  if(!isTeacher)return;
+if(!isTeacher)return;
 
-  students[currentIndex].checked =
-  !students[currentIndex].checked;
+students[currentIndex].checked =
+!students[currentIndex].checked;
 
-  updateSwitches();
+updateSwitches();
 
-  updateStats();
+updateStats();
 
 }
 
 function toggleDone(){
 
-  if(!isTeacher)return;
+if(!isTeacher)return;
 
-  students[currentIndex].done =
-  !students[currentIndex].done;
+students[currentIndex].done =
+!students[currentIndex].done;
 
-  updateSwitches();
+updateSwitches();
 
-  updateStats();
+updateStats();
 
 }
 
-/* =========================
-   NEXT / PREV
-========================= */
+/* NEXT PREV */
 
 function nextStudent(){
 
-  if(currentIndex < students.length - 1){
+if(currentIndex < students.length-1){
 
-    currentIndex++;
+currentIndex++;
 
-    renderStudent();
+renderStudent();
 
-  }
+}
 
 }
 
 function prevStudent(){
 
-  if(currentIndex > 0){
+if(currentIndex > 0){
 
-    currentIndex--;
+currentIndex--;
 
-    renderStudent();
+renderStudent();
 
-  }
+}
 
 }
 
 function changeStudent(){
 
-  currentIndex =
-  parseInt(
-    document
-    .getElementById("studentSelect")
-    .value
-  );
+currentIndex =
+parseInt(
+document
+.getElementById("studentSelect")
+.value
+);
 
-  renderStudent();
+renderStudent();
 
 }
 
-/* =========================
-   SEARCH
-========================= */
+/* SEARCH */
 
 function searchStudent(){
 
-  const keyword =
-  document
-  .getElementById("searchInput")
-  .value
-  .toLowerCase();
+const keyword =
+document
+.getElementById("searchInput")
+.value
+.toLowerCase();
 
-  let found = -1;
+let found = -1;
 
-  students.forEach((student,index)=>{
+students.forEach((student,index)=>{
 
-    const text =
-    `${student.name} ${student.studentId}`
-    .toLowerCase();
+const text =
+`${student.name} ${student.studentId}`
+.toLowerCase();
 
-    if(
-      text.includes(keyword)
-      &&
-      found === -1
-    ){
+if(
+text.includes(keyword)
+&&
+found === -1
+){
 
-      found = index;
-
-    }
-
-  });
-
-  if(found !== -1){
-
-    currentIndex = found;
-
-    renderStudent();
-
-  }
+found = index;
 
 }
 
-/* =========================
-   STATS
-========================= */
+});
+
+if(found !== -1){
+
+currentIndex = found;
+
+renderStudent();
+
+}
+
+}
+
+/* STATS */
 
 function updateStats(){
 
-  const checked =
-  students.filter(
-    s => s.checked
-  ).length;
+const checked =
+students.filter(
+s => s.checked
+).length;
 
-  const done =
-  students.filter(
-    s => s.done
-  ).length;
+const done =
+students.filter(
+s => s.done
+).length;
 
-  document
-  .getElementById("allStudentCount")
-  .innerHTML =
-  students.length;
+document
+.getElementById("allStudentCount")
+.innerHTML =
+students.length;
 
-  document
-  .getElementById("checkedCount")
-  .innerHTML =
-  checked;
+document
+.getElementById("checkedCount")
+.innerHTML =
+checked;
 
-  document
-  .getElementById("doneCount")
-  .innerHTML =
-  done;
+document
+.getElementById("doneCount")
+.innerHTML =
+done;
 
-  document
-  .getElementById("absentCount")
-  .innerHTML =
-  students.length - checked;
+document
+.getElementById("absentCount")
+.innerHTML =
+students.length - checked;
 
 }
 
-/* =========================
-   SAVE
-========================= */
+/* SAVE */
 
 function saveData(){
 
-  if(!isTeacher)return;
+if(!isTeacher)return;
 
-  const today =
-  new Date()
-  .toLocaleDateString("th-TH");
+const today =
+new Date()
+.toLocaleDateString("th-TH");
 
-  const history =
-  JSON.parse(
-    localStorage.getItem("dutyHistory")
-  ) || [];
+const history =
+JSON.parse(
+localStorage.getItem("dutyHistory")
+) || [];
 
-  const already =
-  history.find(
-    item => item.date === today
-  );
+const already =
+history.find(
+item => item.date === today
+);
 
-  if(already){
+if(already){
 
-    alert("วันนี้บันทึกไปแล้ว");
+alert("วันนี้บันทึกแล้ว");
 
-    return;
-
-  }
-
-  const payload = {
-
-    date:today,
-
-    timestamp:Date.now(),
-
-    students:students
-
-  };
-
-  history.push(...students.map(student=>({
-
-    date:today,
-
-    no:student.no,
-
-    studentId:student.studentId,
-
-    name:student.name,
-
-    checked:student.checked,
-
-    done:student.done
-
-  })));
-
-  localStorage.setItem(
-    "dutyHistory",
-    JSON.stringify(history)
-  );
-
-  buildMonthFilter();
-
-  renderHistory();
-
-  renderMonthlyChart();
-
-  sendJSONP(payload);
+return;
 
 }
 
-/* =========================
-   FILTER
-========================= */
+history.push(...students.map(student=>({
+
+date:today,
+
+no:student.no,
+
+name:student.name,
+
+checked:student.checked,
+
+done:student.done
+
+}))));
+
+localStorage.setItem(
+"dutyHistory",
+JSON.stringify(history)
+);
+
+buildMonthFilter();
+
+renderHistory();
+
+renderMonthlyChart();
+
+sendJSONP();
+
+alert("บันทึกสำเร็จ");
+
+}
+
+/* FILTER */
 
 function buildMonthFilter(){
 
-  const history =
-  JSON.parse(
-    localStorage.getItem("dutyHistory")
-  ) || [];
+const history =
+JSON.parse(
+localStorage.getItem("dutyHistory")
+) || [];
 
-  const select =
-  document.getElementById("monthFilter");
+const select =
+document.getElementById("monthFilter");
 
-  select.innerHTML =
-  `<option value="all">ทั้งหมด</option>`;
+select.innerHTML =
+`<option value="all">ทั้งหมด</option>`;
 
-  const months = [];
+const months = [];
 
-  history.forEach(item=>{
+history.forEach(item=>{
 
-    const month =
-    item.date.substring(3,10);
+const month =
+item.date.substring(3,10);
 
-    if(!months.includes(month)){
+if(!months.includes(month)){
 
-      months.push(month);
-
-    }
-
-  });
-
-  months.forEach(month=>{
-
-    const option =
-    document.createElement("option");
-
-    option.value = month;
-
-    option.text = month;
-
-    select.appendChild(option);
-
-  });
+months.push(month);
 
 }
 
-/* =========================
-   HISTORY
-========================= */
+});
+
+months.forEach(month=>{
+
+const option =
+document.createElement("option");
+
+option.value = month;
+
+option.text = month;
+
+select.appendChild(option);
+
+});
+
+}
+
+/* HISTORY */
 
 function renderHistory(){
 
-  const history =
-  JSON.parse(
-    localStorage.getItem("dutyHistory")
-  ) || [];
+const history =
+JSON.parse(
+localStorage.getItem("dutyHistory")
+) || [];
 
-  const filter =
-  document
-  .getElementById("monthFilter")
-  .value;
+const filter =
+document
+.getElementById("monthFilter")
+.value;
 
-  const tbody =
-  document
-  .getElementById("historyTable");
+const tbody =
+document
+.getElementById("historyTable");
 
-  tbody.innerHTML = "";
+tbody.innerHTML = "";
 
-  let filtered = history;
+let filtered = history;
 
-  if(filter !== "all"){
+if(filter !== "all"){
 
-    filtered =
-    history.filter(item=>
-      item.date.substring(3,10)
-      === filter
-    );
-
-  }
-
-  filtered.reverse().forEach(item=>{
-
-    const tr =
-    document.createElement("tr");
-
-    tr.innerHTML = `
-
-      <td>${item.date}</td>
-      <td>${item.no}</td>
-      <td>${item.studentId}</td>
-      <td>${item.name}</td>
-
-      <td>
-      ${
-        item.checked
-        ? "✅"
-        : "❌"
-      }
-      </td>
-
-      <td>
-      ${
-        item.done
-        ? "🧹"
-        : "-"
-      }
-      </td>
-
-    `;
-
-    tbody.appendChild(tr);
-
-  });
+filtered =
+history.filter(item=>
+item.date.substring(3,10)
+=== filter
+);
 
 }
 
-/* =========================
-   CHART
-========================= */
+if(filtered.length === 0){
+
+tbody.innerHTML =
+`
+<tr>
+<td colspan="5">
+ไม่มีข้อมูล
+</td>
+</tr>
+`;
+
+return;
+
+}
+
+filtered.reverse().forEach(item=>{
+
+const tr =
+document.createElement("tr");
+
+tr.innerHTML =
+`
+<td>${item.date}</td>
+<td>${item.no}</td>
+<td>${item.name}</td>
+<td>${item.checked ? "✅" : "❌"}</td>
+<td>${item.done ? "🧹" : "-"}</td>
+`;
+
+tbody.appendChild(tr);
+
+});
+
+}
+
+/* CHART */
 
 function renderMonthlyChart(){
 
-  const history =
-  JSON.parse(
-    localStorage.getItem("dutyHistory")
-  ) || [];
+const history =
+JSON.parse(
+localStorage.getItem("dutyHistory")
+) || [];
 
-  const monthData = {};
+const monthData = {};
 
-  history.forEach(item=>{
+history.forEach(item=>{
 
-    const month =
-    item.date.substring(3,10);
+const month =
+item.date.substring(3,10);
 
-    if(!monthData[month]){
+if(!monthData[month]){
 
-      monthData[month] = {
+monthData[month] = {
 
-        checked:0,
+checked:0,
+done:0
 
-        done:0
-
-      };
-
-    }
-
-    if(item.checked){
-
-      monthData[month].checked++;
-
-    }
-
-    if(item.done){
-
-      monthData[month].done++;
-
-    }
-
-  });
-
-  const labels =
-  Object.keys(monthData);
-
-  const checkedValues =
-  labels.map(
-    m => monthData[m].checked
-  );
-
-  const doneValues =
-  labels.map(
-    m => monthData[m].done
-  );
-
-  const ctx =
-  document
-  .getElementById("monthlyChart")
-  .getContext("2d");
-
-  if(monthlyChart){
-
-    monthlyChart.destroy();
-
-  }
-
-  monthlyChart =
-  new Chart(ctx,{
-
-    type:"bar",
-
-    data:{
-
-      labels:labels,
-
-      datasets:[
-
-        {
-
-          label:"เช็คชื่อ",
-
-          data:checkedValues,
-
-          backgroundColor:"#D9A299"
-
-        },
-
-        {
-
-          label:"ทำเวร",
-
-          data:doneValues,
-
-          backgroundColor:"#DCC5B2"
-
-        }
-
-      ]
-
-    },
-
-    options:{
-
-      responsive:true,
-
-      scales:{
-
-        y:{
-
-          beginAtZero:true
-
-        }
-
-      }
-
-    }
-
-  });
+};
 
 }
 
-/* =========================
-   JSONP
-========================= */
+if(item.checked){
 
-function sendJSONP(payload){
+monthData[month].checked++;
 
-  const callbackName =
-  "callback_" + Date.now();
+}
 
-  window[callbackName] =
-  function(){
+if(item.done){
 
-    alert("✅ บันทึกสำเร็จ");
+monthData[month].done++;
 
-  };
+}
 
-  const script =
-  document.createElement("script");
+});
 
-  script.src =
-  `${APPS_SCRIPT_URL}?callback=${callbackName}&data=${encodeURIComponent(JSON.stringify(payload))}`;
+const labels =
+Object.keys(monthData);
 
-  document.body.appendChild(script);
+const checkedValues =
+labels.map(
+m => monthData[m].checked
+);
+
+const doneValues =
+labels.map(
+m => monthData[m].done
+);
+
+const ctx =
+document
+.getElementById("monthlyChart")
+.getContext("2d");
+
+if(monthlyChart){
+
+monthlyChart.destroy();
+
+}
+
+monthlyChart =
+new Chart(ctx,{
+
+type:"bar",
+
+data:{
+
+labels:labels,
+
+datasets:[
+
+{
+
+label:"เช็คชื่อ",
+
+data:checkedValues,
+
+backgroundColor:"#D9A299"
+
+},
+
+{
+
+label:"ทำเวร",
+
+data:doneValues,
+
+backgroundColor:"#DCC5B2"
+
+}
+
+]
+
+},
+
+options:{
+
+responsive:true,
+
+scales:{
+
+y:{
+
+beginAtZero:true
+
+}
+
+}
+
+}
+
+});
+
+}
+
+/* JSONP */
+
+function sendJSONP(){
+
+const callbackName =
+"callback_" + Date.now();
+
+window[callbackName] =
+function(){};
+
+const script =
+document.createElement("script");
+
+script.src =
+`${APPS_SCRIPT_URL}?callback=${callbackName}`;
+
+document.body.appendChild(script);
 
 }
 
 </script>
-```
 
 </body>
 </html>
