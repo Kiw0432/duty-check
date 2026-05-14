@@ -510,9 +510,6 @@ onchange="renderHistory()"
 const SHEET_ID =
 "1lUs_-wKzkzG_zRnod5cQIfu_JDHpYDxe5SeKh2v5yrI";
 
-const TEACHER_USER = "T";
-const TEACHER_PASS = "1234";
-
 let isTeacher = false;
 let students = [];
 let currentIndex = 0;
@@ -554,6 +551,10 @@ document
 .getElementById("mainSystem")
 .classList
 .remove("hidden");
+
+/* ล้างประวัติเก่า */
+
+localStorage.removeItem("dutyHistory");
 
 if(!isTeacher){
 
@@ -861,36 +862,47 @@ function saveData(){
 if(!isTeacher)return;
 
 const today =
-new Date()
-.toLocaleDateString("th-TH");
+new Date().toLocaleDateString("th-TH");
 
 const history =
 JSON.parse(
 localStorage.getItem("dutyHistory")
 ) || [];
 
-const already =
-history.find(
-item => item.date === today
-);
+/* เช็คว่าวันนี้บันทึกแล้วหรือยัง */
 
-if(already){
+const alreadySaved =
+history.some(item => item.date === today);
 
-alert("วันนี้บันทึกแล้ว");
+if(alreadySaved){
+
+alert("วันนี้เช็คชื่อไปแล้ว");
 
 return;
 
 }
 
-history.push(...students.map(student=>({
+/* บันทึก */
+
+students.forEach(student=>{
+
+history.push({
 
 date:today,
+
 no:student.no,
+
 name:student.name,
+
+studentId:student.studentId,
+
 checked:student.checked,
+
 done:student.done
 
-})));
+});
+
+});
 
 localStorage.setItem(
 "dutyHistory",
