@@ -510,7 +510,7 @@ onchange="renderHistory()"
 const SHEET_ID =
 "1lUs_-wKzkzG_zRnod5cQIfu_JDHpYDxe5SeKh2v5yrI";
 
-const TEACHER_USER = "teacher";
+const TEACHER_USER = "T";
 const TEACHER_PASS = "1234";
 
 let isTeacher = false;
@@ -522,17 +522,6 @@ let monthlyChart;
 
 function loginTeacher(){
 
-const user =
-document.getElementById("username").value;
-
-const pass =
-document.getElementById("password").value;
-
-if(
-user === TEACHER_USER &&
-pass === TEACHER_PASS
-){
-
 isTeacher = true;
 
 document
@@ -541,12 +530,6 @@ document
 "✅ เข้าสู่ระบบครูสำเร็จ";
 
 startSystem();
-
-}else{
-
-alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
-
-}
 
 }
 
