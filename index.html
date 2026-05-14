@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>ระบบเช็คชื่อเวรประจำวัน</title>
+<title>ระบบเช็คชื่อเวร</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,8 +13,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-
-<!-- Chart -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -36,45 +34,39 @@
 
 body{
   background:var(--c1);
-  padding:14px;
   color:var(--text);
+  padding:14px;
 }
 
 .container{
-  max-width:700px;
+  max-width:760px;
   margin:auto;
 }
 
 .header{
   background:linear-gradient(135deg,var(--c3),var(--c4));
   color:white;
-  padding:24px;
-  border-radius:26px;
+  padding:22px;
+  border-radius:24px;
   margin-bottom:16px;
-  box-shadow:0 8px 20px rgba(0,0,0,0.08);
 }
 
 .header h1{
   font-size:1.7rem;
 }
 
-.header p{
-  margin-top:5px;
-  opacity:0.95;
-}
-
 .card{
   background:white;
   border-radius:24px;
-  padding:20px;
-  margin-bottom:16px;
+  padding:18px;
+  margin-bottom:14px;
   box-shadow:0 6px 18px rgba(0,0,0,0.05);
 }
 
-.label{
-  margin-bottom:8px;
-  font-size:0.95rem;
-  font-weight:500;
+.login-box{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
 }
 
 input,
@@ -82,63 +74,68 @@ select{
   width:100%;
   border:none;
   background:var(--c1);
-  padding:10px 14px;
+  padding:11px 14px;
   border-radius:14px;
-  font-size:0.95rem;
   outline:none;
   margin-bottom:12px;
 }
 
+button{
+  border:none;
+  border-radius:14px;
+  padding:11px 14px;
+  cursor:pointer;
+  font-size:0.92rem;
+}
+
+.btn-main{
+  background:var(--c4);
+  color:white;
+}
+
+.btn-soft{
+  background:var(--c2);
+}
+
 .student-box{
   background:var(--c1);
-  border-radius:22px;
+  border-radius:20px;
   padding:18px;
   text-align:center;
-  margin-bottom:18px;
-}
-
-.student-number{
-  color:#988173;
-  margin-bottom:4px;
-  font-size:0.95rem;
-}
-
-.student-id{
-  color:#988173;
-  margin-bottom:6px;
-  font-size:0.95rem;
+  margin-bottom:16px;
 }
 
 .student-name{
-  font-size:1.6rem;
+  font-size:1.4rem;
   font-weight:600;
+}
+
+.student-detail{
+  color:#8a7569;
+  font-size:0.9rem;
 }
 
 .switch-row{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:15px 0;
+  padding:14px 0;
   border-bottom:1px solid #eee;
 }
 
-.switch-row:last-child{
-  border-bottom:none;
-}
-
 .switch{
-  width:60px;
-  height:34px;
+  width:58px;
+  height:32px;
   border-radius:999px;
+  background:#ccc;
   position:relative;
   cursor:pointer;
-  transition:0.25s;
 }
 
 .switch::after{
   content:'';
-  width:26px;
-  height:26px;
+  width:24px;
+  height:24px;
   background:white;
   border-radius:50%;
   position:absolute;
@@ -151,73 +148,52 @@ select{
   background:var(--c4);
 }
 
-.switch.inactive{
-  background:#d7d7d7;
-}
-
 .switch.active::after{
   left:30px;
 }
 
-.button-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:18px;
-}
-
-button{
-  border:none;
-  border-radius:16px;
-  padding:13px;
-  font-size:0.95rem;
-  cursor:pointer;
-  font-weight:500;
-  transition:0.2s;
-}
-
-button:active{
-  transform:scale(0.97);
-}
-
-.btn-main{
-  background:var(--c4);
-  color:white;
-}
-
-.btn-soft{
-  background:var(--c2);
-  color:var(--text);
-}
-
-.btn-save{
-  width:100%;
-  margin-top:12px;
-  background:#89b89a;
-  color:white;
-}
-
 .dashboard{
   display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:16px;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-top:14px;
 }
 
 .dash-card{
-  background:#FAF7F3;
-  padding:16px;
-  border-radius:18px;
+  background:var(--c1);
+  border-radius:16px;
+  padding:10px;
   text-align:center;
 }
 
 .dash-card h2{
-  color:#D9A299;
-  margin-top:6px;
+  color:var(--c4);
+  font-size:1.2rem;
+}
+
+.small-title{
+  font-size:0.8rem;
+}
+
+.small-section{
+  padding:14px;
+}
+
+.month-btn{
+  border:none;
+  background:var(--c2);
+  border-radius:999px;
+  padding:6px 12px;
+  font-size:0.82rem;
+}
+
+.month-btn.active{
+  background:var(--c4);
+  color:white;
 }
 
 .table-wrapper{
-  overflow-x:auto;
+  overflow:auto;
 }
 
 table{
@@ -226,29 +202,23 @@ table{
   margin-top:12px;
 }
 
-thead{
-  background:var(--c2);
-}
-
 th{
-  padding:12px;
-  font-size:0.92rem;
+  background:var(--c2);
+  padding:10px;
+  font-size:0.85rem;
 }
 
 td{
-  padding:11px;
+  padding:10px;
   text-align:center;
-  font-size:0.9rem;
-}
-
-tbody tr{
   border-bottom:1px solid #eee;
+  font-size:0.84rem;
 }
 
 .badge{
-  padding:4px 10px;
+  padding:3px 8px;
   border-radius:999px;
-  font-size:0.82rem;
+  font-size:0.78rem;
 }
 
 .success{
@@ -261,19 +231,15 @@ tbody tr{
   color:#ba3939;
 }
 
+.hidden{
+  display:none;
+}
+
 .footer{
   text-align:center;
   margin-top:14px;
-  color:#998274;
-  font-size:0.88rem;
-}
-
-.chart-card{
-  background:white;
-  border-radius:24px;
-  padding:20px;
-  margin-bottom:16px;
-  box-shadow:0 6px 18px rgba(0,0,0,0.05);
+  color:#988173;
+  font-size:0.82rem;
 }
 
 </style>
@@ -284,563 +250,199 @@ tbody tr{
 
 <div class="container">
 
-  <div class="header">
-    <h1>📚 ระบบเช็คชื่อเวร</h1>
-  </div>
+<div class="header">
+  <h1>📚 ระบบเช็คชื่อเวร</h1>
+  <p>Student Care Style 🌷</p>
+</div>
 
-  <!-- เช็คชื่อ -->
+<div class="card">
 
-  <div class="card">
+<h3 style="margin-bottom:12px;">
+🔐 เข้าสู่ระบบ
+</h3>
 
-    <div class="label">
-      🔍 ค้นหาชื่อนักเรียน
-    </div>
+<div class="login-box">
 
-    <input
-      type="text"
-      id="searchInput"
-      placeholder="พิมพ์ชื่อหรือรหัสนักเรียน..."
-      onkeyup="searchStudent()"
-    >
+<input type="text" id="username" placeholder="ชื่อผู้ใช้">
 
-    <div class="label">
-      👨‍🎓 เลือกนักเรียน
-    </div>
+<input type="password" id="password" placeholder="รหัสผ่าน">
 
-    <select id="studentSelect" onchange="changeStudent()"></select>
+<button class="btn-main" onclick="loginTeacher()">
+เข้าสู่ระบบครู
+</button>
 
-    <div class="student-box">
-
-      <div class="student-number" id="studentNo">
-        เลขที่ -
-      </div>
-
-      <div class="student-id" id="studentId">
-        รหัสนักเรียน -
-      </div>
-
-      <div class="student-name" id="studentName">
-        กำลังโหลด...
-      </div>
-
-    </div>
-
-    <div class="switch-row">
-
-      <div>🙋 เช็คชื่อแล้ว</div>
-
-      <div
-        class="switch inactive"
-        id="checkSwitch"
-        onclick="toggleCheck()"
-      ></div>
-
-    </div>
-
-    <div class="switch-row">
-
-      <div>🧹 ทำเวรแล้ว</div>
-
-      <div
-        class="switch inactive"
-        id="doneSwitch"
-        onclick="toggleDone()"
-      ></div>
-
-    </div>
-
-    <div class="button-grid">
-
-      <button class="btn-soft" onclick="prevStudent()">
-        ⬅️ ก่อนหน้า
-      </button>
-
-      <button class="btn-main" onclick="nextStudent()">
-        ถัดไป ➡️
-      </button>
-
-    </div>
-
-    <button class="btn-save" onclick="saveData()">
-      💾 บันทึกข้อมูล
-    </button>
-
-    <!-- Dashboard -->
-
-    <div class="dashboard">
-
-      <div class="dash-card">
-        <div>👨‍🎓 ทั้งหมด</div>
-        <h2 id="allStudentCount">0</h2>
-      </div>
-
-      <div class="dash-card">
-        <div>🙋 มาเรียน</div>
-        <h2 id="checkedCount">0</h2>
-      </div>
-
-      <div class="dash-card">
-        <div>🧹 ทำเวรแล้ว</div>
-        <h2 id="doneCount">0</h2>
-      </div>
-
-      <div class="dash-card">
-        <div>❌ ยังไม่มา</div>
-        <h2 id="absentCount">0</h2>
-      </div>
-
-    </div>
-
-  </div>
-
-  <!-- กราฟ -->
-
-  <!-- =========================================
-แทนที่ส่วน "กราฟ" เดิมทั้งหมดด้วยอันนี้
-========================================= -->
-
-<div class="chart-card">
-
-  <div
-    style="
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-bottom:16px;
-    "
-  >
-
-    <h2>
-      📊 เปรียบเทียบรายเดือน
-    </h2>
-
-    <select
-      id="chartType"
-      onchange="renderMonthlyChart()"
-      style="
-        width:auto;
-        min-width:170px;
-        margin:0;
-      "
-    >
-
-      <option value="both">
-        📚 ทั้งหมด
-      </option>
-
-      <option value="checked">
-        🙋 เช็คชื่อ
-      </option>
-
-      <option value="done">
-        🧹 ทำเวร
-      </option>
-
-    </select>
-
-  </div>
-
-  <!-- ปุ่มเดือน -->
-
-  <div
-    id="monthButtons"
-    style="
-      display:flex;
-      gap:8px;
-      overflow:auto;
-      margin-bottom:18px;
-      padding-bottom:4px;
-    "
-  ></div>
-
-  <canvas id="monthlyChart"></canvas>
+<button class="btn-soft" onclick="loginStudent()">
+เข้าชมแบบนักเรียน
+</button>
 
 </div>
 
-<!-- =========================================
-เพิ่ม CSS ใต้ .chart-card
-========================================= -->
+<div id="loginStatus"></div>
 
-<style>
+</div>
 
-.month-btn{
+<div id="mainSystem" class="hidden">
 
-  border:none;
+<div class="card">
 
-  padding:8px 14px;
+<input
+type="text"
+id="searchInput"
+placeholder="🔍 ค้นหาชื่อ / รหัสนักเรียน"
+onkeyup="searchStudent()"
+>
 
-  border-radius:999px;
+<select id="studentSelect" onchange="changeStudent()"></select>
 
-  background:#F0E4D3;
+<div class="student-box">
 
-  color:#5c4d45;
+<div class="student-detail" id="studentNo"></div>
 
-  cursor:pointer;
+<div class="student-detail" id="studentId"></div>
 
-  white-space:nowrap;
+<div class="student-name" id="studentName"></div>
 
-  transition:0.2s;
+</div>
 
-  font-size:0.9rem;
+<div class="switch-row">
 
-}
+<div>🙋 เช็คชื่อแล้ว</div>
 
-.month-btn.active{
+<div
+class="switch"
+id="checkSwitch"
+onclick="toggleCheck()"
+></div>
 
-  background:#D9A299;
+</div>
 
-  color:white;
+<div class="switch-row">
 
-}
+<div>🧹 ทำเวรแล้ว</div>
 
-</style>
+<div
+class="switch"
+id="doneSwitch"
+onclick="toggleDone()"
+></div>
 
-<!-- =========================================
-เพิ่มใต้
-let monthlyChart;
-========================================= -->
+</div>
 
-<script>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
 
-let selectedMonths = [];
+<button class="btn-soft" onclick="prevStudent()">
+⬅️ ก่อนหน้า
+</button>
 
-</script>
+<button class="btn-main" onclick="nextStudent()">
+ถัดไป ➡️
+</button>
 
-<!-- =========================================
-แทนที่ฟังก์ชัน renderMonthlyChart()
-เดิมทั้งหมด
-========================================= -->
+</div>
 
-<script>
+<button
+class="btn-main"
+id="saveBtn"
+onclick="saveData()"
+style="width:100%;margin-top:12px;"
+>
+💾 บันทึกข้อมูล
+</button>
 
-/* =========================================
-สร้างปุ่มเดือน
-========================================= */
+<div class="dashboard">
 
-function buildMonthButtons(){
+<div class="dash-card">
+<div class="small-title">ทั้งหมด</div>
+<h2 id="allStudentCount">0</h2>
+</div>
 
-  const history =
-  JSON.parse(
-    localStorage.getItem("dutyHistory")
-  ) || [];
+<div class="dash-card">
+<div class="small-title">มาเรียน</div>
+<h2 id="checkedCount">0</h2>
+</div>
 
-  const months = [];
+<div class="dash-card">
+<div class="small-title">ทำเวร</div>
+<h2 id="doneCount">0</h2>
+</div>
 
-  history.forEach(item=>{
+<div class="dash-card">
+<div class="small-title">ขาด</div>
+<h2 id="absentCount">0</h2>
+</div>
 
-    const month =
-    item.date.substring(3,10);
+</div>
 
-    if(!months.includes(month)){
+</div>
 
-      months.push(month);
+<div class="card small-section">
 
-    }
+<h3 style="font-size:1rem;">
+📊 สรุปรายเดือน
+</h3>
 
-  });
+<div
+id="monthButtons"
+style="
+display:flex;
+gap:6px;
+overflow:auto;
+margin:10px 0;
+"
+></div>
 
-  const container =
-  document.getElementById("monthButtons");
+<canvas id="monthlyChart"></canvas>
 
-  container.innerHTML = "";
+</div>
 
-  months.forEach(month=>{
+<div class="card small-section">
 
-    const btn =
-    document.createElement("button");
+<h3 style="font-size:1rem;">
+🕒 ประวัติย้อนหลัง
+</h3>
 
-    btn.className = "month-btn";
+<select
+id="monthFilter"
+onchange="renderHistory()"
+style="margin-top:10px;"
+>
 
-    btn.innerText = month;
+<option value="all">
+ทั้งหมด
+</option>
 
-    if(selectedMonths.includes(month)){
+</select>
 
-      btn.classList.add("active");
+<div class="table-wrapper">
 
-    }
+<table>
 
-    btn.onclick = ()=>{
+<thead>
 
-      toggleMonth(month);
+<tr>
+<th>วันที่</th>
+<th>เลขที่</th>
+<th>รหัส</th>
+<th>ชื่อ</th>
+<th>เช็คชื่อ</th>
+<th>ทำเวร</th>
+</tr>
 
-    };
+</thead>
 
-    container.appendChild(btn);
+<tbody id="historyTable"></tbody>
 
-  });
+</table>
 
-}
+</div>
 
-/* =========================================
-เลือกเดือน
-========================================= */
+</div>
 
-function toggleMonth(month){
+</div>
 
-  if(selectedMonths.includes(month)){
-
-    selectedMonths =
-    selectedMonths.filter(
-      m => m !== month
-    );
-
-  }else{
-
-    selectedMonths.push(month);
-
-  }
-
-  buildMonthButtons();
-
-  renderMonthlyChart();
-
-}
-
-/* =========================================
-กราฟรายเดือน
-========================================= */
-
-function renderMonthlyChart(){
-
-  const history =
-  JSON.parse(
-    localStorage.getItem("dutyHistory")
-  ) || [];
-
-  const chartType =
-  document.getElementById("chartType").value;
-
-  const monthData = {};
-
-  history.forEach(item=>{
-
-    const month =
-    item.date.substring(3,10);
-
-    if(
-      selectedMonths.length > 0 &&
-      !selectedMonths.includes(month)
-    ){
-      return;
-    }
-
-    if(!monthData[month]){
-
-      monthData[month] = {
-
-        checked:0,
-
-        done:0
-
-      };
-
-    }
-
-    if(item.checked){
-
-      monthData[month].checked++;
-
-    }
-
-    if(item.done){
-
-      monthData[month].done++;
-
-    }
-
-  });
-
-  const labels =
-  Object.keys(monthData);
-
-  const checkedValues =
-  labels.map(
-    month => monthData[month].checked
-  );
-
-  const doneValues =
-  labels.map(
-    month => monthData[month].done
-  );
-
-  const datasets = [];
-
-  if(chartType === "checked"){
-
-    datasets.push({
-
-      label:"🙋 เช็คชื่อ",
-
-      data:checkedValues,
-
-      backgroundColor:"#D9A299",
-
-      borderRadius:12
-
-    });
-
-  }
-
-  if(chartType === "done"){
-
-    datasets.push({
-
-      label:"🧹 ทำเวร",
-
-      data:doneValues,
-
-      backgroundColor:"#DCC5B2",
-
-      borderRadius:12
-
-    });
-
-  }
-
-  if(chartType === "both"){
-
-    datasets.push({
-
-      label:"🙋 เช็คชื่อ",
-
-      data:checkedValues,
-
-      backgroundColor:"#D9A299",
-
-      borderRadius:12
-
-    });
-
-    datasets.push({
-
-      label:"🧹 ทำเวร",
-
-      data:doneValues,
-
-      backgroundColor:"#DCC5B2",
-
-      borderRadius:12
-
-    });
-
-  }
-
-  const ctx =
-  document
-  .getElementById("monthlyChart")
-  .getContext("2d");
-
-  if(monthlyChart){
-
-    monthlyChart.destroy();
-
-  }
-
-  monthlyChart =
-  new Chart(ctx,{
-
-    type:"bar",
-
-    data:{
-
-      labels:labels,
-
-      datasets:datasets
-
-    },
-
-    options:{
-
-      responsive:true,
-
-      plugins:{
-
-        legend:{
-          position:"top"
-        }
-
-      },
-
-      scales:{
-
-        y:{
-          beginAtZero:true
-        }
-
-      }
-
-    }
-
-  });
-
-}
-
-</script>
-
-<!-- =========================================
-เพิ่มใน saveLocal()
-ใต้ renderHistory();
-========================================= -->
-  <!-- ประวัติย้อนหลัง -->
-
-  <div class="card">
-
-    <h2>🕒 ประวัติย้อนหลัง</h2>
-
-    <div style="margin-top:14px;">
-
-      <div class="label">
-        📅 กรองตามเดือน
-      </div>
-
-      <select id="monthFilter" onchange="renderHistory()">
-
-        <option value="all">
-          ทั้งหมด
-        </option>
-
-      </select>
-
-    </div>
-
-    <div class="table-wrapper">
-
-      <table>
-
-        <thead>
-
-          <tr>
-            <th>วันที่</th>
-            <th>เลขที่</th>
-            <th>รหัส</th>
-            <th>ชื่อ</th>
-            <th>เช็คชื่อ</th>
-            <th>ทำเวร</th>
-          </tr>
-
-        </thead>
-
-        <tbody id="historyTable">
-
-          <tr>
-            <td colspan="6">
-              ยังไม่มีข้อมูลย้อนหลัง
-            </td>
-          </tr>
-
-        </tbody>
-
-      </table>
-
-    </div>
-
-  </div>
-
-  <div class="footer">
-    ระบบเช็คชื่อเวรประจำวัน ✨
-  </div>
+<div class="footer">
+ระบบเช็คชื่อเวรประจำวัน ✨
+</div>
 
 </div>
 
@@ -850,7 +452,12 @@ const SHEET_ID =
 "1lUs_-wKzkzG_zRnod5cQIfu_JDHpYDxe5SeKh2v5yrI";
 
 const APPS_SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbxwQpjFXDmcbfNf4JwSQNJCcO5jr-P7T135YdQw_t8Rh55wK7EcjIDBgwpnB35S098MYg/exec";
+"https://script.google.com/macros/s/AKfycbw6bwQPk6oDpyNP6uQyfuFBh0JQuQr1ozoK2jHInPgGASnPUNIPtcSI4irSgmNMbe2IWQ/exec";
+
+const TEACHER_USER = "teacher";
+const TEACHER_PASS = "1234";
+
+let isTeacher = false;
 
 let students = [];
 
@@ -858,635 +465,740 @@ let currentIndex = 0;
 
 let monthlyChart;
 
-/* โหลดข้อมูล */
+let selectedMonths = [];
 
-async function loadStudents(){
+function loginTeacher(){
 
-  try{
+const user =
+document.getElementById("username").value;
 
-    const url =
-    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx`;
+const pass =
+document.getElementById("password").value;
 
-    const response =
-    await fetch(url);
+if(
+user === TEACHER_USER &&
+pass === TEACHER_PASS
+){
 
-    const buffer =
-    await response.arrayBuffer();
+isTeacher = true;
 
-    const workbook =
-    XLSX.read(buffer,{type:"array"});
+document
+.getElementById("loginStatus")
+.innerText =
+"✅ เข้าสู่ระบบครูสำเร็จ";
 
-    const sheet =
-    workbook.Sheets[
-      workbook.SheetNames[0]
-    ];
+startSystem();
 
-    const json =
-    XLSX.utils.sheet_to_json(sheet);
+}else{
 
-    students = json.map((item,index)=>({
-
-      no:
-      item.no ||
-      item.No ||
-      item.เลขที่ ||
-      index+1,
-
-      studentId:
-      item.studentId ||
-      item.StudentID ||
-      item["เลขประจำตัว"] ||
-      item["เลขประจำตัวนักเรียน"] ||
-      "",
-
-      name:
-      item.name ||
-      item.Name ||
-      item.ชื่อ ||
-      `นักเรียน ${index+1}`,
-
-      checked:false,
-
-      done:false
-
-    }));
-
-    renderSelect();
-
-    renderStudent();
-
-    updateStats();
-
-  }catch(error){
-
-    console.log(error);
-
-    document.getElementById("studentName")
-    .innerText =
-    "โหลดข้อมูลไม่สำเร็จ";
-
-  }
+alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
 
 }
 
-/* dropdown */
+}
 
-function renderSelect(){
+function loginStudent(){
 
-  const select =
-  document.getElementById("studentSelect");
+isTeacher = false;
 
-  select.innerHTML = "";
+document
+.getElementById("loginStatus")
+.innerText =
+"👀 เข้าชมแบบนักเรียน";
 
-  students.forEach((student,index)=>{
-
-    const option =
-    document.createElement("option");
-
-    option.value = index;
-
-    option.text =
-    `${student.no} • ${student.studentId} • ${student.name}`;
-
-    select.appendChild(option);
-
-  });
+startSystem();
 
 }
 
-/* แสดงนักเรียน */
+function startSystem(){
 
-function renderStudent(){
+document
+.getElementById("mainSystem")
+.classList
+.remove("hidden");
 
-  const student =
-  students[currentIndex];
+if(!isTeacher){
 
-  document.getElementById("studentNo")
-  .innerText =
-  `เลขที่ ${student.no}`;
-
-  document.getElementById("studentId")
-  .innerText =
-  `รหัส ${student.studentId}`;
-
-  document.getElementById("studentName")
-  .innerText =
-  student.name;
-
-  document.getElementById("studentSelect")
-  .value =
-  currentIndex;
-
-  updateSwitches();
+document
+.getElementById("saveBtn")
+.style.display = "none";
 
 }
-
-/* switch */
-
-function updateSwitches(){
-
-  const student =
-  students[currentIndex];
-
-  document.getElementById("checkSwitch")
-  .className =
-  student.checked
-  ? "switch active"
-  : "switch inactive";
-
-  document.getElementById("doneSwitch")
-  .className =
-  student.done
-  ? "switch active"
-  : "switch inactive";
-
-}
-
-function toggleCheck(){
-
-  students[currentIndex].checked =
-  !students[currentIndex].checked;
-
-  updateSwitches();
-
-  updateStats();
-
-}
-
-function toggleDone(){
-
-  students[currentIndex].done =
-  !students[currentIndex].done;
-
-  updateSwitches();
-
-  updateStats();
-
-}
-
-/* เปลี่ยนนักเรียน */
-
-function nextStudent(){
-
-  if(currentIndex < students.length-1){
-
-    currentIndex++;
-
-    renderStudent();
-
-  }
-
-}
-
-function prevStudent(){
-
-  if(currentIndex > 0){
-
-    currentIndex--;
-
-    renderStudent();
-
-  }
-
-}
-
-function changeStudent(){
-
-  currentIndex =
-  parseInt(
-    document.getElementById("studentSelect").value
-  );
-
-  renderStudent();
-
-}
-
-/* ค้นหา */
-
-function searchStudent(){
-
-  const keyword =
-  document.getElementById("searchInput")
-  .value
-  .toLowerCase();
-
-  let foundIndex = -1;
-
-  students.forEach((student,index)=>{
-
-    const text =
-    `${student.name} ${student.studentId}`
-    .toLowerCase();
-
-    if(text.includes(keyword) && foundIndex === -1){
-
-      foundIndex = index;
-
-    }
-
-  });
-
-  if(foundIndex !== -1){
-
-    currentIndex = foundIndex;
-
-    renderStudent();
-
-  }
-
-}
-
-/* Dashboard */
-
-function updateStats(){
-
-  const checked =
-  students.filter(s=>s.checked).length;
-
-  const done =
-  students.filter(s=>s.done).length;
-
-  const absent =
-  students.length - checked;
-
-  document.getElementById("allStudentCount")
-  .innerText =
-  students.length;
-
-  document.getElementById("checkedCount")
-  .innerText =
-  checked;
-
-  document.getElementById("doneCount")
-  .innerText =
-  done;
-
-  document.getElementById("absentCount")
-  .innerText =
-  absent;
-
-}
-
-/* save */
-
-function saveData(){
-
-  const payload = {
-
-    date:
-    new Date().toLocaleDateString("th-TH"),
-
-    timestamp:
-    Date.now(),
-
-    students:students
-
-  };
-
-  saveLocal(payload);
-
-  sendJSONP(payload);
-
-}
-
-/* local */
-
-function saveLocal(payload){
-
-  const history =
-  JSON.parse(
-    localStorage.getItem("dutyHistory")
-  ) || [];
-
-  payload.students.forEach(student=>{
-
-    history.push({
-
-      date:payload.date,
-
-      no:student.no,
-
-      studentId:student.studentId,
-
-      name:student.name,
-
-      checked:student.checked,
-
-      done:student.done
-
-    });
-
-  });
-
-  localStorage.setItem(
-    "dutyHistory",
-    JSON.stringify(history)
-  );
-
-  buildMonthFilter();
-
-  renderHistory();
-
-  renderMonthlyChart();
-
-}
-
-/* filter เดือน */
-
-function buildMonthFilter(){
-
-  const history =
-  JSON.parse(
-    localStorage.getItem("dutyHistory")
-  ) || [];
-
-  const select =
-  document.getElementById("monthFilter");
-
-  select.innerHTML =
-  `<option value="all">ทั้งหมด</option>`;
-
-  const months = [];
-
-  history.forEach(item=>{
-
-    const month =
-    item.date.substring(3,10);
-
-    if(!months.includes(month)){
-
-      months.push(month);
-
-    }
-
-  });
-
-  months.forEach(month=>{
-
-    const option =
-    document.createElement("option");
-
-    option.value = month;
-
-    option.text = month;
-
-    select.appendChild(option);
-
-  });
-
-}
-
-/* ตารางย้อนหลัง */
-
-function renderHistory(){
-
-  const history =
-  JSON.parse(
-    localStorage.getItem("dutyHistory")
-  ) || [];
-
-  const filter =
-  document.getElementById("monthFilter").value;
-
-  const tbody =
-  document.getElementById("historyTable");
-
-  tbody.innerHTML = "";
-
-  let filtered = history;
-
-  if(filter !== "all"){
-
-    filtered =
-    history.filter(item=>{
-
-      return item.date.substring(3,10)
-      === filter;
-
-    });
-
-  }
-
-  if(filtered.length === 0){
-
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6">
-          ไม่มีข้อมูล
-        </td>
-      </tr>
-    `;
-
-    return;
-
-  }
-
-  filtered.reverse().forEach(item=>{
-
-    const tr =
-    document.createElement("tr");
-
-    tr.innerHTML = `
-
-      <td>${item.date}</td>
-
-      <td>${item.no}</td>
-
-      <td>${item.studentId}</td>
-
-      <td>${item.name}</td>
-
-      <td>
-        ${
-          item.checked
-          ? `<span class="badge success">มา</span>`
-          : `<span class="badge danger">ขาด</span>`
-        }
-      </td>
-
-      <td>
-        ${
-          item.done
-          ? `<span class="badge success">เสร็จ</span>`
-          : `<span class="badge danger">ยัง</span>`
-        }
-      </td>
-
-    `;
-
-    tbody.appendChild(tr);
-
-  });
-
-}
-
-/* กราฟรายเดือน */
-
-function renderMonthlyChart(){
-
-  const history =
-  JSON.parse(
-    localStorage.getItem("dutyHistory")
-  ) || [];
-
-  const monthData = {};
-
-  history.forEach(item=>{
-
-    const month =
-    item.date.substring(3,10);
-
-    if(!monthData[month]){
-
-      monthData[month] = {
-
-        checked:0,
-
-        done:0
-
-      };
-
-    }
-
-    if(item.checked){
-
-      monthData[month].checked++;
-
-    }
-
-    if(item.done){
-
-      monthData[month].done++;
-
-    }
-
-  });
-
-  const labels =
-  Object.keys(monthData);
-
-  const checkedValues =
-  labels.map(
-    month => monthData[month].checked
-  );
-
-  const doneValues =
-  labels.map(
-    month => monthData[month].done
-  );
-
-  const ctx =
-  document
-  .getElementById("monthlyChart")
-  .getContext("2d");
-
-  if(monthlyChart){
-
-    monthlyChart.destroy();
-
-  }
-
-  monthlyChart =
-  new Chart(ctx,{
-
-    type:"bar",
-
-    data:{
-
-      labels:labels,
-
-      datasets:[
-
-        {
-
-          label:"🙋 มาเรียน",
-
-          data:checkedValues,
-
-          backgroundColor:"#D9A299",
-
-          borderRadius:10
-
-        },
-
-        {
-
-          label:"🧹 ทำเวรแล้ว",
-
-          data:doneValues,
-
-          backgroundColor:"#DCC5B2",
-
-          borderRadius:10
-
-        }
-
-      ]
-
-    },
-
-    options:{
-
-      responsive:true,
-
-      plugins:{
-
-        legend:{
-          position:"top"
-        }
-
-      },
-
-      scales:{
-
-        y:{
-          beginAtZero:true
-        }
-
-      }
-
-    }
-
-  });
-
-}
-
-/* JSONP */
-
-function sendJSONP(payload){
-
-  const callbackName =
-  "callback_" + Date.now();
-
-  window[callbackName] = function(response){
-
-    alert("✅ บันทึกข้อมูลสำเร็จ");
-
-    delete window[callbackName];
-
-    document.body.removeChild(script);
-
-  };
-
-  const script =
-  document.createElement("script");
-
-  script.src =
-  `${APPS_SCRIPT_URL}?callback=${callbackName}&data=${encodeURIComponent(JSON.stringify(payload))}`;
-
-  document.body.appendChild(script);
-
-}
-
-/* start */
 
 loadStudents();
 
 buildMonthFilter();
 
+buildMonthButtons();
+
 renderHistory();
 
 renderMonthlyChart();
+
+}
+
+async function loadStudents(){
+
+const url =
+`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx`;
+
+const response =
+await fetch(url);
+
+const buffer =
+await response.arrayBuffer();
+
+const workbook =
+XLSX.read(buffer,{type:"array"});
+
+const sheet =
+workbook.Sheets[
+workbook.SheetNames[0]
+];
+
+const json =
+XLSX.utils.sheet_to_json(sheet);
+
+students =
+json.map((item,index)=>({
+
+no:
+item["เลขที่"] ||
+index+1,
+
+studentId:
+item["เลขประจำตัวนักเรียน"] ||
+"",
+
+name:
+item["ชื่อ-นามสกุล"] ||
+item["ชื่อ"] ||
+"",
+
+checked:false,
+
+done:false
+
+}));
+
+renderSelect();
+
+renderStudent();
+
+updateStats();
+
+}
+
+function renderSelect(){
+
+const select =
+document.getElementById("studentSelect");
+
+select.innerHTML = "";
+
+students.forEach((student,index)=>{
+
+const option =
+document.createElement("option");
+
+option.value = index;
+
+option.text =
+`${student.no} • ${student.name}`;
+
+select.appendChild(option);
+
+});
+
+}
+
+function renderStudent(){
+
+const student =
+students[currentIndex];
+
+document
+.getElementById("studentNo")
+.innerText =
+`เลขที่ ${student.no}`;
+
+document
+.getElementById("studentId")
+.innerText =
+`รหัส ${student.studentId}`;
+
+document
+.getElementById("studentName")
+.innerText =
+student.name;
+
+document
+.getElementById("studentSelect")
+.value =
+currentIndex;
+
+updateSwitch();
+
+}
+
+function updateSwitch(){
+
+document
+.getElementById("checkSwitch")
+.className =
+students[currentIndex].checked
+? "switch active"
+: "switch";
+
+document
+.getElementById("doneSwitch")
+.className =
+students[currentIndex].done
+? "switch active"
+: "switch";
+
+}
+
+function toggleCheck(){
+
+if(!isTeacher)return;
+
+students[currentIndex].checked =
+!students[currentIndex].checked;
+
+updateSwitch();
+
+updateStats();
+
+}
+
+function toggleDone(){
+
+if(!isTeacher)return;
+
+students[currentIndex].done =
+!students[currentIndex].done;
+
+updateSwitch();
+
+updateStats();
+
+}
+
+function nextStudent(){
+
+if(currentIndex < students.length-1){
+
+currentIndex++;
+
+renderStudent();
+
+}
+
+}
+
+function prevStudent(){
+
+if(currentIndex > 0){
+
+currentIndex--;
+
+renderStudent();
+
+}
+
+}
+
+function changeStudent(){
+
+currentIndex =
+parseInt(
+document
+.getElementById("studentSelect")
+.value
+);
+
+renderStudent();
+
+}
+
+function searchStudent(){
+
+const keyword =
+document
+.getElementById("searchInput")
+.value
+.toLowerCase();
+
+let found = -1;
+
+students.forEach((student,index)=>{
+
+const text =
+`${student.name} ${student.studentId}`
+.toLowerCase();
+
+if(
+text.includes(keyword)
+&&
+found === -1
+){
+found = index;
+}
+
+});
+
+if(found !== -1){
+
+currentIndex = found;
+
+renderStudent();
+
+}
+
+}
+
+function updateStats(){
+
+const checked =
+students.filter(
+s=>s.checked
+).length;
+
+const done =
+students.filter(
+s=>s.done
+).length;
+
+document
+.getElementById("allStudentCount")
+.innerText =
+students.length;
+
+document
+.getElementById("checkedCount")
+.innerText =
+checked;
+
+document
+.getElementById("doneCount")
+.innerText =
+done;
+
+document
+.getElementById("absentCount")
+.innerText =
+students.length - checked;
+
+}
+
+function saveData(){
+
+if(!isTeacher)return;
+
+const today =
+new Date()
+.toLocaleDateString("th-TH");
+
+const history =
+JSON.parse(
+localStorage.getItem("dutyHistory")
+) || [];
+
+const already =
+history.find(
+item => item.date === today
+);
+
+if(already){
+
+alert("วันนี้บันทึกไปแล้ว");
+
+return;
+
+}
+
+const payload = {
+
+date:today,
+
+timestamp:Date.now(),
+
+students:students
+
+};
+
+history.push(...students.map(student=>({
+
+date:today,
+
+no:student.no,
+
+studentId:student.studentId,
+
+name:student.name,
+
+checked:student.checked,
+
+done:student.done
+
+}))));
+
+localStorage.setItem(
+"dutyHistory",
+JSON.stringify(history)
+);
+
+buildMonthFilter();
+
+buildMonthButtons();
+
+renderHistory();
+
+renderMonthlyChart();
+
+sendJSONP(payload);
+
+}
+
+function buildMonthFilter(){
+
+const history =
+JSON.parse(
+localStorage.getItem("dutyHistory")
+) || [];
+
+const months = [];
+
+history.forEach(item=>{
+
+const month =
+item.date.substring(3,10);
+
+if(!months.includes(month)){
+
+months.push(month);
+
+}
+
+});
+
+const select =
+document
+.getElementById("monthFilter");
+
+select.innerHTML =
+`<option value="all">ทั้งหมด</option>`;
+
+months.forEach(month=>{
+
+const option =
+document.createElement("option");
+
+option.value = month;
+
+option.text = month;
+
+select.appendChild(option);
+
+});
+
+}
+
+function renderHistory(){
+
+const history =
+JSON.parse(
+localStorage.getItem("dutyHistory")
+) || [];
+
+const filter =
+document
+.getElementById("monthFilter")
+.value;
+
+const tbody =
+document
+.getElementById("historyTable");
+
+tbody.innerHTML = "";
+
+let filtered = history;
+
+if(filter !== "all"){
+
+filtered =
+history.filter(item=>
+item.date.substring(3,10)
+=== filter
+);
+
+}
+
+filtered.reverse().forEach(item=>{
+
+const tr =
+document.createElement("tr");
+
+tr.innerHTML = `
+
+<td>${item.date}</td>
+<td>${item.no}</td>
+<td>${item.studentId}</td>
+<td>${item.name}</td>
+
+<td>
+${
+item.checked
+? `<span class="badge success">มา</span>`
+: `<span class="badge danger">ขาด</span>`
+}
+</td>
+
+<td>
+${
+item.done
+? `<span class="badge success">เสร็จ</span>`
+: `<span class="badge danger">ยัง</span>`
+}
+</td>
+
+`;
+
+tbody.appendChild(tr);
+
+});
+
+}
+
+function buildMonthButtons(){
+
+const history =
+JSON.parse(
+localStorage.getItem("dutyHistory")
+) || [];
+
+const months = [];
+
+history.forEach(item=>{
+
+const month =
+item.date.substring(3,10);
+
+if(!months.includes(month)){
+
+months.push(month);
+
+}
+
+});
+
+const container =
+document
+.getElementById("monthButtons");
+
+container.innerHTML = "";
+
+months.forEach(month=>{
+
+const btn =
+document.createElement("button");
+
+btn.className =
+selectedMonths.includes(month)
+? "month-btn active"
+: "month-btn";
+
+btn.innerText = month;
+
+btn.onclick = ()=>{
+
+toggleMonth(month);
+
+};
+
+container.appendChild(btn);
+
+});
+
+}
+
+function toggleMonth(month){
+
+if(selectedMonths.includes(month)){
+
+selectedMonths =
+selectedMonths.filter(
+m => m !== month
+);
+
+}else{
+
+selectedMonths.push(month);
+
+}
+
+buildMonthButtons();
+
+renderMonthlyChart();
+
+}
+
+function renderMonthlyChart(){
+
+const history =
+JSON.parse(
+localStorage.getItem("dutyHistory")
+) || [];
+
+const monthData = {};
+
+history.forEach(item=>{
+
+const month =
+item.date.substring(3,10);
+
+if(
+selectedMonths.length > 0 &&
+!selectedMonths.includes(month)
+){
+return;
+}
+
+if(!monthData[month]){
+
+monthData[month] = {
+
+checked:0,
+done:0
+
+};
+
+}
+
+if(item.checked){
+
+monthData[month].checked++;
+
+}
+
+if(item.done){
+
+monthData[month].done++;
+
+}
+
+});
+
+const labels =
+Object.keys(monthData);
+
+const checkedValues =
+labels.map(
+m=>monthData[m].checked
+);
+
+const doneValues =
+labels.map(
+m=>monthData[m].done
+);
+
+const ctx =
+document
+.getElementById("monthlyChart")
+.getContext("2d");
+
+if(monthlyChart){
+
+monthlyChart.destroy();
+
+}
+
+monthlyChart =
+new Chart(ctx,{
+
+type:"bar",
+
+data:{
+
+labels:labels,
+
+datasets:[
+
+{
+
+label:"เช็คชื่อ",
+
+data:checkedValues,
+
+backgroundColor:"#D9A299",
+
+borderRadius:10
+
+},
+
+{
+
+label:"ทำเวร",
+
+data:doneValues,
+
+backgroundColor:"#DCC5B2",
+
+borderRadius:10
+
+}
+
+]
+
+},
+
+options:{
+
+responsive:true,
+
+plugins:{
+
+legend:{
+position:"top"
+}
+
+},
+
+scales:{
+
+y:{
+beginAtZero:true
+}
+
+}
+
+}
+
+});
+
+}
+
+function sendJSONP(payload){
+
+const callback =
+"callback_" + Date.now();
+
+window[callback] = function(){
+
+alert("✅ บันทึกสำเร็จ");
+
+};
+
+const script =
+document.createElement("script");
+
+script.src =
+`${APPS_SCRIPT_URL}?callback=${callback}&data=${encodeURIComponent(JSON.stringify(payload))}`;
+
+document.body.appendChild(script);
+
+}
 
 </script>
 
