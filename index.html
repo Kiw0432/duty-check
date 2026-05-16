@@ -84,6 +84,8 @@ border-radius:30px;
 display:flex;
 justify-content:space-between;
 align-items:flex-start;
+flex-wrap:wrap;
+gap:14px;
 margin-bottom:18px;
 color:white;
 box-shadow:0 8px 20px rgba(0,0,0,.08);
@@ -412,6 +414,18 @@ transform:translateY(0);
 }
 
 @media(max-width:768px){
+
+    .top-actions{
+width:100%;
+display:flex;
+gap:10px;
+}
+
+.top-actions button{
+flex:1;
+padding:14px 10px;
+font-size:1rem;
+}
 
 .banner-slider{
 height:320px;
