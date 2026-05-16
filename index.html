@@ -434,6 +434,92 @@ padding:14px 10px;
 
 }
 
+/* =========================
+   MOBILE RESPONSIVE TABLE
+========================= */
+
+@media(max-width:768px){
+
+.container{
+padding:12px;
+padding-bottom:120px;
+}
+
+.card{
+padding:14px;
+border-radius:20px;
+}
+
+.table-wrapper{
+overflow-x:auto;
+-webkit-overflow-scrolling:touch;
+border-radius:16px;
+}
+
+table{
+min-width:650px;
+}
+
+th,td{
+padding:10px 6px;
+font-size:.88rem;
+white-space:nowrap;
+}
+
+td button{
+min-width:88px;
+padding:12px 10px;
+font-size:.9rem;
+border-radius:14px;
+font-weight:600;
+}
+
+input{
+font-size:16px;
+padding:14px;
+}
+
+.bottom-nav{
+width:95%;
+padding:10px;
+gap:8px;
+}
+
+.bottom-nav button{
+flex:1;
+padding:12px 6px;
+font-size:.82rem;
+border-radius:14px;
+}
+
+.header{
+padding:18px;
+border-radius:22px;
+}
+
+.logo h1{
+font-size:1.35rem;
+}
+
+.banner-slider{
+height:260px;
+border-radius:24px;
+}
+
+.dashboard{
+grid-template-columns:repeat(2,1fr);
+}
+
+.dash-card{
+padding:14px;
+}
+
+.dash-card h1{
+font-size:1.5rem;
+}
+
+}
+
 </style>
 </head>
 
@@ -1182,6 +1268,7 @@ tbody.innerHTML += `
 <td>
 
 <button
+style="min-width:90px"
 class="${student.checked?'active-btn':''}"
 onclick="toggleCheck(${realIndex})">
 
@@ -1194,6 +1281,7 @@ ${student.checked?'✅ มา':'เช็คชื่อ'}
 <td>
 
 <button
+style="min-width:90px"
 class="${student.done?'active-btn':''}"
 onclick="toggleDone(${realIndex})">
 
