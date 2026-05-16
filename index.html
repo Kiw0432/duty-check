@@ -1,18 +1,16 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>ระบบเช็คชื่อเวรประจำวัน</title>
+<title>ระบบเช็คชื่อเวร</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -23,6 +21,8 @@
 --c3:#DCC5B2;
 --c4:#D9A299;
 --text:#5c4d45;
+--green:#89b89a;
+--red:#e58d8d;
 }
 
 *{
@@ -34,122 +34,200 @@ font-family:'Mitr',sans-serif;
 
 body{
 background:var(--c1);
-padding:14px;
 color:var(--text);
+overflow-x:hidden;
 }
 
-.container{
-max-width:720px;
-margin:auto;
-}
+/* พื้นหลัง */
 
-.hidden{
+#bgPreview{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+object-fit:cover;
+z-index:-2;
+opacity:.18;
 display:none;
 }
 
-.header{
-background:linear-gradient(135deg,var(--c3),var(--c4));
-padding:24px;
-border-radius:24px;
-color:white;
-margin-bottom:16px;
+.bg-overlay{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(255,255,255,.65);
+z-index:-1;
 }
+
+/* container */
+
+.container{
+max-width:1200px;
+margin:auto;
+padding:20px;
+padding-bottom:120px;
+}
+
+/* header */
+
+.header{
+background:linear-gradient(
+135deg,
+var(--c3),
+var(--c4)
+);
+padding:28px;
+border-radius:30px;
+display:flex;
+justify-content:space-between;
+align-items:flex-start;
+margin-bottom:18px;
+color:white;
+box-shadow:0 8px 20px rgba(0,0,0,.08);
+animation:fadeUp .4s ease;
+}
+
+.logo h1{
+font-size:2rem;
+}
+
+.logo p{
+font-size:1.1rem;
+margin-top:6px;
+}
+
+.top-actions{
+display:flex;
+gap:12px;
+}
+
+.top-actions button{
+border:none;
+padding:14px 22px;
+border-radius:18px;
+cursor:pointer;
+font-size:1rem;
+font-weight:600;
+box-shadow:0 8px 18px rgba(0,0,0,.08);
+}
+
+.setting-btn{
+background:#b89c82;
+color:white;
+}
+
+.logout-btn{
+background:#de7f7f;
+color:white;
+}
+
+/* slider */
+
+.banner-slider{
+width:100%;
+height:520px;
+border-radius:35px;
+overflow:hidden;
+position:relative;
+box-shadow:0 10px 25px rgba(0,0,0,.08);
+margin-bottom:30px;
+animation:fadeUp .5s ease;
+}
+
+.slides{
+width:100%;
+height:100%;
+position:relative;
+}
+
+.slide{
+position:absolute;
+width:100%;
+height:100%;
+opacity:0;
+transition:1s;
+}
+
+.slide.active{
+opacity:1;
+}
+
+.slide img{
+width:100%;
+height:100%;
+object-fit:cover;
+transition:transform 8s ease;
+}
+
+.slide.active img{
+transform:scale(1.05);
+}
+
+.dots{
+position:absolute;
+bottom:16px;
+left:50%;
+transform:translateX(-50%);
+display:flex;
+gap:8px;
+z-index:5;
+}
+
+.dot{
+width:12px;
+height:12px;
+border-radius:50%;
+background:rgba(255,255,255,.5);
+cursor:pointer;
+}
+
+.dot.active{
+background:white;
+}
+
+/* card */
 
 .card{
 background:white;
+border-radius:24px;
 padding:20px;
-border-radius:22px;
-margin-bottom:16px;
-box-shadow:0 5px 18px rgba(0,0,0,0.05);
+margin-bottom:18px;
+box-shadow:0 6px 18px rgba(0,0,0,.05);
+animation:fadeUp .4s ease;
 }
 
-.label{
-margin-bottom:8px;
-font-size:0.92rem;
+.login-card{
+max-width:420px;
+margin:40px auto;
+padding:30px;
+border-radius:34px;
 }
 
-input,
-select{
+input{
 width:100%;
-padding:12px;
 border:none;
+background:var(--c1);
+padding:14px;
+border-radius:16px;
 outline:none;
-border-radius:14px;
-background:var(--c1);
-margin-bottom:12px;
-}
-
-.student-box{
-background:var(--c1);
-padding:18px;
-border-radius:18px;
-text-align:center;
-margin-bottom:16px;
-}
-
-.student-number,
-.student-id{
-font-size:0.9rem;
-color:#8d776a;
-}
-
-.student-name{
-font-size:1.5rem;
-font-weight:600;
-margin-top:4px;
-}
-
-.switch-row{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:14px 0;
-border-bottom:1px solid #eee;
-}
-
-.switch{
-width:60px;
-height:34px;
-background:#d7d7d7;
-border-radius:999px;
-position:relative;
-cursor:pointer;
-transition:0.25s;
-}
-
-.switch::after{
-content:'';
-width:26px;
-height:26px;
-background:white;
-border-radius:50%;
-position:absolute;
-top:4px;
-left:4px;
-transition:0.25s;
-}
-
-.switch.active{
-background:var(--c4);
-}
-
-.switch.active::after{
-left:30px;
-}
-
-.button-grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-margin-top:14px;
+margin-bottom:14px;
+font-size:1rem;
 }
 
 button{
 border:none;
-padding:12px;
-border-radius:14px;
+border-radius:16px;
+padding:14px;
 cursor:pointer;
-font-size:0.92rem;
+font-size:1rem;
+transition:.25s;
+}
+
+button:hover{
+transform:translateY(-2px);
 }
 
 .btn-main{
@@ -159,42 +237,25 @@ color:white;
 
 .btn-soft{
 background:var(--c2);
+color:var(--text);
 }
 
-.btn-save{
-width:100%;
-margin-top:12px;
-background:#89b89a;
+.btn-danger{
+background:var(--red);
 color:white;
 }
 
-.dashboard{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-margin-top:16px;
-}
-
-.dash-card{
-background:var(--c1);
-padding:14px;
-border-radius:16px;
-text-align:center;
-}
-
-.dash-card h2{
-color:var(--c4);
-margin-top:4px;
-}
+/* table */
 
 .table-wrapper{
 overflow:auto;
+border-radius:18px;
 }
 
 table{
 width:100%;
 border-collapse:collapse;
-margin-top:12px;
+min-width:700px;
 }
 
 thead{
@@ -202,303 +263,326 @@ background:var(--c2);
 }
 
 th,td{
-padding:10px;
+padding:14px;
 text-align:center;
-font-size:0.88rem;
+border-bottom:1px solid #eee;
 }
 
-tbody tr{
-border-bottom:1px solid #eee;
+.active-btn{
+background:var(--green)!important;
+color:white;
+}
+
+/* dashboard */
+
+.dashboard{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+gap:14px;
+}
+
+.dash-card{
+background:var(--c1);
+padding:18px;
+border-radius:20px;
+text-align:center;
+}
+
+.dash-card h1{
+margin-top:8px;
+color:var(--c4);
+}
+
+/* nav */
+
+.bottom-nav{
+position:fixed;
+bottom:14px;
+left:50%;
+transform:translateX(-50%);
+background:white;
+padding:14px;
+border-radius:28px;
+display:flex;
+gap:12px;
+box-shadow:0 8px 25px rgba(0,0,0,.08);
+z-index:999;
+animation:fadeUp .4s ease;
+}
+
+.bottom-nav button{
+background:var(--c4);
+color:white;
+min-width:115px;
+}
+
+/* modal */
+
+.modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.35);
+display:none;
+justify-content:center;
+align-items:center;
+z-index:99999;
+backdrop-filter:blur(3px);
+}
+
+.modal-box{
+background:white;
+width:95%;
+max-width:500px;
+padding:30px;
+border-radius:32px;
+box-shadow:0 10px 30px rgba(0,0,0,.12);
+max-height:90vh;
+overflow:auto;
+}
+
+.setting-group{
+margin-bottom:20px;
+}
+
+.setting-title{
+font-size:1.1rem;
+font-weight:600;
+margin-bottom:12px;
+color:var(--c4);
+}
+
+.upload-box{
+background:var(--c1);
+padding:14px;
+border-radius:18px;
+margin-bottom:14px;
+}
+
+.hidden{
+display:none!important;
 }
 
 .footer{
 text-align:center;
-font-size:0.85rem;
-margin-top:10px;
-color:#8c786d;
+margin-top:14px;
+font-size:.20rem;
+color:#8d776a;
 }
 
-.small-btn{
-padding:8px 12px;
-font-size:0.82rem;
+.date-box{
+font-size:1.2rem;
+font-weight:600;
+margin-bottom:20px;
+}
+
+.status-toast{
+position:fixed;
+right:20px;
+bottom:90px;
+background:linear-gradient(135deg,var(--c4),var(--c3));
+color:white;
+padding:14px 20px;
+border-radius:18px;
+font-size:.95rem;
+box-shadow:0 8px 20px rgba(0,0,0,.12);
+z-index:99999;
+opacity:0;
+transform:translateY(30px);
+transition:.35s;
+pointer-events:none;
+}
+
+.status-toast.show{
+opacity:1;
+transform:translateY(0);
+}
+
+@keyframes fadeUp{
+from{
+opacity:0;
+transform:translateY(20px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+@media(max-width:768px){
+
+.banner-slider{
+height:320px;
+}
+
+.logo h1{
+font-size:1.5rem;
+}
+
+.bottom-nav{
+width:95%;
+}
+
+.bottom-nav button{
+min-width:auto;
+flex:1;
+font-size:.9rem;
+padding:14px 10px;
+}
+
 }
 
 </style>
-
 </head>
 
 <body>
 
+<img id="bgPreview">
+<div class="bg-overlay"></div>
+
+<div class="status-toast" id="statusToast"></div>
+
 <div class="container">
 
 <div class="header">
-<h1>📚 ระบบเช็คชื่อเวร</h1>
-<p>Student Care Style 🌷</p>
+
+<div class="logo">
+<h1>ระบบเช็คชื่อเวรM5/1</h1>
 </div>
 
-<!-- LOGIN -->
+<div class="top-actions hidden" id="topActions">
+<button class="setting-btn" onclick="openSetting()">⚙️ ตั้งค่า</button>
+<button class="logout-btn" onclick="logout()">🚪 ออกจากระบบ</button>
+</div>
+
+</div>
+
+<div class="card login-card" id="loginPage">
+
+<h2 style="margin-bottom:20px;font-size:2rem;">🔐 เข้าสู่ระบบ</h2>
+
+<input type="text" id="username" placeholder="ชื่อผู้ใช้">
+
+<input type="password" id="password" placeholder="รหัสผ่าน">
+
+<button class="btn-main" style="width:100%;margin-bottom:10px;" onclick="loginTeacher()">
+👩‍🏫 เข้าสู่ระบบครู
+</button>
+
+<button class="btn-soft" style="width:100%;" onclick="loginStudent()">
+👨‍🎓 เข้าชมแบบนักเรียน
+</button>
+
+</div>
+
+<div id="homePage" class="hidden">
+
+<div class="banner-slider">
+<div class="slides" id="slides"></div>
+<div class="dots" id="dots"></div>
+</div>
+
+</div>
+
+<div id="checkPage" class="hidden">
 
 <div class="card">
 
-<h2 style="margin-bottom:14px;">
-🔐 เข้าสู่ระบบ
-</h2>
-
-<input
-type="text"
-id="username"
-placeholder="ชื่อผู้ใช้"
->
-
-<input
-type="password"
-id="password"
-placeholder="รหัสผ่าน"
->
-
-<div class="button-grid">
-
-<button
-class="btn-main"
-onclick="loginTeacher()"
->
-เข้าสู่ระบบครู
-</button>
-
-<button
-class="btn-soft"
-onclick="loginStudent()"
->
-นักเรียนเข้าชม
-</button>
-
-</div>
-
-<div
-id="loginStatus"
-style="margin-top:12px;"
-></div>
-
-</div>
-
-<!-- MAIN -->
-
-<div id="mainSystem" class="hidden">
-
-<div class="card">
-
-<div class="label">
-🔍 ค้นหาชื่อนักเรียน
-</div>
-
-<input
-type="text"
-id="searchInput"
-placeholder="ค้นหาชื่อ..."
-onkeyup="searchStudent()"
->
-
-<div class="label">
-👨‍🎓 เลือกนักเรียน
-</div>
-
-<select
-id="studentSelect"
-onchange="changeStudent()"
-></select>
-
-<div class="student-box">
-
-<div
-class="student-number"
-id="studentNo"
->
-เลขที่ -
-</div>
-
-<div
-class="student-id"
-id="studentId"
->
-รหัส -
-</div>
-
-<div
-class="student-name"
-id="studentName"
->
-กำลังโหลด...
-</div>
-
-</div>
-
-<div class="switch-row">
-
-<div>🙋 เช็คชื่อแล้ว</div>
-
-<div
-class="switch"
-id="checkSwitch"
-onclick="toggleCheck()"
-></div>
-
-</div>
-
-<div class="switch-row">
-
-<div>🧹 ทำเวรแล้ว</div>
-
-<div
-class="switch"
-id="doneSwitch"
-onclick="toggleDone()"
-></div>
-
-</div>
-
-<div class="button-grid">
-
-<button
-class="btn-soft"
-onclick="prevStudent()"
->
-⬅️ ก่อนหน้า
-</button>
-
-<button
-class="btn-main"
-onclick="nextStudent()"
->
-ถัดไป ➡️
-</button>
-
-</div>
-
-<button
-id="saveBtn"
-class="btn-save"
-onclick="saveData()"
->
-💾 บันทึกข้อมูล
-</button>
-
-<div class="dashboard">
-
-<div class="dash-card">
-<div>ทั้งหมด</div>
-<h2 id="allStudentCount">0</h2>
-</div>
-
-<div class="dash-card">
-<div>มาเรียน</div>
-<h2 id="checkedCount">0</h2>
-</div>
-
-<div class="dash-card">
-<div>ทำเวร</div>
-<h2 id="doneCount">0</h2>
-</div>
-
-<div class="dash-card">
-<div>ขาด</div>
-<h2 id="absentCount">0</h2>
-</div>
-
-</div>
-
-</div>
-
-<!-- CHART -->
-
-<div class="card">
-
-<div
-style="
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:12px;
-"
->
-
-<h2>📊 สรุปรายเดือน</h2>
-
-<button
-class="btn-soft small-btn"
-onclick="renderMonthlyChart()"
->
-รีเฟรช
-</button>
-
-</div>
-
-<canvas id="monthlyChart"></canvas>
-
-</div>
-
-<!-- HISTORY -->
-
-<div class="card">
-
-<div
-style="
-display:flex;
-justify-content:space-between;
-align-items:center;
-"
->
-
-<h2>🕒 ประวัติย้อนหลัง</h2>
-
-<select
-id="monthFilter"
-style="
-width:140px;
-margin:0;
-"
->
-
-<button
-class="btn-soft small-btn"
-onclick="clearHistory()"
->
-🗑️ ลบประวัติ
-</button>
-"
-onchange="renderHistory()"
->
-<option value="all">
-ทั้งหมด
-</option>
-</select>
-
-</div>
+<input type="text" id="searchInput" placeholder="ค้นหาชื่อ..." onkeyup="searchStudent()">
 
 <div class="table-wrapper">
 
 <table>
 
 <thead>
-
 <tr>
-<th>วันที่</th>
+<th>เลขที่</th>
+<th>รหัส</th>
+<th>ชื่อ</th>
+<th>เช็คชื่อ</th>
+<th>ทำเวร</th>
+</tr>
+</thead>
+
+<tbody id="studentTable"></tbody>
+
+</table>
+
+</div>
+
+<button class="btn-main" style="width:100%;margin-top:14px;" onclick="saveData()">
+💾 บันทึกวันนี้
+</button>
+
+</div>
+
+</div>
+
+<div id="dashboardPage" class="hidden">
+
+<div class="card">
+
+<div class="dashboard">
+
+<div class="dash-card">
+ทั้งหมด
+<h1 id="allCount">0</h1>
+</div>
+
+<div class="dash-card">
+มาเรียน
+<h1 id="checkedCount">0</h1>
+</div>
+
+<div class="dash-card">
+ทำเวร
+<h1 id="doneCount">0</h1>
+</div>
+
+<div class="dash-card">
+ขาด
+<h1 id="absentCount">0</h1>
+</div>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h2 style="margin-bottom:12px;">📈 สรุปรายเดือน</h2>
+
+<canvas id="monthlyChart"></canvas>
+
+</div>
+
+</div>
+
+<div id="historyPage" class="hidden">
+
+<div class="card">
+
+<div class="date-box" id="todayDate"></div>
+
+<input type="date" id="historyDate" onchange="filterHistoryDate()">
+
+<div class="table-wrapper">
+
+<table>
+
+<thead>
+<tr>
+<th>วัน/เดือน/ปี</th>
 <th>เลขที่</th>
 <th>ชื่อ</th>
 <th>เช็คชื่อ</th>
-<th>เวร</th>
+<th>ทำเวร</th>
 </tr>
-
 </thead>
 
-<tbody id="historyTable">
-
-<tr>
-<td colspan="5">
-ยังไม่มีข้อมูล
-</td>
-</tr>
-
-</tbody>
+<tbody id="historyTable"></tbody>
 
 </table>
 
@@ -506,36 +590,383 @@ onchange="renderHistory()"
 
 </div>
 
-<div class="footer">
-ระบบเช็คชื่อเวรประจำวัน ✨
 </div>
 
 </div>
 
+<div class="bottom-nav hidden" id="bottomNav">
+
+<button onclick="openPage('checkPage')">📝 เช็คชื่อ</button>
+
+<button onclick="openPage('dashboardPage')">📊 Dashboard</button>
+
+<button onclick="openPage('historyPage')">🕒 ย้อนหลัง</button>
+
+<button onclick="goHome()">🏠 Home</button>
+
 </div>
+
+<!-- วางโค้ดนี้ไว้ก่อน <script> -->
+
+<!-- SETTING -->
+
+<div class="modal" id="settingModal">
+
+<div class="modal-box">
+
+<h2 style="margin-bottom:20px;">⚙️ ตั้งค่า</h2>
+
+<div class="setting-group">
+
+<div class="setting-title">🖼️ จัดการรูปสไลด์</div>
+
+<div class="upload-box">
+<h3 style="margin-bottom:10px;">รูปสไลด์ที่ 1</h3>
+<input type="file" accept="image/*" onchange="changeSlide(event,0)">
+</div>
+
+<div class="upload-box">
+<h3 style="margin-bottom:10px;">รูปสไลด์ที่ 2</h3>
+<input type="file" accept="image/*" onchange="changeSlide(event,1)">
+</div>
+
+<div class="upload-box">
+<h3 style="margin-bottom:10px;">รูปสไลด์ที่ 3</h3>
+<input type="file" accept="image/*" onchange="changeSlide(event,2)">
+</div>
+
+</div>
+
+<div class="setting-group">
+
+<div class="setting-title">🌄 จัดการพื้นหลัง</div>
+
+<div class="upload-box">
+<h3 style="margin-bottom:10px;">เปลี่ยนรูปพื้นหลัง</h3>
+<input type="file" accept="image/*" onchange="changeBackground(event)">
+</div>
+
+<div class="upload-box">
+<button class="btn-danger" style="width:100%;" onclick="removeBackground()">
+🗑️ ลบรูปพื้นหลัง
+</button>
+</div>
+
+</div>
+
+<div class="setting-group">
+
+<div class="setting-title">📂 จัดการข้อมูล</div>
+
+<div class="upload-box">
+<button class="btn-danger" style="width:100%;" onclick="clearHistory()">
+🗑️ ลบย้อนหลังทั้งหมด
+</button>
+</div>
+
+</div>
+
+<button class="btn-main" onclick="closeSetting()" style="width:100%;margin-bottom:10px;">
+💾 บันทึก
+</button>
+
+<button class="btn-soft" onclick="closeSetting()" style="width:100%;">
+ปิด
+</button>
+
+</div>
+
+</div>
+
+<!-- แทนที่ script เดิมทั้งหมดด้วยโค้ดนี้ -->
 
 <script>
 
-const SHEET_ID =
-"1lUs_-wKzkzG_zRnod5cQIfu_JDHpYDxe5SeKh2v5yrI";
+/* students */
+let students = [
+
+{
+no:1,
+studentId:"07401",
+name:"นางสาวอภัสรา สมฤทธิ์",
+checked:false,
+done:false
+},
+
+{
+no:2,
+studentId:"07565",
+name:"นางสาวพลอยจัน บัวผัน",
+checked:false,
+done:false
+},
+
+{
+no:3,
+studentId:"07572",
+name:"นางสาวชุติกาญจน์ แซ่โง้ว",
+checked:false,
+done:false
+},
+
+{
+no:4,
+studentId:"07577",
+name:"นางสาวรุ่งทิวา มองมณี",
+checked:false,
+done:false
+},
+
+{
+no:5,
+studentId:"07581",
+name:"นางสาวศศิพิมพ์ ประกอบสุข",
+checked:false,
+done:false
+},
+
+{
+no:6,
+studentId:"07582",
+name:"นางสาวสโรชา จันทร์น่วม",
+checked:false,
+done:false
+},
+
+{
+no:7,
+studentId:"07596",
+name:"นายปิยะ สีสุด",
+checked:false,
+done:false
+},
+
+{
+no:8,
+studentId:"07598",
+name:"นายภควัฒน์ ชารีพันธ์",
+checked:false,
+done:false
+},
+
+{
+no:9,
+studentId:"07628",
+name:"นายสุรชาติ นิลวรรณา",
+checked:false,
+done:false
+},
+
+{
+no:10,
+studentId:"07632",
+name:"นางสาวณัฐธิชา โควินทะสุด",
+checked:false,
+done:false
+},
+
+{
+no:11,
+studentId:"07640",
+name:"นางสาวภัทรกันย์ กองศรี",
+checked:false,
+done:false
+},
+
+{
+no:12,
+studentId:"07641",
+name:"นางสาวสรัลรัตน์ แซ่เจ็ง",
+checked:false,
+done:false
+},
+
+{
+no:13,
+studentId:"07644",
+name:"นางสาวสุนิษา อดใจ",
+checked:false,
+done:false
+},
+
+{
+no:14,
+studentId:"07683",
+name:"นายธนโชติ ทิพยางกูร",
+checked:false,
+done:false
+},
+
+{
+no:15,
+studentId:"07919",
+name:"นายณัฐกิตต์ เหลืองอ่อน",
+checked:false,
+done:false
+},
+
+{
+no:16,
+studentId:"07921",
+name:"นายสุทธิพงษ์ แซ่ลี",
+checked:false,
+done:false
+},
+
+{
+no:17,
+studentId:"07939",
+name:"นางสาวกัญญาภรณ์ หนูเหมือน",
+checked:false,
+done:false
+},
+
+{
+no:18,
+studentId:"08305",
+name:"นางสาวชลธิชา แก้วคำพันธ์",
+checked:false,
+done:false
+},
+
+{
+no:20,
+studentId:"08307",
+name:"นางสาวนริญา ดีมา",
+checked:false,
+done:false
+}
+
+];
 
 let isTeacher = false;
-let students = [];
-let currentIndex = 0;
 let monthlyChart;
 
-/* LOGIN */
+/* slides */
+
+let slideImages = JSON.parse(
+localStorage.getItem("slideImages")
+) || [
+
+"https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop",
+
+"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop",
+
+"https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1200&auto=format&fit=crop"
+
+];
+
+/* background */
+
+function loadBackground(){
+
+const bg = localStorage.getItem("customBackground");
+
+const bgPreview =
+document.getElementById("bgPreview");
+
+if(bg){
+
+bgPreview.src = bg;
+bgPreview.style.display = "block";
+
+}else{
+
+bgPreview.style.display = "none";
+
+}
+
+}
+
+loadBackground();
+
+function changeBackground(event){
+
+const file = event.target.files[0];
+
+if(!file)return;
+
+const reader = new FileReader();
+
+reader.onload = function(e){
+
+localStorage.setItem(
+"customBackground",
+e.target.result
+);
+
+loadBackground();
+
+showStatus("เปลี่ยนพื้นหลังแล้ว ✨");
+
+};
+
+reader.readAsDataURL(file);
+
+}
+
+function removeBackground(){
+
+localStorage.removeItem("customBackground");
+
+loadBackground();
+
+showStatus("ลบพื้นหลังแล้ว");
+
+}
+
+/* date */
+
+function getThaiDate(){
+
+const now = new Date();
+
+const day =
+String(now.getDate()).padStart(2,'0');
+
+const month =
+String(now.getMonth()+1).padStart(2,'0');
+
+const year =
+now.getFullYear()+543;
+
+return `${day}/${month}/${year}`;
+
+}
+
+function setTodayDate(){
+
+document.getElementById("todayDate")
+.innerHTML = getThaiDate();
+
+}
+
+setTodayDate();
+
+/* login */
 
 function loginTeacher(){
 
+const username =
+document.getElementById("username").value;
+
+const password =
+document.getElementById("password").value;
+
+if(
+username === "teacher" &&
+password === "1234"
+){
+
 isTeacher = true;
 
-document
-.getElementById("loginStatus")
-.innerHTML =
-"✅ เข้าสู่ระบบครูสำเร็จ";
-
 startSystem();
+
+}else{
+
+alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+
+}
 
 }
 
@@ -543,252 +974,305 @@ function loginStudent(){
 
 isTeacher = false;
 
-document
-.getElementById("loginStatus")
-.innerHTML =
-"👀 โหมดนักเรียน";
-
 startSystem();
 
 }
 
-/* START */
+function logout(){
+
+location.reload();
+
+}
+
+/* start */
 
 function startSystem(){
 
 document
-.getElementById("mainSystem")
-.classList
-.remove("hidden");
-
-/* ล้างประวัติเก่า */
-
-localStorage.removeItem("dutyHistory");
-
-if(!isTeacher){
+.getElementById("loginPage")
+.classList.add("hidden");
 
 document
-.getElementById("saveBtn")
-.style.display = "none";
+.getElementById("homePage")
+.classList.remove("hidden");
 
-}
+document
+.getElementById("bottomNav")
+.classList.remove("hidden");
 
-loadStudents();
+document
+.getElementById("topActions")
+.classList.remove("hidden");
 
-buildMonthFilter();
+renderStudentTable();
 
 renderHistory();
 
-renderMonthlyChart();
+renderChart();
+
+updateDashboard();
+
+showStatus("เข้าสู่ระบบสำเร็จ ✨");
 
 }
 
-/* LOAD STUDENTS */
+/* pages */
 
-async function loadStudents(){
+function openPage(id){
 
-try{
+document
+.querySelectorAll(
+"#homePage,#checkPage,#dashboardPage,#historyPage"
+)
+.forEach(page=>{
 
-const url =
-`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx`;
+page.classList.add("hidden");
 
-const response =
-await fetch(url);
+});
 
-const buffer =
-await response.arrayBuffer();
-
-const workbook =
-XLSX.read(buffer,{type:"array"});
-
-const sheet =
-workbook.Sheets[
-workbook.SheetNames[0]
-];
-
-const json =
-XLSX.utils.sheet_to_json(sheet);
-
-students =
-json.map((item,index)=>({
-
-no:
-item["เลขที่"] ||
-index+1,
-
-studentId:
-item["เลขประจำตัวนักเรียน"] ||
-"",
-
-name:
-item["ชื่อ-นามสกุล"] ||
-item["ชื่อ"] ||
-`นักเรียน ${index+1}`,
-
-checked:false,
-
-done:false
-
-}));
-
-renderSelect();
-
-renderStudent();
-
-updateStats();
-
-}catch(error){
-
-console.log(error);
-
-alert("โหลดข้อมูลไม่สำเร็จ");
+document
+.getElementById(id)
+.classList.remove("hidden");
 
 }
 
+function goHome(){
+
+document
+.querySelectorAll(
+"#checkPage,#dashboardPage,#historyPage"
+)
+.forEach(page=>{
+
+page.classList.add("hidden");
+
+});
+
+document
+.getElementById("homePage")
+.classList.remove("hidden");
+
 }
 
-/* SELECT */
+/* slider */
 
-function renderSelect(){
+function renderSlides(){
 
-const select =
-document.getElementById("studentSelect");
+const slidesContainer =
+document.getElementById("slides");
 
-select.innerHTML = "";
+const dotsContainer =
+document.getElementById("dots");
 
-students.forEach((student,index)=>{
+slidesContainer.innerHTML = "";
+dotsContainer.innerHTML = "";
 
-const option =
-document.createElement("option");
+slideImages.forEach((img,index)=>{
 
-option.value = index;
+slidesContainer.innerHTML += `
+<div class="slide ${index===0?'active':''}">
+<img src="${img}">
+</div>
+`;
 
-option.text =
-`${student.no} • ${student.name}`;
-
-select.appendChild(option);
+dotsContainer.innerHTML += `
+<div class="dot ${index===0?'active':''}"
+onclick="showSlide(${index})"></div>
+`;
 
 });
 
 }
 
-/* STUDENT */
+renderSlides();
 
-function renderStudent(){
+let currentSlide = 0;
 
-const student =
-students[currentIndex];
+function showSlide(index){
 
-document
-.getElementById("studentNo")
-.innerHTML =
-`เลขที่ ${student.no}`;
+const slides =
+document.querySelectorAll(".slide");
 
-document
-.getElementById("studentId")
-.innerHTML =
-`รหัส ${student.studentId}`;
+const dots =
+document.querySelectorAll(".dot");
 
-document
-.getElementById("studentName")
-.innerHTML =
-student.name;
+slides.forEach(slide=>{
+slide.classList.remove("active");
+});
 
-document
-.getElementById("studentSelect")
-.value =
-currentIndex;
+dots.forEach(dot=>{
+dot.classList.remove("active");
+});
 
-updateSwitches();
+slides[index].classList.add("active");
+dots[index].classList.add("active");
+
+currentSlide = index;
 
 }
 
-/* SWITCH */
+setInterval(()=>{
 
-function updateSwitches(){
+const slides =
+document.querySelectorAll(".slide");
 
-document
-.getElementById("checkSwitch")
-.className =
-students[currentIndex].checked
-? "switch active"
-: "switch";
+currentSlide++;
 
-document
-.getElementById("doneSwitch")
-.className =
-students[currentIndex].done
-? "switch active"
-: "switch";
-
+if(currentSlide >= slides.length){
+currentSlide = 0;
 }
 
-function toggleCheck(){
+showSlide(currentSlide);
 
-if(!isTeacher)return;
+},4000);
 
-students[currentIndex].checked =
-!students[currentIndex].checked;
+/* change slide */
 
-updateSwitches();
+function changeSlide(event,index){
 
-updateStats();
+const file = event.target.files[0];
 
-}
+if(!file)return;
 
-function toggleDone(){
+const reader = new FileReader();
 
-if(!isTeacher)return;
+reader.onload = function(e){
 
-students[currentIndex].done =
-!students[currentIndex].done;
+slideImages[index] = e.target.result;
 
-updateSwitches();
-
-updateStats();
-
-}
-
-/* NEXT */
-
-function nextStudent(){
-
-if(currentIndex < students.length-1){
-
-currentIndex++;
-
-renderStudent();
-
-}
-
-}
-
-function prevStudent(){
-
-if(currentIndex > 0){
-
-currentIndex--;
-
-renderStudent();
-
-}
-
-}
-
-function changeStudent(){
-
-currentIndex =
-parseInt(
-document
-.getElementById("studentSelect")
-.value
+localStorage.setItem(
+"slideImages",
+JSON.stringify(slideImages)
 );
 
-renderStudent();
+renderSlides();
+
+showStatus("เปลี่ยนรูปสไลด์แล้ว ✨");
+
+};
+
+reader.readAsDataURL(file);
 
 }
 
-/* SEARCH */
+/* table */
+
+function renderStudentTable(list = students){
+
+const tbody =
+document.getElementById("studentTable");
+
+tbody.innerHTML = "";
+
+list.forEach(student=>{
+
+const realIndex =
+students.indexOf(student);
+
+tbody.innerHTML += `
+
+<tr>
+
+<td>${student.no}</td>
+
+<td>${student.studentId}</td>
+
+<td>${student.name}</td>
+
+<td>
+
+<button
+class="${student.checked?'active-btn':''}"
+onclick="toggleCheck(${realIndex})">
+
+${student.checked?'✅ มา':'เช็คชื่อ'}
+
+</button>
+
+</td>
+
+<td>
+
+<button
+class="${student.done?'active-btn':''}"
+onclick="toggleDone(${realIndex})">
+
+${student.done?'🧹 เสร็จ':'ทำเวร'}
+
+</button>
+
+</td>
+
+</tr>
+
+`;
+
+});
+
+}
+
+/* check */
+
+function toggleCheck(index){
+
+if(!isTeacher)return;
+
+students[index].checked =
+!students[index].checked;
+
+renderStudentTable();
+
+updateDashboard();
+
+}
+
+function toggleDone(index){
+
+if(!isTeacher)return;
+
+students[index].done =
+!students[index].done;
+
+renderStudentTable();
+
+updateDashboard();
+
+}
+
+/* dashboard */
+
+function updateDashboard(){
+
+const checked =
+students.filter(
+s=>s.checked
+).length;
+
+const done =
+students.filter(
+s=>s.done
+).length;
+
+document
+.getElementById("allCount")
+.innerHTML = students.length;
+
+document
+.getElementById("checkedCount")
+.innerHTML = checked;
+
+document
+.getElementById("doneCount")
+.innerHTML = done;
+
+document
+.getElementById("absentCount")
+.innerHTML =
+students.length - checked;
+
+}
+
+/* search */
 
 function searchStudent(){
 
@@ -798,116 +1282,82 @@ document
 .value
 .toLowerCase();
 
-let found = -1;
-
-students.forEach((student,index)=>{
+const filtered =
+students.filter(student=>{
 
 const text =
 `${student.name} ${student.studentId}`
 .toLowerCase();
 
-if(
-text.includes(keyword)
-&&
-found === -1
-){
-
-found = index;
-
-}
+return text.includes(keyword);
 
 });
 
-if(found !== -1){
-
-currentIndex = found;
-
-renderStudent();
+renderStudentTable(filtered);
 
 }
 
-}
-
-/* STATS */
-
-function updateStats(){
-
-const checked =
-students.filter(
-s => s.checked
-).length;
-
-const done =
-students.filter(
-s => s.done
-).length;
-
-document
-.getElementById("allStudentCount")
-.innerHTML =
-students.length;
-
-document
-.getElementById("checkedCount")
-.innerHTML =
-checked;
-
-document
-.getElementById("doneCount")
-.innerHTML =
-done;
-
-document
-.getElementById("absentCount")
-.innerHTML =
-students.length - checked;
-
-}
-
-/* SAVE */
+/* save */
 
 function saveData(){
 
-if(!isTeacher)return;
+const today = getThaiDate();
 
-const today =
-new Date().toLocaleDateString("th-TH");
+const data = {
 
-const history =
+date: today,
+
+timestamp: new Date().toLocaleTimeString("th-TH"),
+
+students: students
+
+};
+
+/* บันทึกลง Google Sheet */
+
+fetch(
+"https://script.google.com/macros/s/AKfycbymN8NlsKnK6gqpD4AAAul5hz_chhKOB788exetLJMXop6hzQqgnCcaCXFcc0u-9KgeSQ/exec?data="
++ encodeURIComponent(JSON.stringify(data))
+)
+
+.then(res => res.text())
+
+.then(result => {
+
+console.log(result);
+
+showStatus("บันทึกข้อมูลลงชีทแล้ว 💾");
+
+})
+
+.catch(err => {
+
+console.log(err);
+
+showStatus("เกิดข้อผิดพลาด ❌");
+
+});
+
+/* บันทึกลง localStorage */
+
+let history =
 JSON.parse(
 localStorage.getItem("dutyHistory")
 ) || [];
-
-/* เช็คว่าวันนี้บันทึกแล้วหรือยัง */
-
-const alreadySaved =
-history.some(item => item.date === today);
-
-if(alreadySaved){
-
-alert("วันนี้เช็คชื่อไปแล้ว");
-
-return;
-
-}
-
-/* บันทึก */
 
 students.forEach(student=>{
 
 history.push({
 
-date:today,
+date: today,
 
-no:student.no,
+no: student.no,
 
-name:student.name,
+name: student.name,
 
-studentId:student.studentId,
+checked: student.checked,
 
-checked:student.checked,
-
-done:student.done
+done: student.done
 
 });
 
@@ -918,101 +1368,31 @@ localStorage.setItem(
 JSON.stringify(history)
 );
 
-buildMonthFilter();
-
 renderHistory();
 
-renderMonthlyChart();
-
-alert("✅ บันทึกสำเร็จ");
+renderChart();
 
 }
 
-/* FILTER */
-
-function buildMonthFilter(){
-
-const history =
-JSON.parse(
-localStorage.getItem("dutyHistory")
-) || [];
-
-const select =
-document.getElementById("monthFilter");
-
-select.innerHTML =
-`<option value="all">ทั้งหมด</option>`;
-
-const months = [];
-
-history.forEach(item=>{
-
-const month =
-item.date.substring(3,10);
-
-if(!months.includes(month)){
-
-months.push(month);
-
-}
-
-});
-
-months.forEach(month=>{
-
-const option =
-document.createElement("option");
-
-option.value = month;
-
-option.text = month;
-
-select.appendChild(option);
-
-});
-
-}
-
-/* HISTORY */
+/* history */
 
 function renderHistory(){
 
 const history =
 JSON.parse(
 localStorage.getItem("dutyHistory")
-) || [];
-
-const filter =
-document
-.getElementById("monthFilter")
-.value;
+)||[];
 
 const tbody =
-document
-.getElementById("historyTable");
+document.getElementById("historyTable");
 
 tbody.innerHTML = "";
 
-let filtered = history;
+if(history.length===0){
 
-if(filter !== "all"){
-
-filtered =
-history.filter(item=>
-item.date.substring(3,10)
-=== filter
-);
-
-}
-
-if(filtered.length === 0){
-
-tbody.innerHTML =
-`
+tbody.innerHTML = `
 <tr>
-<td colspan="5">
-ไม่มีข้อมูล
-</td>
+<td colspan="5">ไม่มีข้อมูล</td>
 </tr>
 `;
 
@@ -1020,41 +1400,126 @@ return;
 
 }
 
-filtered.reverse().forEach(item=>{
+history
+.slice()
+.reverse()
+.forEach(item=>{
 
-const tr =
-document.createElement("tr");
+tbody.innerHTML += `
 
-tr.innerHTML =
-`
+<tr>
+
 <td>${item.date}</td>
-<td>${item.no}</td>
-<td>${item.name}</td>
-<td>${item.checked ? "✅" : "❌"}</td>
-<td>${item.done ? "🧹" : "-"}</td>
-`;
 
-tbody.appendChild(tr);
+<td>${item.no}</td>
+
+<td>${item.name}</td>
+
+<td>${item.checked?'✅':'❌'}</td>
+
+<td>${item.done?'🧹':'-'}</td>
+
+</tr>
+
+`;
 
 });
 
 }
 
-/* CHART */
+/* filter */
 
-function renderMonthlyChart(){
+function filterHistoryDate(){
+
+const selected =
+document
+.getElementById("historyDate")
+.value;
 
 const history =
 JSON.parse(
 localStorage.getItem("dutyHistory")
-) || [];
+)||[];
+
+const tbody =
+document.getElementById("historyTable");
+
+tbody.innerHTML = "";
+
+history.forEach(item=>{
+
+const parts =
+item.date.split("/");
+
+const year =
+parseInt(parts[2]) - 543;
+
+const thaiDate =
+`${year}-${parts[1]}-${parts[0]}`;
+
+if(thaiDate === selected){
+
+tbody.innerHTML += `
+
+<tr>
+
+<td>${item.date}</td>
+
+<td>${item.no}</td>
+
+<td>${item.name}</td>
+
+<td>${item.checked?'✅':'❌'}</td>
+
+<td>${item.done?'🧹':'-'}</td>
+
+</tr>
+
+`;
+
+}
+
+});
+
+}
+
+/* delete */
+
+function clearHistory(){
+
+const confirmDelete =
+confirm("ลบข้อมูลย้อนหลังทั้งหมด ?");
+
+if(!confirmDelete)return;
+
+localStorage.removeItem("dutyHistory");
+
+renderHistory();
+
+renderChart();
+
+showStatus("ลบข้อมูลย้อนหลังแล้ว");
+
+}
+
+/* chart */
+
+function renderChart(){
+
+const history =
+JSON.parse(
+localStorage.getItem("dutyHistory")
+)||[];
 
 const monthData = {};
 
 history.forEach(item=>{
 
+const parts =
+item.date.split("/");
+
 const month =
-item.date.substring(3,10);
+`${parts[1]}/${parts[2]}`;
 
 if(!monthData[month]){
 
@@ -1066,15 +1531,11 @@ done:0
 }
 
 if(item.checked){
-
 monthData[month].checked++;
-
 }
 
 if(item.done){
-
 monthData[month].done++;
-
 }
 
 });
@@ -1082,14 +1543,14 @@ monthData[month].done++;
 const labels =
 Object.keys(monthData);
 
-const checkedValues =
+const checkedData =
 labels.map(
-m => monthData[m].checked
+m=>monthData[m].checked
 );
 
-const doneValues =
+const doneData =
 labels.map(
-m => monthData[m].done
+m=>monthData[m].done
 );
 
 const ctx =
@@ -1098,13 +1559,10 @@ document
 .getContext("2d");
 
 if(monthlyChart){
-
 monthlyChart.destroy();
-
 }
 
-monthlyChart =
-new Chart(ctx,{
+monthlyChart = new Chart(ctx,{
 
 type:"bar",
 
@@ -1115,14 +1573,14 @@ labels:labels,
 datasets:[
 
 {
-label:"เช็คชื่อ",
-data:checkedValues,
+label:"มาเรียน",
+data:checkedData,
 backgroundColor:"#D9A299"
 },
 
 {
 label:"ทำเวร",
-data:doneValues,
+data:doneData,
 backgroundColor:"#DCC5B2"
 }
 
@@ -1131,20 +1589,125 @@ backgroundColor:"#DCC5B2"
 },
 
 options:{
-
-responsive:true,
-
-scales:{
-y:{
-beginAtZero:true
-}
-}
-
+responsive:true
 }
 
 });
 
 }
+
+/* modal */
+
+function openSetting(){
+
+document
+.getElementById("settingModal")
+.style.display = "flex";
+
+}
+
+function closeSetting(){
+
+document
+.getElementById("settingModal")
+.style.display = "none";
+
+}
+
+window.onclick = function(event){
+
+const modal =
+document.getElementById("settingModal");
+
+if(event.target === modal){
+
+closeSetting();
+
+}
+
+};
+
+/* status popup */
+
+function showStatus(text){
+
+let old =
+document.getElementById("statusPopup");
+
+if(old){
+old.remove();
+}
+
+const popup =
+document.createElement("div");
+
+popup.id = "statusPopup";
+
+popup.innerHTML = text;
+
+popup.style.position = "fixed";
+popup.style.right = "18px";
+popup.style.bottom = "90px";
+popup.style.background = "#D9A299";
+popup.style.color = "white";
+popup.style.padding = "14px 18px";
+popup.style.borderRadius = "18px";
+popup.style.boxShadow =
+"0 8px 20px rgba(0,0,0,.15)";
+popup.style.zIndex = "999999";
+popup.style.animation = "fadeIn .3s";
+
+document.body.appendChild(popup);
+
+setTimeout(()=>{
+
+popup.style.opacity = "0";
+
+setTimeout(()=>{
+popup.remove();
+},300);
+
+},2000);
+
+}
+
+/* animation */
+
+const style =
+document.createElement("style");
+
+style.innerHTML = `
+
+@keyframes fadeIn{
+from{
+opacity:0;
+transform:translateY(20px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+.card{
+animation:fadeIn .4s;
+}
+
+button:hover{
+transform:translateY(-2px);
+}
+
+.slide img{
+transition:transform 6s;
+}
+
+.slide.active img{
+transform:scale(1.05);
+}
+
+`;
+
+document.head.appendChild(style);
 
 </script>
 
