@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>ระบบเช็คชื่อเวร M5/1 v4</title>
+<title>ระบบเช็คชื่อเวร M5/1 v5</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
 
@@ -245,7 +245,7 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   <div class="header">
     <div class="logo">
       <h1>ระบบเช็คชื่อเวร M5/1</h1>
-      <div style="font-size:.65rem;color:rgba(255,255,255,.8);margin-top:2px;">☁️ Cloud v4 · 🔐 Auth · 📡 Realtime · 🤖 AI</div>
+      <div style="font-size:.65rem;color:rgba(255,255,255,.8);margin-top:2px;">☁️ Cloud v5 · 🔐 Auth · 📡 Realtime · 🤖 AI</div>
     </div>
     <div class="top-actions hidden" id="topActions">
       <button class="setting-btn" onclick="openSetting()">⚙️ ตั้งค่า</button>
@@ -371,9 +371,10 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
         <div class="ai-card" id="adminAssignAiCard">
           <div style="font-size:.75rem;color:#aaa;margin-bottom:12px;">🤖 AI วิเคราะห์การส่งงาน M5/1 — เปอร์เซ็นต์การส่ง + ประเมินความเสี่ยง</div>
           <div id="adminAssignTable"><div style="text-align:center;color:#bbb;padding:20px;">กำลังโหลดข้อมูล...</div></div>
-          <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+          <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
             <button class="btn-main" style="padding:10px 18px;font-size:.85rem;" onclick="runAdminAssignAI()">🤖 วิเคราะห์ AI</button>
             <button class="btn-soft" style="padding:10px 14px;font-size:.85rem;" onclick="renderAdminAssignTable()">🔄 รีเฟรชข้อมูล</button>
+            <span style="font-size:.72rem;color:#bbb;">ใช้ claude-haiku (ประหยัด) · ต้องการ API Key ใน ⚙️ ตั้งค่า</span>
           </div>
           <div id="adminAssignAIStream" class="hidden">
             <div style="font-size:.8rem;color:#aaa;margin-top:14px;margin-bottom:6px;font-weight:600;">💬 ผลการวิเคราะห์จาก AI</div>
@@ -496,6 +497,18 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
       <div class="setting-title">📚 จัดการวิชา (แอดมินเท่านั้น)</div>
       <div id="subjectSettingList"></div>
       <button class="btn-soft" style="width:100%;margin-top:6px;" onclick="openAddSubject()">+ เพิ่มวิชาใหม่</button>
+    </div>
+    <div style="margin-bottom:20px;">
+      <div class="setting-title">🔑 Claude AI API Key (แอดมินเท่านั้น)</div>
+      <div class="upload-box" style="padding:14px;">
+        <p style="font-size:.78rem;color:#aaa;margin-bottom:8px;line-height:1.6;">ใส่ Anthropic API Key เพื่อใช้ฟีเจอร์วิเคราะห์ AI<br>Key จะเก็บใน localStorage ของเบราว์เซอร์นี้เท่านั้น</p>
+        <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." style="margin-bottom:8px;">
+        <div style="display:flex;gap:8px;">
+          <button class="btn-green" style="flex:1;padding:10px;" onclick="saveApiKey()">💾 บันทึก Key</button>
+          <button class="btn-soft" style="padding:10px 14px;" onclick="clearApiKey()">🗑️ ลบ</button>
+        </div>
+        <div id="apiKeyStatus" style="font-size:.78rem;margin-top:8px;color:#aaa;"></div>
+      </div>
     </div>
     <button class="btn-main" onclick="closeSetting()" style="width:100%;">✕ ปิด</button>
   </div>
@@ -1091,12 +1104,20 @@ function renderAdminAssignTable() {
 }
 
 /* ══════════════════════════════════════════════════════
-   ADMIN: AI วิเคราะห์การส่งงาน (Claude API)
+   ADMIN: AI วิเคราะห์การส่งงาน (Claude API — Haiku)
 ══════════════════════════════════════════════════════ */
 function runAdminAssignAI() {
   loadAssignData();
   var totalAssign = assignments.length;
   if(totalAssign === 0) { showStatus("⚠️ ยังไม่มีงานในระบบ"); return; }
+
+  var apiKey = getApiKey();
+  if(!apiKey) {
+    showStatus("⚠️ กรุณาใส่ Claude API Key ในตั้งค่าก่อน");
+    document.getElementById("adminAssignAIStream").classList.remove("hidden");
+    document.getElementById("aiStreamText").innerHTML = '<span style="color:#b87a30;">⚠️ ยังไม่มี Claude API Key<br>กรุณาไปที่ ⚙️ ตั้งค่า → 🔑 Claude AI API Key แล้วใส่ Key</span>';
+    return;
+  }
 
   showLoading("กำลังรวบรวมข้อมูล...");
   assignStatusCol().get().then(function(snapshot) {
@@ -1146,7 +1167,7 @@ function runAdminAssignAI() {
       "2. วิเคราะห์แนวโน้มและปัญหาที่อาจเกิดขึ้น\n" +
       "3. เสนอแนะวิธีช่วยเหลือนักเรียนที่มีความเสี่ยงสูง\n" +
       "4. ข้อเสนอแนะเชิงปฏิบัติสำหรับครูผู้ดูแล\n" +
-      "ตอบเป็นภาษาไทย กระชับ ได้ใจความ ไม่เกิน 300 คำ";
+      "ตอบเป็นภาษาไทย กระชับ ได้ใจความ ไม่เกิน 250 คำ";
 
     document.getElementById("adminAssignAIStream").classList.remove("hidden");
     var streamEl = document.getElementById("aiStreamText");
@@ -1154,14 +1175,24 @@ function runAdminAssignAI() {
 
     fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-haiku-4-5-20251001",
         max_tokens: 1000,
         stream: true,
         messages: [{ role: "user", content: prompt }]
       })
     }).then(function(res) {
+      if(!res.ok) {
+        return res.json().then(function(e){
+          streamEl.innerHTML = '<span style="color:#c75b5b;">❌ API Error '+res.status+': '+(e.error&&e.error.message||JSON.stringify(e))+'</span>';
+        });
+      }
       var reader = res.body.getReader();
       var decoder = new TextDecoder();
       var fullText = "";
@@ -1192,7 +1223,7 @@ function runAdminAssignAI() {
       }
       read();
     }).catch(function(e) {
-      streamEl.innerHTML = "<span style='color:#c75b5b;'>❌ เกิดข้อผิดพลาดในการเชื่อมต่อ AI: " + escapeHtml(e.message) + "</span>";
+      streamEl.innerHTML = "<span style='color:#c75b5b;'>❌ เกิดข้อผิดพลาด: " + escapeHtml(e.message) + "</span>";
       console.error(e);
     });
   }).catch(function(e) {
@@ -1418,7 +1449,33 @@ function deleteRetroRecord(){
 /* ══════════════════════════════════════════════════════
    SETTING (admin only)
 ══════════════════════════════════════════════════════ */
-function openSetting(){ if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;} document.getElementById("settingModal").style.display="flex"; renderSubjectSetting(); }
+/* ══════════════════════════════════════════════════════
+   API KEY MANAGEMENT
+══════════════════════════════════════════════════════ */
+function getApiKey(){ return localStorage.getItem("claude_api_key")||""; }
+function saveApiKey(){
+  var k=document.getElementById("apiKeyInput").value.trim();
+  if(!k){showStatus("⚠️ กรุณากรอก API Key");return;}
+  if(!k.startsWith("sk-ant-")){showStatus("⚠️ API Key ไม่ถูกต้อง (ต้องขึ้นต้นด้วย sk-ant-)");return;}
+  localStorage.setItem("claude_api_key",k);
+  document.getElementById("apiKeyStatus").innerHTML='<span style="color:var(--green);">✅ บันทึก Key แล้ว ('+k.slice(0,14)+"...")+'</span>';
+  showStatus("✅ บันทึก API Key แล้ว");
+}
+function clearApiKey(){
+  localStorage.removeItem("claude_api_key");
+  document.getElementById("apiKeyInput").value="";
+  document.getElementById("apiKeyStatus").textContent="🗑️ ลบ Key แล้ว";
+  showStatus("🗑️ ลบ API Key แล้ว");
+}
+function openSetting(){
+  if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
+  document.getElementById("settingModal").style.display="flex";
+  renderSubjectSetting();
+  // แสดงสถานะ key
+  var k=getApiKey();
+  document.getElementById("apiKeyInput").value="";
+  document.getElementById("apiKeyStatus").innerHTML=k?'<span style="color:var(--green);">✅ มี Key แล้ว ('+k.slice(0,14)+"...")+'</span>':'<span style="color:#bbb;">ยังไม่มี Key</span>';
+}
 function closeSetting(){ document.getElementById("settingModal").style.display="none"; }
 window.onclick=function(e){
   if(e.target===document.getElementById("settingModal"))    closeSetting();
