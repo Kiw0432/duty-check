@@ -1612,8 +1612,9 @@ function renderAssignList(){
     }else{dueLabel="📅 ไม่ระบุวันส่ง";}
 
     /* ปุ่มแก้/ลบ: เฉพาะแอดมิน */
+    var assignKey = a._fid || a.id;
     var editBtn = isAdmin
-      ? '<button class="assign-edit-btn" onclick="openEditAssign(\''+a.id+'\')">✏️</button><button class="assign-del-btn" onclick="deleteAssign(\''+a.id+'\')">🗑️</button>'
+      ? '<button class="assign-edit-btn" onclick="openEditAssign(\''+assignKey+'\')">✏️</button><button class="assign-del-btn" onclick="deleteAssign(\''+assignKey+'\')">🗑️</button>'
       : '';
 
     html+='<div class="assign-card '+status+'">' +
@@ -1713,10 +1714,13 @@ function saveAssign(){
 function deleteAssign(id){
   if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
   if(!confirm("ลบงานนี้?"))return;
-  var a=assignments.find(function(x){return x.id===id||x._fid===id;});
-  if(a&&a._fid)deleteAssignFromCloud(a._fid);
-  assignments=assignments.filter(function(a){return a.id!==id&&a._fid!==id;});
-  saveAssignData();renderAssignPage();showStatus("🗑️ ลบงานแล้ว");
+  var a=assignments.find(function(x){return x._fid===id||x.id===id;});
+  var fid=a&&(a._fid||null);
+  if(!fid){showStatus("❌ ไม่พบ Firestore ID");return;}
+  showLoading("กำลังลบ...");
+  deleteAssignFromCloud(fid)
+    .then(function(){hideLoading();showStatus("🗑️ ลบงานแล้ว");})
+    .catch(function(e){hideLoading();showStatus("❌ ลบไม่สำเร็จ: "+e.message);console.error(e);});
 }
 function closeAssignModal(){document.getElementById("assignModal").style.display="none";editingAssignId=null;}
 
