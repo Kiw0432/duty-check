@@ -333,8 +333,13 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 
   <!-- DASHBOARD -->
   <div id="dashboardPage" class="hidden">
+    <!-- AI summary นักเรียน (งานค้าง) -->
     <div id="aiSummarySection" class="hidden">
       <div class="ai-card" id="aiSummaryCard"><div style="text-align:center;padding:20px;color:#bbb;font-size:.88rem;">🤖 กำลังวิเคราะห์ข้อมูลของคุณ...</div></div>
+    </div>
+    <!-- AI summary แอดมิน (สถิติเวร) -->
+    <div id="adminAiSection" class="hidden">
+      <div class="ai-card" id="adminAiCard"><div style="text-align:center;padding:20px;color:#bbb;font-size:.88rem;">🤖 กำลังวิเคราะห์สถิติห้อง...</div></div>
     </div>
     <div class="card">
       <div class="dashboard">
@@ -400,7 +405,7 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 <!-- BOTTOM NAV -->
 <div class="bottom-nav hidden" id="teacherNav">
   <button onclick="openPage('checkPage');initFlow()">📝 เช็คชื่อ</button>
-  <button onclick="openPage('dashboardPage')">📊 Dashboard</button>
+  <button onclick="openPage('dashboardPage');renderAdminAISummary()">📊 Dashboard</button>
   <button onclick="openPage('historyPage');renderHistory()">🕒 ย้อนหลัง</button>
   <button onclick="openPage('assignPage');renderAssignPage()">📚 งาน</button>
   <button onclick="goHome()">🏠 Home</button>
@@ -712,6 +717,7 @@ function startSystem() {
   }
   showStatus("🔥 เชื่อมต่อ Cloud สำเร็จ ✅");
   startRealtimeSync();
+  if(isAdmin) setTimeout(renderAdminAISummary, 1000);
   loadStudentAssignmentStatus();
   updateStorageStatus("storageBarWrap");
 }
@@ -843,7 +849,7 @@ function resetStudentPassword(sid){
    AI SUMMARY (Rule-based)
 ══════════════════════════════════════════════════════ */
 function renderAISummary(){
-  if(isAdmin) return;
+  if(isAdmin){ renderAdminAISummary(); return; }
   document.getElementById("aiSummarySection").classList.remove("hidden");
   loadAssignData();
   var total=assignments.length;
@@ -888,6 +894,81 @@ function renderAISummaryCard(s){
     (s.urgent?'<div class="ai-urgent">🔥 ทำก่อนเลย: '+escapeHtml(s.urgent)+'</div>':'');
 }
 
+
+/* ══════════════════════════════════════════════════════
+   ADMIN AI SUMMARY — สถิติเวรทั้งห้อง
+══════════════════════════════════════════════════════ */
+function renderAdminAISummary(){
+  if(!isAdmin) return;
+  document.getElementById("adminAiSection").classList.remove("hidden");
+  getAllLogs().then(function(logs){
+    var total = STUDENTS.length;
+    var today = getThaiDate();
+    var todayLogs = logs.filter(function(r){ return r.date === today; });
+    var seenToday = {};
+    todayLogs.forEach(function(r){ seenToday[r.studentId] = r.action; });
+
+    // รวมสถิติทั้งหมด
+    var allWork=0, allLeave=0, allLate=0;
+    logs.forEach(function(r){
+      if(r.action==="ทำเวร") allWork++;
+      else if(r.action==="ลา") allLeave++;
+      else if(r.action==="มาสาย") allLate++;
+    });
+    var allTotal = allWork+allLeave+allLate || 1;
+    var workPct  = Math.round(allWork/allTotal*100);
+    var leavePct = Math.round(allLeave/allTotal*100);
+    var latePct  = Math.round(allLate/allTotal*100);
+
+    // วันนี้
+    var todayWork  = Object.values(seenToday).filter(function(a){return a==="ทำเวร";}).length;
+    var todayLeave = Object.values(seenToday).filter(function(a){return a==="ลา";}).length;
+    var todayLate  = Object.values(seenToday).filter(function(a){return a==="มาสาย";}).length;
+    var todayChecked = Object.keys(seenToday).length;
+    var todayAbsent = total - todayChecked;
+
+    // หานักเรียนขาดบ่อย (ลา+มาสาย >= 3 ครั้ง)
+    var studentCount = {};
+    logs.forEach(function(r){
+      if(r.action==="ลา"||r.action==="มาสาย"){
+        if(!studentCount[r.studentId]) studentCount[r.studentId]={name:r.name,count:0};
+        studentCount[r.studentId].count++;
+      }
+    });
+    var atRisk = Object.values(studentCount).filter(function(x){return x.count>=3;}).sort(function(a,b){return b.count-a.count;}).slice(0,3);
+
+    var tips = [];
+    if(todayAbsent>0) tips.push("⚠️ วันนี้ยังไม่เช็คชื่อ "+todayAbsent+" คน");
+    if(leavePct>20) tips.push("📋 อัตราการลาสูง "+leavePct+"% ควรติดตามนักเรียน");
+    if(latePct>15) tips.push("⏰ มาสาย "+latePct+"% ลองประชุมกันเรื่องเวลา");
+    if(workPct>=70) tips.push("🌟 ทำเวรดีมาก "+workPct+"% ยอดเยี่ยม!");
+    if(atRisk.length) tips.push("🚨 นักเรียนขาด/ลาบ่อย: "+atRisk.map(function(x){return x.name.split(" ")[1]||x.name+" ("+x.count+"ครั้ง)";}).join(", "));
+    if(!tips.length) tips.push("✅ สถิติการเข้าเวรปกติดี ไม่มีปัญหา");
+
+    document.getElementById("adminAiCard").innerHTML =
+      '<div style="font-size:.75rem;color:#aaa;margin-bottom:10px;">🤖 AI วิเคราะห์สถิติการเข้าเวร M5/1</div>'+
+      '<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">'+
+        '<div style="flex:1;min-width:80px;background:white;border-radius:14px;padding:12px 8px;text-align:center;">'+
+          '<div style="font-size:1.5rem;font-weight:700;color:var(--green);">'+workPct+'%</div>'+
+          '<div style="font-size:.72rem;color:#bbb;">🧹 ทำเวร</div>'+
+        '</div>'+
+        '<div style="flex:1;min-width:80px;background:white;border-radius:14px;padding:12px 8px;text-align:center;">'+
+          '<div style="font-size:1.5rem;font-weight:700;color:var(--red);">'+leavePct+'%</div>'+
+          '<div style="font-size:.72rem;color:#bbb;">📋 ลา</div>'+
+        '</div>'+
+        '<div style="flex:1;min-width:80px;background:white;border-radius:14px;padding:12px 8px;text-align:center;">'+
+          '<div style="font-size:1.5rem;font-weight:700;color:var(--yellow);">'+latePct+'%</div>'+
+          '<div style="font-size:.72rem;color:#bbb;">⏰ มาสาย</div>'+
+        '</div>'+
+        '<div style="flex:1;min-width:80px;background:white;border-radius:14px;padding:12px 8px;text-align:center;">'+
+          '<div style="font-size:1.5rem;font-weight:700;color:var(--c4);">'+todayChecked+'/'+total+'</div>'+
+          '<div style="font-size:.72rem;color:#bbb;">วันนี้</div>'+
+        '</div>'+
+      '</div>'+
+      '<ul class="ai-tips">'+tips.map(function(t){return '<li>'+escapeHtml(t)+'</li>';}).join('')+'</ul>';
+  });
+}
+
 /* ══════════════════════════════════════════════════════
    HELPERS
 ══════════════════════════════════════════════════════ */
@@ -908,7 +989,7 @@ function updateStorageStatus(id){ var el=document.getElementById(id); if(!el) re
 function openPage(id){
   ["homePage","checkPage","dashboardPage","historyPage","assignPage"].forEach(function(p){document.getElementById(p).classList.add("hidden");});
   document.getElementById(id).classList.remove("hidden");
-  if(id==="dashboardPage"){updateDashboard();renderChart();}
+  if(id==="dashboardPage"){updateDashboard();renderChart();if(isAdmin)renderAdminAISummary();}
   if(id==="historyPage") updateStorageStatus("storageBarWrap");
 }
 function goHome(){
@@ -1104,7 +1185,7 @@ function deleteRetroRecord(){
 /* ══════════════════════════════════════════════════════
    SETTING
 ══════════════════════════════════════════════════════ */
-function openSetting(){ document.getElementById("settingModal").style.display="flex"; updateStorageStatus("settingStorageInfo"); renderSubjectSetting(); }
+function openSetting(){ if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;} document.getElementById("settingModal").style.display="flex"; renderSubjectSetting(); }
 function closeSetting(){ document.getElementById("settingModal").style.display="none"; }
 window.onclick=function(e){
   if(e.target===document.getElementById("settingModal"))    closeSetting();
