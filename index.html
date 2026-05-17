@@ -3,10 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ระบบเช็คชื่อเวร M5/1</title>
+<title>ระบบเช็คชื่อเวร M5/1 (Cloud)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Firebase v9 compat (CDN) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <!-- ============================================================
   CSS VARIABLES & BASE STYLES
@@ -395,7 +398,7 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
     topActions = ปุ่มสำหรับครู, studentActions = ปุ่มสำหรับนักเรียน
   ============================================================ -->
   <div class="header">
-    <div class="logo"><h1>ระบบเช็คชื่อเวร M5/1</h1></div>
+    <div class="logo"><h1>ระบบเช็คชื่อเวร M5/1</h1><div style="font-size:.65rem;color:rgba(255,255,255,.8);margin-top:2px;">☁️ Cloud Edition · 📡 Realtime Sync</div></div>
     <div class="top-actions hidden" id="topActions">
       <button class="setting-btn" onclick="openSetting()">⚙️ ตั้งค่า</button>
       <button class="logout-btn" onclick="logout()">🚪 ออกจากระบบ</button>
@@ -417,6 +420,16 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
     <button class="btn-main" style="width:100%;margin-bottom:10px;" onclick="loginTeacher()">👩‍🏫 เข้าสู่ระบบครู</button>
     <button class="btn-soft" style="width:100%;" onclick="loginStudent()">👨‍🎓 เข้าชมแบบนักเรียน</button>
     <p style="font-size:.75rem;color:#bbb;margin-top:12px;text-align:center;">นักเรียนสามารถดูย้อนหลังได้โดยไม่ต้องมีรหัสผ่าน</p>
+    <div id="firebaseNotice" style="margin-top:14px;padding:10px 12px;background:#fff8e8;border-radius:12px;font-size:.76rem;color:#b87a30;line-height:1.6;display:none;">
+      ⚠️ <b>ยังไม่ได้ตั้งค่า Firebase</b><br>
+      ข้อมูลจะเก็บในเครื่องนี้เท่านั้น (IndexedDB)<br>
+      แก้ไข <code>FIREBASE_CONFIG</code> ในไฟล์เพื่อเปิดใช้ Cloud Sync
+    </div>
+    <script>
+      if(typeof FIREBASE_CONFIG !== "undefined" && FIREBASE_CONFIG.apiKey === "YOUR_API_KEY"){
+        document.getElementById("firebaseNotice").style.display = "block";
+      }
+    </script>
   </div>
 
   <!-- ============================================================
@@ -913,36 +926,107 @@ var selectedIds  = [];             /* รายการ id นักเรี�
 var selectedType = null;           /* ประเภทที่เลือก: "ทำเวร"/"ลา"/"มาสาย" */
 var slideImages  = JSON.parse(localStorage.getItem("slideImages")) || DEFAULT_SLIDES;
 var curSlide     = 0;              /* index สไลด์ปัจจุบัน */
-var retroEditLogIndex = -1;        /* index ของ record ใน log ที่กำลังแก้ไข (-1 = ไม่มี) */
+var retroEditLogIndex = null;        /* firestoreId หรือ _idx ของ record ที่กำลังแก้ไข */
 
 /* ============================================================
-  INDEXEDDB STORAGE ENGINE
-  ใช้ IndexedDB แทน localStorage สำหรับเก็บ log การเช็คชื่อ
-  เพราะ IndexedDB รองรับข้อมูลขนาดใหญ่ (ปกติ 50MB+ ต่อ origin)
-  เพียงพอสำหรับเก็บข้อมูล 5+ เดือน โดยไม่ต้องกังวล QuotaExceeded
-  localStorage จำกัดที่ ~5MB ซึ่งไม่พอเมื่อเก็บรูป base64 + log
-============================================================ */
-var db = null; /* instance ของ IndexedDB database */
+  FIREBASE CLOUD STORAGE ENGINE
+  ใช้ Firebase Firestore แทน IndexedDB
+  ✅ ข้อมูลไม่หาย  ✅ เปลี่ยนเครื่องได้  ✅ มือถือ/คอม sync
+  📡 Realtime: ครูหลายเครื่องเปิดพร้อมกันได้
 
-/* เปิด/สร้าง IndexedDB database "attendance_db" version 1
-   คืน Promise ที่ resolve เมื่อพร้อมใช้งาน */
-function openDB() {
-  return new Promise(function(resolve, reject) {
-    if (db) { resolve(db); return; } /* ถ้าเปิดแล้ว ใช้เลย */
-    var req = indexedDB.open("attendance_db", 1);
-    req.onupgradeneeded = function(e) {
-      /* สร้าง object store "logs" ครั้งแรก พร้อม index สำหรับ query ตามวันที่ */
-      var store = e.target.result.createObjectStore("logs", {keyPath:"_idx", autoIncrement:true});
-      store.createIndex("date",      "date",      {unique:false});
-      store.createIndex("studentId", "studentId", {unique:false});
-    };
-    req.onsuccess  = function(e) { db = e.target.result; resolve(db); };
-    req.onerror    = function(e) { reject(e.target.error); };
+  ⚠️ ต้องตั้งค่า Firebase Project ก่อน:
+     1. ไปที่ https://console.firebase.google.com
+     2. สร้าง project ใหม่ (หรือใช้ของเดิม)
+     3. เพิ่ม Web App → คัดลอก firebaseConfig มาวางด้านล่าง
+     4. เปิด Firestore Database (mode: test สำหรับทดลอง)
+============================================================ */
+
+/* ===== แก้ค่าด้านล่างนี้ด้วย config จาก Firebase Console ===== */
+var FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyAoNYXuqo_c7LhYtaiDA82_aic_rL-RfO8",
+  authDomain:        "df23445.firebaseapp.com",
+  projectId:         "df23445",
+  storageBucket:     "df23445.firebasestorage.app",
+  messagingSenderId: "857734986692",
+  appId:             "1:857734986692:web:b7229d42bbfa9af0458291"
+};
+/* ============================================================= */
+
+var firebaseApp = null;
+var firestoreDB = null;
+var realtimeUnsubscribe = null; /* ฟังก์ชัน unsubscribe realtime listener */
+
+/* ตรวจสอบว่าตั้งค่า Firebase แล้วหรือยัง */
+function isFirebaseConfigured() {
+  return FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY";
+}
+
+/* เริ่มต้น Firebase — เรียกครั้งเดียวตอน startSystem */
+function initFirebase() {
+  if (!isFirebaseConfigured()) {
+    console.warn("⚠️ Firebase ยังไม่ได้ตั้งค่า — ใช้ IndexedDB แทน");
+    return false;
+  }
+  try {
+    if (!firebase.apps.length) {
+      firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
+    } else {
+      firebaseApp = firebase.app();
+    }
+    firestoreDB = firebase.firestore();
+    console.log("✅ Firebase Firestore พร้อมใช้งาน");
+    return true;
+  } catch(e) {
+    console.error("❌ Firebase init error:", e);
+    return false;
+  }
+}
+
+/* คอลเล็กชัน logs ใน Firestore */
+function logsCol() {
+  return firestoreDB.collection("attendance_m51");
+}
+
+/* ============================================================
+  REALTIME LISTENER: รับข้อมูลอัปเดตจาก Firestore แบบ realtime
+  เรียกหลัง login สำเร็จ — จะ re-render ทุกครั้งที่ข้อมูลเปลี่ยน
+============================================================ */
+function startRealtimeSync() {
+  if (!firestoreDB) return;
+  if (realtimeUnsubscribe) realtimeUnsubscribe(); /* unsubscribe เก่าก่อน */
+  realtimeUnsubscribe = logsCol().onSnapshot(function(snapshot) {
+    /* rebuild cache จาก snapshot */
+    _cachedLogs = [];
+    snapshot.forEach(function(doc) {
+      var d = doc.data();
+      d._firestoreId = doc.id;
+      _cachedLogs.push(d);
+    });
+    /* sort ตาม createdAt */
+    _cachedLogs.sort(function(a,b){
+      var ta = a.createdAt || 0, tb = b.createdAt || 0;
+      return ta - tb;
+    });
+    /* re-render ทุก view ที่เปิดอยู่ */
+    renderHistory();
+    updateDashboard();
+    renderChart();
+    console.log("🔄 Realtime sync:", _cachedLogs.length, "รายการ");
+  }, function(err) {
+    console.error("Realtime error:", err);
   });
 }
 
-/* อ่าน log ทั้งหมดจาก IndexedDB คืน Promise<Array> */
+/* cache ของ logs ในหน่วยความจำ (อัปเดตโดย realtime listener) */
+var _cachedLogs = [];
+
+/* อ่าน log ทั้งหมด — คืน Promise<Array> (ใช้ cache เมื่อ firebase พร้อม) */
 function getAllLogs() {
+  if (firestoreDB) {
+    /* ถ้า realtime listener ทำงานอยู่ ใช้ cache ทันที */
+    return Promise.resolve(_cachedLogs.slice());
+  }
+  /* fallback: IndexedDB */
   return openDB().then(function(database) {
     return new Promise(function(resolve, reject) {
       var tx    = database.transaction("logs","readonly");
@@ -954,13 +1038,24 @@ function getAllLogs() {
   });
 }
 
-/* เพิ่ม records หลายรายการพร้อมกัน (batch insert) คืน Promise */
+/* เพิ่ม records หลายรายการ (batch write) */
 function addLogs(records) {
+  if (firestoreDB) {
+    var batch = firestoreDB.batch();
+    records.forEach(function(r) {
+      var docRef = logsCol().doc();
+      var data = Object.assign({}, r);
+      data.createdAt = Date.now();
+      delete data._idx;
+      batch.set(docRef, data);
+    });
+    return batch.commit();
+  }
+  /* fallback: IndexedDB */
   return openDB().then(function(database) {
     return new Promise(function(resolve, reject) {
       var tx    = database.transaction("logs","readwrite");
       var store = tx.objectStore("logs");
-      var count = 0;
       records.forEach(function(r) { store.add(r); });
       tx.oncomplete = function() { resolve(); };
       tx.onerror    = function() { reject(tx.error); };
@@ -968,8 +1063,14 @@ function addLogs(records) {
   });
 }
 
-/* อัปเดต record เดียวโดย _idx คืน Promise */
+/* อัปเดต record เดียว */
 function updateLog(record) {
+  if (firestoreDB && record._firestoreId) {
+    var data = Object.assign({}, record);
+    delete data._firestoreId;
+    return logsCol().doc(record._firestoreId).set(data);
+  }
+  /* fallback: IndexedDB */
   return openDB().then(function(database) {
     return new Promise(function(resolve, reject) {
       var tx    = database.transaction("logs","readwrite");
@@ -981,21 +1082,36 @@ function updateLog(record) {
   });
 }
 
-/* ลบ record เดียวโดย _idx คืน Promise */
-function deleteLog(idx) {
+/* ลบ record เดียว */
+function deleteLog(idxOrFirestoreId) {
+  if (firestoreDB) {
+    /* idxOrFirestoreId คือ _firestoreId string */
+    return logsCol().doc(idxOrFirestoreId).delete();
+  }
+  /* fallback: IndexedDB */
   return openDB().then(function(database) {
     return new Promise(function(resolve, reject) {
       var tx    = database.transaction("logs","readwrite");
       var store = tx.objectStore("logs");
-      var req   = store.delete(idx);
+      var req   = store.delete(idxOrFirestoreId);
       req.onsuccess = function() { resolve(); };
       req.onerror   = function() { reject(req.error); };
     });
   });
 }
 
-/* ลบ log ทั้งหมด คืน Promise */
+/* ลบ log ทั้งหมด */
 function clearAllLogs() {
+  if (firestoreDB) {
+    return getAllLogs().then(function(logs) {
+      var batch = firestoreDB.batch();
+      logs.forEach(function(r) {
+        if (r._firestoreId) batch.delete(logsCol().doc(r._firestoreId));
+      });
+      return batch.commit();
+    });
+  }
+  /* fallback: IndexedDB */
   return openDB().then(function(database) {
     return new Promise(function(resolve, reject) {
       var tx    = database.transaction("logs","readwrite");
@@ -1007,7 +1123,7 @@ function clearAllLogs() {
   });
 }
 
-/* ลบ log ที่เก่ากว่า N เดือนจากวันนี้ คืน Promise<จำนวนที่ลบ> */
+/* ลบ log เก่ากว่า N เดือน */
 function pruneLogsOlderThan(months) {
   var cutoff = new Date();
   cutoff.setMonth(cutoff.getMonth() - months);
@@ -1016,6 +1132,14 @@ function pruneLogsOlderThan(months) {
       var iso = thaiDateToISO(r.date);
       return iso && new Date(iso) < cutoff;
     });
+    if (firestoreDB) {
+      var batch = firestoreDB.batch();
+      toDelete.forEach(function(r) {
+        if (r._firestoreId) batch.delete(logsCol().doc(r._firestoreId));
+      });
+      return batch.commit().then(function(){ return toDelete.length; });
+    }
+    /* fallback: IndexedDB */
     return openDB().then(function(database) {
       return new Promise(function(resolve, reject) {
         var tx    = database.transaction("logs","readwrite");
@@ -1029,16 +1153,31 @@ function pruneLogsOlderThan(months) {
 }
 
 /* ============================================================
-  MIGRATE: ย้ายข้อมูลเก่าจาก localStorage → IndexedDB
-  ทำครั้งเดียวตอนโหลดหน้า ถ้ามี "flowLog" ใน localStorage
+  INDEXEDDB FALLBACK (ใช้เมื่อ Firebase ไม่ได้ตั้งค่า)
 ============================================================ */
+var db = null;
+function openDB() {
+  return new Promise(function(resolve, reject) {
+    if (db) { resolve(db); return; }
+    var req = indexedDB.open("attendance_db", 1);
+    req.onupgradeneeded = function(e) {
+      var store = e.target.result.createObjectStore("logs", {keyPath:"_idx", autoIncrement:true});
+      store.createIndex("date",      "date",      {unique:false});
+      store.createIndex("studentId", "studentId", {unique:false});
+    };
+    req.onsuccess  = function(e) { db = e.target.result; resolve(db); };
+    req.onerror    = function(e) { reject(e.target.error); };
+  });
+}
+
+/* migrate localStorage → IndexedDB (fallback เท่านั้น) */
 function migrateFromLocalStorage() {
+  if (firestoreDB) return Promise.resolve(); /* Firebase ใช้ cloud แล้ว */
   var old = localStorage.getItem("flowLog");
   if (!old) return Promise.resolve();
   try {
     var oldLogs = JSON.parse(old);
     if (!oldLogs || !oldLogs.length) { localStorage.removeItem("flowLog"); return Promise.resolve(); }
-    /* ลบ _idx เดิม (จะได้ key ใหม่จาก autoIncrement) */
     oldLogs.forEach(function(r){ delete r._idx; });
     return addLogs(oldLogs).then(function() {
       localStorage.removeItem("flowLog");
@@ -1132,6 +1271,13 @@ function safeSetItem(key, value) {
 function updateStorageStatus(targetId) {
   var el = document.getElementById(targetId);
   if (!el) return;
+  /* แสดง cloud status เมื่อ Firebase ใช้งานได้ */
+  if (firestoreDB) {
+    el.innerHTML =
+      '<div class="storage-bar-label">☁️ Cloud Storage (Firebase Firestore) — ข้อมูลซิงก์ทุกเครื่อง 📡 Realtime</div>' +
+      '<div class="storage-bar-track"><div class="storage-bar-fill" style="width:100%;background:var(--c4);"></div></div>';
+    return;
+  }
   if (!navigator.storage || !navigator.storage.estimate) {
     el.innerHTML = '<p style="font-size:.82rem;color:#aaa;">browser ไม่รองรับการตรวจสอบพื้นที่</p>';
     return;
@@ -1180,32 +1326,35 @@ function logout() {
   location.reload();
 }
 
-/* startSystem: เริ่มต้นระบบหลังล็อกอิน
-   - ซ่อน loginPage
-   - แสดง homePage + เมนูที่เหมาะกับ role */
+/* startSystem: เริ่มต้นระบบหลังล็อกอิน */
 function startSystem() {
   document.getElementById("loginPage").classList.add("hidden");
   document.getElementById("homePage").classList.remove("hidden");
 
   if (isTeacher) {
-    /* ครู: แสดงเมนูตั้งค่า + logout + ปุ่มแก้ไขในตาราง */
     document.getElementById("topActions").classList.remove("hidden");
     document.getElementById("editColHeader").classList.remove("hidden");
     document.getElementById("teacherNav").classList.remove("hidden");
   } else {
-    /* นักเรียน: แสดงแค่ logout + เมนูดูย้อนหลัง */
     document.getElementById("studentActions").classList.remove("hidden");
     document.getElementById("studentNav").classList.remove("hidden");
   }
 
-  /* โหลดข้อมูลเริ่มต้น */
-  migrateFromLocalStorage().then(function() {
-    renderHistory();
-    renderChart();
-    updateDashboard();
-  });
+  /* Init Firebase และเริ่ม realtime sync */
+  var firebaseOk = initFirebase();
+  if (firebaseOk) {
+    showStatus("🔥 เชื่อมต่อ Cloud สำเร็จ — Realtime sync เริ่มทำงาน ✅");
+    startRealtimeSync(); /* จะ render ข้อมูลให้อัตโนมัติ */
+  } else {
+    /* Fallback: IndexedDB */
+    showStatus("⚠️ ใช้ข้อมูลในเครื่อง (กรุณาตั้งค่า Firebase เพื่อ sync)");
+    migrateFromLocalStorage().then(function() {
+      renderHistory();
+      renderChart();
+      updateDashboard();
+    });
+  }
   updateStorageStatus("storageBarWrap");
-  showStatus("เข้าสู่ระบบสำเร็จ ✨");
 }
 
 /* ============================================================
@@ -1361,8 +1510,9 @@ function renderHistory(filterISO) {
 
     rows.forEach(function(r) {
       var badge   = actionBadgeClass(r.action);
+      var editKey = firestoreDB ? (r._firestoreId || "") : r._idx;
       var editBtn = isTeacher
-        ? '<button onclick="openRetroEdit('+r._idx+')" style="background:var(--c2);border:none;border-radius:8px;padding:5px 9px;cursor:pointer;font-family:Mitr,sans-serif;font-size:.75rem;white-space:nowrap;">✏️ แก้</button>'
+        ? '<button onclick="openRetroEdit(\'' + editKey + '\')" style="background:var(--c2);border:none;border-radius:8px;padding:5px 9px;cursor:pointer;font-family:Mitr,sans-serif;font-size:.75rem;white-space:nowrap;">✏️ แก้</button>'
         : '';
 
       /* TABLE ROW */
@@ -1625,7 +1775,8 @@ function submitFlow() {
     .then(function() {
       hideLoading();
       showStatus("บันทึกสำเร็จ ✅ " + selectedIds.length + " คน → " + selectedType);
-      renderHistory(); updateDashboard(); renderChart();
+      if (!firestoreDB) { renderHistory(); updateDashboard(); renderChart(); }
+      /* Firestore: realtime listener จะ sync และ re-render ให้อัตโนมัติ */
       setTimeout(function(){ initFlow(); }, 1000);
     })
     .catch(function(err) {
@@ -1666,25 +1817,36 @@ function loadRetroData() {
     var html = "";
     filtered.forEach(function(r) {
       var badge = actionBadgeClass(r.action);
+      var ekey = firestoreDB ? (r._firestoreId || "") : r._idx;
       html +=
         '<tr>'
         + '<td>' + escapeHtml(String(r.no)) + '</td>'
         + '<td class="td-name">' + escapeHtml(r.name) + '</td>'
         + '<td><span class="retro-badge '+badge+'">' + actionIcon(r.action) + ' ' + escapeHtml(r.action) + '</span></td>'
-        + '<td><button onclick="openRetroEdit('+r._idx+')" style="background:var(--c2);border:none;border-radius:8px;padding:5px 9px;cursor:pointer;font-family:Mitr,sans-serif;font-size:.75rem;white-space:nowrap;">✏️ แก้</button></td>'
+        + '<td><button onclick="openRetroEdit(\'' + ekey + '\')" style="background:var(--c2);border:none;border-radius:8px;padding:5px 9px;cursor:pointer;font-family:Mitr,sans-serif;font-size:.75rem;white-space:nowrap;">✏️ แก้</button></td>'
         + '</tr>';
     });
     tbody.innerHTML = html;
   });
 }
 
-/* เปิด modal แก้ไข — ดึงข้อมูลจาก IndexedDB ด้วย _idx */
-function openRetroEdit(idx) {
-  retroEditLogIndex = idx;
+/* เปิด modal แก้ไข — รองรับทั้ง Firestore (_firestoreId) และ IndexedDB (_idx) */
+function openRetroEdit(idxOrFid) {
+  retroEditLogIndex = idxOrFid;
+  /* ค้นจาก cache ก่อน (Firestore) */
+  if (firestoreDB) {
+    var r = _cachedLogs.find(function(x){ return x._firestoreId === idxOrFid; });
+    if (!r) { showStatus("ไม่พบรายการ"); return; }
+    document.getElementById("retroEditName").textContent = r.name;
+    document.getElementById("retroEditMeta").textContent = "เลขที่ " + r.no + " | " + r.date + " | ปัจจุบัน: " + actionIcon(r.action) + " " + r.action;
+    document.getElementById("retroEditModal").style.display = "flex";
+    return;
+  }
+  /* fallback: IndexedDB */
   openDB().then(function(database) {
     var tx    = database.transaction("logs","readonly");
     var store = tx.objectStore("logs");
-    var req   = store.get(idx);
+    var req   = store.get(idxOrFid);
     req.onsuccess = function() {
       var r = req.result;
       if (!r) { showStatus("ไม่พบรายการ"); return; }
@@ -1697,94 +1859,104 @@ function openRetroEdit(idx) {
 
 function closeRetroEdit() {
   document.getElementById("retroEditModal").style.display = "none";
-  retroEditLogIndex = -1;
+  retroEditLogIndex = null;
 }
 
-/* applyRetroEdit: เปลี่ยนประเภทของรายการ
-   1. อ่าน record จาก DB
-   2. ส่ง payload ไป Google Sheet
-   3. ถ้าสำเร็จ → updateLog ใน IndexedDB */
+/* applyRetroEdit: เปลี่ยนประเภทของรายการ */
 function applyRetroEdit(newAction) {
-  if (retroEditLogIndex < 0) return;
+  if (!retroEditLogIndex && retroEditLogIndex !== 0) return;
+  /* ค้นจาก cache (Firestore) */
+  var r;
+  if (firestoreDB) {
+    r = _cachedLogs.find(function(x){ return x._firestoreId === retroEditLogIndex; });
+  }
+  if (!r && !firestoreDB) {
+    /* fallback: IndexedDB — อ่านแบบ async */
+    openDB().then(function(database) {
+      var tx = database.transaction("logs","readonly");
+      var req = tx.objectStore("logs").get(retroEditLogIndex);
+      req.onsuccess = function() { _doApplyRetroEdit(req.result, newAction); };
+    });
+    return;
+  }
+  _doApplyRetroEdit(r, newAction);
+}
+
+function _doApplyRetroEdit(r, newAction) {
+  if (!r) return;
+  var oldAction = r.action;
+  showLoading("กำลังอัปเดต...");
+  var payload = {
+    type: "retro_edit",
+    date: r.date, studentId: r.studentId,
+    no: r.no, name: r.name,
+    oldAction: oldAction, newAction: newAction,
+    timestamp: r.timestamp
+  };
+  fetch(SHEET_URL + "?data=" + encodeURIComponent(JSON.stringify(payload)))
+    .then(function(res){ return res.text(); })
+    .then(function(rt) {
+      if (rt && rt.toLowerCase().includes("error")) throw new Error(rt);
+      var updated = Object.assign({}, r, {action: newAction});
+      return updateLog(updated);
+    })
+    .then(function() {
+      hideLoading();
+      closeRetroEdit();
+      showStatus("เปลี่ยนเป็น " + actionIcon(newAction) + " " + newAction + " แล้ว ✅");
+      if (!firestoreDB) { renderHistory(); updateDashboard(); renderChart(); loadRetroData(); }
+      /* Firestore: realtime listener จะ re-render ให้อัตโนมัติ */
+    })
+    .catch(function(err) {
+      console.error(err);
+      hideLoading();
+      showStatus("❌ อัปเดต Sheet ไม่สำเร็จ ข้อมูลไม่เปลี่ยน");
+    });
+}
+
+/* deleteRetroRecord: ลบรายการ */
+function deleteRetroRecord() {
+  if (!retroEditLogIndex && retroEditLogIndex !== 0) return;
+  if (!confirm("ลบรายการนี้?")) return;
+  var r;
+  if (firestoreDB) {
+    r = _cachedLogs.find(function(x){ return x._firestoreId === retroEditLogIndex; });
+    if (r) { _doDeleteRetroRecord(r); return; }
+  }
+  /* fallback: IndexedDB */
   openDB().then(function(database) {
-    var tx    = database.transaction("logs","readonly");
-    var store = tx.objectStore("logs");
-    var req   = store.get(retroEditLogIndex);
-    req.onsuccess = function() {
-      var r = req.result;
-      if (!r) return;
-      var oldAction = r.action;
-      showLoading("กำลังอัปเดต...");
-      var payload = {
-        type: "retro_edit",
-        date: r.date, studentId: r.studentId,
-        no: r.no, name: r.name,
-        oldAction: oldAction, newAction: newAction,
-        timestamp: r.timestamp
-      };
-      fetch(SHEET_URL + "?data=" + encodeURIComponent(JSON.stringify(payload)))
-        .then(function(res){ return res.text(); })
-        .then(function(rt) {
-          if (rt && rt.toLowerCase().includes("error")) throw new Error(rt);
-          r.action = newAction;
-          return updateLog(r);
-        })
-        .then(function() {
-          hideLoading();
-          closeRetroEdit();
-          showStatus("เปลี่ยนเป็น " + actionIcon(newAction) + " " + newAction + " แล้ว ✅");
-          renderHistory(); updateDashboard(); renderChart();
-          loadRetroData();
-        })
-        .catch(function(err) {
-          console.error(err);
-          hideLoading();
-          showStatus("❌ อัปเดต Sheet ไม่สำเร็จ ข้อมูลไม่เปลี่ยน");
-        });
-    };
+    var tx = database.transaction("logs","readonly");
+    var req = tx.objectStore("logs").get(retroEditLogIndex);
+    req.onsuccess = function() { _doDeleteRetroRecord(req.result); };
   });
 }
 
-/* deleteRetroRecord: ลบรายการ
-   1. ส่ง payload ไป Google Sheet
-   2. ถ้าสำเร็จ → deleteLog จาก IndexedDB */
-function deleteRetroRecord() {
-  if (retroEditLogIndex < 0) return;
-  if (!confirm("ลบรายการนี้?")) return;
-  openDB().then(function(database) {
-    var tx    = database.transaction("logs","readonly");
-    var store = tx.objectStore("logs");
-    var req   = store.get(retroEditLogIndex);
-    req.onsuccess = function() {
-      var r = req.result;
-      if (!r) return;
-      showLoading("กำลังลบ...");
-      var payload = {
-        type: "retro_delete",
-        date: r.date, studentId: r.studentId,
-        no: r.no, name: r.name,
-        action: r.action, timestamp: r.timestamp
-      };
-      fetch(SHEET_URL + "?data=" + encodeURIComponent(JSON.stringify(payload)))
-        .then(function(res){ return res.text(); })
-        .then(function(rt) {
-          if (rt && rt.toLowerCase().includes("error")) throw new Error(rt);
-          return deleteLog(retroEditLogIndex);
-        })
-        .then(function() {
-          hideLoading();
-          closeRetroEdit();
-          showStatus("ลบรายการแล้ว 🗑️");
-          renderHistory(); updateDashboard(); renderChart();
-          loadRetroData();
-        })
-        .catch(function(err) {
-          console.error(err);
-          hideLoading();
-          showStatus("❌ ลบจาก Sheet ไม่สำเร็จ ข้อมูลไม่เปลี่ยน");
-        });
-    };
-  });
+function _doDeleteRetroRecord(r) {
+  if (!r) return;
+  showLoading("กำลังลบ...");
+  var payload = {
+    type: "retro_delete",
+    date: r.date, studentId: r.studentId,
+    no: r.no, name: r.name,
+    action: r.action, timestamp: r.timestamp
+  };
+  fetch(SHEET_URL + "?data=" + encodeURIComponent(JSON.stringify(payload)))
+    .then(function(res){ return res.text(); })
+    .then(function(rt) {
+      if (rt && rt.toLowerCase().includes("error")) throw new Error(rt);
+      return deleteLog(firestoreDB ? r._firestoreId : r._idx);
+    })
+    .then(function() {
+      hideLoading();
+      closeRetroEdit();
+      showStatus("ลบรายการแล้ว 🗑️");
+      if (!firestoreDB) { renderHistory(); updateDashboard(); renderChart(); loadRetroData(); }
+    })
+    .catch(function(err) {
+      console.error(err);
+      hideLoading();
+      showStatus("❌ ลบจาก Sheet ไม่สำเร็จ ข้อมูลไม่เปลี่ยน");
+    });
 }
 
 /* ============================================================
@@ -2369,13 +2541,12 @@ loadAssignData();
 
 /* ============================================================
   STARTUP: รันตอนโหลดหน้า
-  - เปิด IndexedDB ให้พร้อม
+  - เปิด IndexedDB เป็น fallback สำรองเผื่อ Firebase ยังไม่ตั้งค่า
 ============================================================ */
 openDB().then(function() {
-  console.log("✅ IndexedDB พร้อมใช้งาน (รองรับข้อมูล 5+ เดือน)");
+  console.log("✅ IndexedDB fallback พร้อม");
 }).catch(function(e) {
-  console.error("❌ IndexedDB error:", e);
-  showStatus("⚠️ browser ไม่รองรับการจัดเก็บข้อมูล กรุณาใช้ Chrome/Safari ล่าสุด");
+  console.warn("IndexedDB ไม่พร้อม (จะใช้ Firebase แทน):", e);
 });
 </script>
 </body>
