@@ -2,10 +2,12 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#DCC5B2">
+<meta name="format-detection" content="telephone=no">
 <title>ระบบเช็คชื่อเวร M5/1 v5</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -144,15 +146,15 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 .edit-type-btn{padding:16px 8px;border-radius:16px;font-size:.88rem;font-weight:600;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:.15s;}
 .edit-type-btn:hover{transform:translateY(-2px);}
 .edit-type-btn .eti{font-size:1.6rem;}
-.subject-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.subject-tabs{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:16px;padding-bottom:4px;scrollbar-width:none;}.subject-tabs::-webkit-scrollbar{display:none;}
 .subject-tab{padding:8px 14px;border-radius:12px;border:2px solid var(--c3);background:white;color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.15s;}
 .subject-tab.active{background:var(--c4);border-color:var(--c4);color:white;}
 .subject-tab:hover:not(.active){background:var(--c2);}
-.assign-card{background:white;border-radius:18px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 10px rgba(0,0,0,.05);display:flex;align-items:flex-start;gap:12px;border-left:4px solid var(--c3);transition:.2s;}
+.assign-card{background:white;border-radius:18px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 10px rgba(0,0,0,.05);display:flex;align-items:flex-start;gap:12px;border-left:4px solid var(--c3);transition:.2s;-webkit-tap-highlight-color:transparent;}
 .assign-card.done{opacity:.55;border-left-color:var(--green);}
 .assign-card.overdue{border-left-color:var(--red);}
 .assign-card.due-soon{border-left-color:var(--yellow);}
-.assign-check{width:24px;height:24px;border-radius:8px;border:2px solid var(--c3);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:.15s;}
+.assign-check{width:32px;height:32px;border-radius:10px;border:2px solid var(--c3);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:0;transition:.15s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;font-size:1rem;}
 .assign-check.checked{background:var(--green);border-color:var(--green);color:white;}
 .assign-body{flex:1;min-width:0;}
 .assign-title{font-size:.9rem;font-weight:600;line-height:1.4;margin-bottom:3px;}
@@ -232,11 +234,65 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 .tab-btn.active{background:var(--c4);border-color:var(--c4);color:white;}
 .tab-btn:hover:not(.active){background:var(--c2);}
 
-@media(max-width:600px){
-  .table-wrapper{display:none;}.history-cards{display:flex;}.container{padding:10px;padding-bottom:calc(130px + env(safe-area-inset-bottom));}.logo h1{font-size:1.1rem;}.top-actions button{padding:8px 10px;font-size:.76rem;}.banner-slider{height:170px;border-radius:16px;}.bottom-nav{padding:8px 6px;gap:4px;border-radius:18px;}.bottom-nav button{padding:10px 4px;font-size:.7rem;}.student-grid{grid-template-columns:repeat(2,1fr);gap:6px;}.type-card{padding:14px 4px;}.type-card .ti{font-size:1.3rem;}.type-card .tn{font-size:.8rem;}th,td{padding:8px 5px;font-size:.76rem;}td.td-name{min-width:90px;}.modal-box{padding:16px;border-radius:22px;}.dash-card h1{font-size:1.6rem;}
+/* ── Touch UX ── */
+.assign-card,.assign-check,.student-card,.type-card,.cal-cell{
+  -webkit-user-select:none;user-select:none;
+  -webkit-touch-callout:none;
 }
+
+/* ════ MOBILE (≤600px) ════ */
+@media(max-width:600px){
+  /* ── Input: 16px ป้องกัน iOS auto-zoom ── */
+  input,select,textarea{font-size:16px!important;}
+
+  .table-wrapper{display:none;}
+  .history-cards{display:flex;}
+  .container{padding:10px;padding-bottom:calc(110px + env(safe-area-inset-bottom));}
+  .logo h1{font-size:1.05rem;}
+  .top-actions button{padding:8px 10px;font-size:.76rem;}
+  .banner-slider{height:160px;border-radius:16px;}
+
+  /* bottom-nav: ชิดล่าง + safe area iPhone */
+  .bottom-nav{
+    bottom:0!important;
+    left:0!important;right:0!important;
+    transform:none!important;
+    width:100%!important;max-width:100%!important;
+    border-radius:22px 22px 0 0!important;
+    padding:10px 8px calc(10px + env(safe-area-inset-bottom))!important;
+    gap:2px!important;
+    justify-content:space-around!important;
+  }
+  .bottom-nav button{padding:10px 4px;font-size:.68rem;border-radius:12px;}
+
+  .student-grid{grid-template-columns:repeat(2,1fr);gap:6px;}
+  .type-card{padding:14px 4px;}
+  .type-card .ti{font-size:1.3rem;}
+  .type-card .tn{font-size:.8rem;}
+  th,td{padding:8px 5px;font-size:.76rem;}
+  td.td-name{min-width:90px;}
+  .modal-box,.assign-modal-box,.subj-modal-box{padding:16px;border-radius:22px;max-height:88vh;}
+  .dash-card h1{font-size:1.6rem;}
+
+  /* assign page */
+  .assign-card{padding:12px;gap:10px;}
+  .assign-title{font-size:.88rem;}
+  .subject-tabs{gap:5px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;scrollbar-width:none;}
+  .subject-tabs::-webkit-scrollbar{display:none;}
+  .subject-tab{padding:7px 11px;font-size:.78rem;white-space:nowrap;flex-shrink:0;}
+  .assign-sum-card{padding:10px 6px;}
+  .assign-sum-card h2{font-size:1.2rem;}
+  .assign-sum-card p{font-size:.68rem;}
+
+  /* calendar */
+  .cal-cell{min-height:40px;}
+  .cal-day{font-size:.76rem;}
+}
+
+/* ════ DESKTOP (≥601px) ════ */
 @media(min-width:601px){
-  .history-cards{display:none!important;}.table-wrapper{display:block;}
+  .history-cards{display:none!important;}
+  .table-wrapper{display:block;}
 }
 </style>
 </head>
@@ -1649,18 +1705,23 @@ function switchAssignView(mode){
 
 /* toggleAssignDone — นักเรียนติ๊กของตัวเอง, แอดมินใช้ global done */
 function toggleAssignDone(id){
-  var a=assignments.find(function(x){return x.id===id;});if(!a) return;
+  var a=assignments.find(function(x){return x.id===id||x._fid===id;});if(!a) return;
   if(isAdmin){
-    a.done=!a.done;saveAssignData();saveAssignToCloud(a);
+    a.done=!a.done;saveAssignData();
+    saveAssignToCloud(a).catch(function(e){showStatus("❌ บันทึกไม่สำเร็จ");a.done=!a.done;renderAssignPage();});
   } else {
     var newDone=!isAssignDone(id);
     var key=currentUser.uid+"_"+id;
     _cachedAssignmentStatus[key]={done:newDone,doneAt:Date.now(),studentId:currentUserDoc.studentId||""};
-    saveAssignStatusCloud(id,newDone);
+    /* optimistic update — แสดงผลทันที แล้วค่อย sync cloud */
+    saveAssignStatusCloud(id,newDone).catch(function(){
+      /* rollback ถ้า cloud fail */
+      _cachedAssignmentStatus[key]={done:!newDone,doneAt:Date.now(),studentId:currentUserDoc.studentId||""};
+      renderAssignPage();showStatus("❌ เชื่อมต่อไม่ได้ ลองใหม่");
+    });
   }
   renderAssignSummary();renderSubjectTabs();renderAssignList();
-  if(!isAdmin) {
-    /* อัปเดต AI summary ด้วย */
+  if(!isAdmin){
     var total=assignments.length;
     var done=assignments.filter(function(a2){return isAssignDone(a2.id);}).length;
     var overdue=assignments.filter(function(a2){var s=assignStatus(a2);return s==="overdue"&&!isAssignDone(a2.id);}).length;
@@ -1837,16 +1898,31 @@ window.onload = function() {
       checkUserRole(user).catch(function(){ hideLoading(); });
     }
   });
-  if(window.visualViewport){
-    var initialHeight=window.visualViewport.height;
-    window.visualViewport.addEventListener("resize",function(){
-      var open=window.visualViewport.height<initialHeight-100;
-      document.body.classList.toggle("keyboard-open",open);
-    });
+  /* keyboard detection — iPhone-safe */
+  var _baseVH = window.innerHeight;
+  function updateVH(){
+    var h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    document.documentElement.style.setProperty("--vh", (h * 0.01) + "px");
+    var isKbOpen = (_baseVH - h) > 150;
+    document.body.classList.toggle("keyboard-open", isKbOpen);
   }
-  function setVH(){ document.documentElement.style.setProperty("--vh",(window.innerHeight*.01)+"px"); }
-  setVH(); window.addEventListener("resize",setVH);
-  if(window.visualViewport) window.visualViewport.addEventListener("resize",setVH);
+  updateVH();
+  window.addEventListener("resize", updateVH);
+  if(window.visualViewport){
+    window.visualViewport.addEventListener("resize", updateVH);
+    window.visualViewport.addEventListener("scroll", updateVH);
+  }
+  /* ป้องกัน iOS rubber-band scroll บน modal */
+  document.addEventListener("touchmove", function(e){
+    var el = e.target;
+    while(el && el !== document.body){
+      if(el.scrollHeight > el.clientHeight && 
+         (el.classList.contains("modal-box") || 
+          el.classList.contains("assign-modal-box") || 
+          el.classList.contains("subj-modal-box"))) return;
+      el = el.parentElement;
+    }
+  }, {passive:true});
 };
 </script>
 </body>
