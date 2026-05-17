@@ -5,11 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>ระบบเช็คชื่อเวร M5/1 v3</title>
+<title>ระบบเช็คชื่อเวร M5/1 v4</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-<!-- ★ โหลด Firebase ก่อน Chart.js และก่อน script อื่น ★ -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"
   onerror="window._firebaseLoadError=true;console.error('❌ โหลด firebase-app-compat.js ไม่ได้')"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"
@@ -212,6 +211,26 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 .admin-student-item .asi-name{flex:1;font-size:.85rem;font-weight:600;}
 .admin-student-item .asi-id{font-size:.72rem;color:#bbb;}
 .reset-btn{padding:5px 10px;border-radius:9px;font-size:.75rem;background:#fff8e8;color:#b87a30;border:none;cursor:pointer;}
+
+/* ── Admin AI Assignment Analysis ── */
+.ai-submit-table{width:100%;border-collapse:collapse;margin-top:10px;}
+.ai-submit-table th{background:var(--c2);font-size:.78rem;padding:9px 8px;text-align:center;}
+.ai-submit-table td{font-size:.8rem;padding:9px 8px;border-bottom:1px solid #f0e4d3;text-align:center;}
+.ai-submit-table tr:last-child td{border-bottom:none;}
+.risk-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600;}
+.risk-high{background:#fff0f0;color:#c75b5b;}
+.risk-mid{background:#fff8e8;color:#b87a30;}
+.risk-low{background:#e8f5ec;color:#4a9b65;}
+.pct-bar-wrap{background:#eee;border-radius:99px;height:8px;width:80px;overflow:hidden;display:inline-block;vertical-align:middle;}
+.pct-bar-fill{height:100%;border-radius:99px;transition:.5s;}
+.ai-stream-box{background:white;border-radius:14px;padding:14px;margin-top:14px;font-size:.84rem;line-height:1.8;min-height:60px;white-space:pre-wrap;border:1.5px solid var(--c3);}
+.ai-stream-box .cursor{display:inline-block;width:8px;height:14px;background:var(--c4);border-radius:2px;vertical-align:middle;animation:blink .7s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+.tab-bar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.tab-btn{padding:8px 16px;border-radius:12px;border:2px solid var(--c3);background:white;color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.15s;}
+.tab-btn.active{background:var(--c4);border-color:var(--c4);color:white;}
+.tab-btn:hover:not(.active){background:var(--c2);}
+
 @media(max-width:600px){
   .table-wrapper{display:none;}.history-cards{display:flex;}.container{padding:10px;padding-bottom:calc(130px + env(safe-area-inset-bottom));}.logo h1{font-size:1.1rem;}.top-actions button{padding:8px 10px;font-size:.76rem;}.banner-slider{height:170px;border-radius:16px;}.bottom-nav{padding:8px 6px;gap:4px;border-radius:18px;}.bottom-nav button{padding:10px 4px;font-size:.7rem;}.student-grid{grid-template-columns:repeat(2,1fr);gap:6px;}.type-card{padding:14px 4px;}.type-card .ti{font-size:1.3rem;}.type-card .tn{font-size:.8rem;}th,td{padding:8px 5px;font-size:.76rem;}td.td-name{min-width:90px;}.modal-box{padding:16px;border-radius:22px;}.dash-card h1{font-size:1.6rem;}
 }
@@ -226,11 +245,11 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   <div class="header">
     <div class="logo">
       <h1>ระบบเช็คชื่อเวร M5/1</h1>
-      <div style="font-size:.65rem;color:rgba(255,255,255,.8);margin-top:2px;">☁️ Cloud v3 · 🔐 Auth · 📡 Realtime</div>
+      <div style="font-size:.65rem;color:rgba(255,255,255,.8);margin-top:2px;">☁️ Cloud v4 · 🔐 Auth · 📡 Realtime · 🤖 AI</div>
     </div>
     <div class="top-actions hidden" id="topActions">
       <button class="setting-btn" onclick="openSetting()">⚙️ ตั้งค่า</button>
-      <button class="btn-blue" style="padding:10px 14px;font-size:.88rem;" onclick="openAdminPanel()">👥 จัดการนักเรียน</button>
+      <button class="btn-blue" style="padding:10px 14px;font-size:.88rem;" onclick="openAdminPanel()">👥 นักเรียน</button>
       <button class="logout-btn" onclick="logout()">🚪 ออก</button>
     </div>
     <div class="top-actions hidden" id="studentActions">
@@ -279,7 +298,7 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
     </div>
   </div>
 
-  <!-- CHECK (admin) -->
+  <!-- CHECK (admin only) -->
   <div id="checkPage" class="hidden">
     <div class="card">
       <div class="flow-stepper">
@@ -337,10 +356,33 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
     <div id="aiSummarySection" class="hidden">
       <div class="ai-card" id="aiSummaryCard"><div style="text-align:center;padding:20px;color:#bbb;font-size:.88rem;">🤖 กำลังวิเคราะห์ข้อมูลของคุณ...</div></div>
     </div>
-    <!-- AI summary แอดมิน (สถิติเวร) -->
+    <!-- Admin Dashboard Tabs -->
     <div id="adminAiSection" class="hidden">
-      <div class="ai-card" id="adminAiCard"><div style="text-align:center;padding:20px;color:#bbb;font-size:.88rem;">🤖 กำลังวิเคราะห์สถิติห้อง...</div></div>
+      <div class="tab-bar">
+        <button class="tab-btn active" id="tabAttend" onclick="switchAdminTab('attend')">📊 สถิติเวร</button>
+        <button class="tab-btn" id="tabAssignAI" onclick="switchAdminTab('assign')">📚 AI วิเคราะห์การส่งงาน</button>
+      </div>
+      <!-- เวร -->
+      <div id="adminTabAttend">
+        <div class="ai-card" id="adminAiCard"><div style="text-align:center;padding:20px;color:#bbb;font-size:.88rem;">🤖 กำลังวิเคราะห์สถิติห้อง...</div></div>
+      </div>
+      <!-- งาน AI -->
+      <div id="adminTabAssign" class="hidden">
+        <div class="ai-card" id="adminAssignAiCard">
+          <div style="font-size:.75rem;color:#aaa;margin-bottom:12px;">🤖 AI วิเคราะห์การส่งงาน M5/1 — เปอร์เซ็นต์การส่ง + ประเมินความเสี่ยง</div>
+          <div id="adminAssignTable"><div style="text-align:center;color:#bbb;padding:20px;">กำลังโหลดข้อมูล...</div></div>
+          <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn-main" style="padding:10px 18px;font-size:.85rem;" onclick="runAdminAssignAI()">🤖 วิเคราะห์ AI</button>
+            <button class="btn-soft" style="padding:10px 14px;font-size:.85rem;" onclick="renderAdminAssignTable()">🔄 รีเฟรชข้อมูล</button>
+          </div>
+          <div id="adminAssignAIStream" class="hidden">
+            <div style="font-size:.8rem;color:#aaa;margin-top:14px;margin-bottom:6px;font-weight:600;">💬 ผลการวิเคราะห์จาก AI</div>
+            <div class="ai-stream-box" id="aiStreamText"></div>
+          </div>
+        </div>
+      </div>
     </div>
+
     <div class="card">
       <div class="dashboard">
         <div class="dash-card">ทั้งหมด<h1 id="allCount">19</h1></div>
@@ -381,7 +423,8 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
             <button id="viewListBtn" onclick="switchAssignView('list')" style="padding:6px 12px;border-radius:8px;font-size:.78rem;background:var(--c4);color:white;border:none;cursor:pointer;">📋 รายการ</button>
             <button id="viewCalBtn"  onclick="switchAssignView('cal')"  style="padding:6px 12px;border-radius:8px;font-size:.78rem;background:transparent;color:var(--text);border:none;cursor:pointer;">📅 ปฏิทิน</button>
           </div>
-          <button class="btn-main" id="addAssignBtn" style="padding:9px 14px;font-size:.85rem;" onclick="openAddAssign()">+ เพิ่มงาน</button>
+          <!-- ปุ่มเพิ่มงาน: แสดงเฉพาะแอดมิน -->
+          <button class="btn-main hidden" id="addAssignBtn" style="padding:9px 14px;font-size:.85rem;" onclick="openAddAssign()">+ เพิ่มงาน</button>
         </div>
       </div>
       <div class="assign-summary" id="assignSummary"></div>
@@ -417,7 +460,7 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   <button onclick="goHome()">🏠 Home</button>
 </div>
 
-<!-- SETTING MODAL -->
+<!-- SETTING MODAL (admin only) -->
 <div class="modal-wrap" id="settingModal">
   <div class="modal-box">
     <h2 style="margin-bottom:18px;">⚙️ ตั้งค่า</h2>
@@ -450,7 +493,7 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
       </div>
     </div>
     <div style="margin-bottom:20px;">
-      <div class="setting-title">📚 จัดการวิชา</div>
+      <div class="setting-title">📚 จัดการวิชา (แอดมินเท่านั้น)</div>
       <div id="subjectSettingList"></div>
       <button class="btn-soft" style="width:100%;margin-top:6px;" onclick="openAddSubject()">+ เพิ่มวิชาใหม่</button>
     </div>
@@ -504,7 +547,7 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   </div>
 </div>
 
-<!-- ASSIGN MODAL -->
+<!-- ASSIGN MODAL (admin only) -->
 <div class="assign-modal-overlay" id="assignModal">
   <div class="assign-modal-box">
     <h3 style="margin-bottom:16px;" id="assignModalTitle">📌 เพิ่มงานใหม่</h3>
@@ -519,7 +562,7 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   </div>
 </div>
 
-<!-- SUBJECT MODAL -->
+<!-- SUBJECT MODAL (admin only) -->
 <div class="subj-modal-overlay" id="subjModal">
   <div class="subj-modal-box">
     <h3 style="margin-bottom:16px;">✏️ แก้ไขวิชา</h3>
@@ -598,32 +641,24 @@ var retroEditLogIndex = null;
 var _cachedLogs = [], _cachedAssignmentStatus = {};
 var realtimeUnsubscribe = null;
 var firestoreDB = null, firebaseAuth = null;
+/* แคชสถานะส่งงานของนักเรียนทุกคน (admin view) */
+var _allStudentStatuses = {}; // key: studentId → { assignId: done }
 
 /* ══════════════════════════════════════════════════════
-   ★ FIREBASE INIT — เรียกใน window.onload เท่านั้น ★
+   FIREBASE INIT
 ══════════════════════════════════════════════════════ */
 function initFirebase() {
   try {
-    /* ตรวจสอบว่า Firebase SDK โหลดสำเร็จหรือเปล่า */
     if (typeof firebase === "undefined" || window._firebaseLoadError) {
-      var msg = "❌ โหลด Firebase SDK ไม่ได้\n\n" +
-        "สาเหตุที่เป็นไปได้:\n" +
-        "• ไม่มี internet connection\n" +
-        "• เปิดไฟล์จาก file:// โดยตรง (ให้ใช้ web server แทน)\n" +
-        "• Browser บล็อก script จากภายนอก\n\n" +
-        "ลองรีเฟรชหน้าเว็บ หรือตรวจสอบการเชื่อมต่อ internet";
+      var msg = "❌ โหลด Firebase SDK ไม่ได้\n\n• ไม่มี internet\n• เปิดจาก file:// โดยตรง\n\nลองรีเฟรช";
       console.error(msg);
       document.getElementById("loginError").style.display = "block";
       document.getElementById("loginError").textContent = msg;
       return false;
     }
-    /* ป้องกัน init ซ้ำ */
-    if (!firebase.apps.length) {
-      firebase.initializeApp(FIREBASE_CONFIG);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
     firestoreDB  = firebase.firestore();
     firebaseAuth = firebase.auth();
-    console.log("✅ Firebase ready");
     return true;
   } catch(e) {
     console.error("Firebase init error:", e);
@@ -770,7 +805,7 @@ function pruneLogsOlderThan(months) {
 }
 
 /* ══════════════════════════════════════════════════════
-   FIRESTORE: ASSIGNMENT STATUS
+   FIRESTORE: ASSIGNMENT STATUS (per student)
 ══════════════════════════════════════════════════════ */
 function assignStatusCol(){ return firestoreDB.collection("assignment_status"); }
 
@@ -783,10 +818,29 @@ function loadStudentAssignmentStatus() {
     });
 }
 
+/* โหลดสถานะส่งงานของนักเรียนทุกคน (สำหรับแอดมิน) */
+function loadAllStudentStatuses() {
+  return assignStatusCol().get().then(function(snapshot) {
+    _allStudentStatuses = {};
+    snapshot.forEach(function(doc) {
+      var d = doc.data();
+      if (!_allStudentStatuses[d.studentId]) _allStudentStatuses[d.studentId] = {};
+      if (d.done) _allStudentStatuses[d.studentId][d.assignId] = true;
+    });
+  });
+}
+
 function saveAssignStatusCloud(assignId, done) {
   if (!currentUser) return Promise.resolve();
+  var sid = currentUserDoc.studentId || "";
   var key = currentUser.uid+"_"+assignId;
-  return assignStatusCol().doc(key).set({ uid:currentUser.uid, assignId:assignId, done:done, doneAt:Date.now() });
+  return assignStatusCol().doc(key).set({
+    uid: currentUser.uid,
+    studentId: sid,
+    assignId: assignId,
+    done: done,
+    doneAt: Date.now()
+  });
 }
 
 function isAssignDone(assignId) {
@@ -847,7 +901,7 @@ function resetStudentPassword(sid){
 }
 
 /* ══════════════════════════════════════════════════════
-   AI SUMMARY (Rule-based)
+   AI SUMMARY — นักเรียน (งานค้าง)
 ══════════════════════════════════════════════════════ */
 function renderAISummary(){
   if(isAdmin){ renderAdminAISummary(); return; }
@@ -874,7 +928,7 @@ function generateAISummary(total,done,overdue,dueSoon,pending){
   else if(overdue>0) tips.push("🚨 มีงานเกินกำหนดส่ง "+overdue+" ชิ้น ควรรีบติดต่อครู");
   if(dueSoon>0&&done!==total){
     var ua=assignments.filter(function(a){return assignStatus(a)==="due-soon"&&!isAssignDone(a.id);}).sort(function(a,b){return a.due<b.due?-1:1;})[0];
-    if(ua) tips.push("⏰ งาน \""+ua.title+"\" วิชา"+getSubject(ua.subjectId).name+" ใกล้ครบกำหนดแล้ว");
+    if(ua) tips.push("⏰ งาน \""+ua.title+"\" วิชา "+getSubject(ua.subjectId).name+" ใกล้ครบกำหนดแล้ว");
   }
   if(pending>5) tips.push("📋 มีงานค้างอยู่ "+pending+" ชิ้น ลองแบ่งทำวันละ 1-2 ชิ้น");
   else if(pending>0) tips.push("💪 เหลืองานอีกแค่ "+pending+" ชิ้น สู้ๆ!");
@@ -895,10 +949,19 @@ function renderAISummaryCard(s){
     (s.urgent?'<div class="ai-urgent">🔥 ทำก่อนเลย: '+escapeHtml(s.urgent)+'</div>':'');
 }
 
-
 /* ══════════════════════════════════════════════════════
-   ADMIN AI SUMMARY — สถิติเวรทั้งห้อง
+   ADMIN AI SUMMARY — สถิติเวร
 ══════════════════════════════════════════════════════ */
+var _adminTab = "attend";
+function switchAdminTab(tab) {
+  _adminTab = tab;
+  document.getElementById("tabAttend").classList.toggle("active", tab==="attend");
+  document.getElementById("tabAssignAI").classList.toggle("active", tab==="assign");
+  document.getElementById("adminTabAttend").classList.toggle("hidden", tab!=="attend");
+  document.getElementById("adminTabAssign").classList.toggle("hidden", tab!=="assign");
+  if (tab==="assign") renderAdminAssignTable();
+}
+
 function renderAdminAISummary(){
   if(!isAdmin) return;
   document.getElementById("adminAiSection").classList.remove("hidden");
@@ -908,8 +971,6 @@ function renderAdminAISummary(){
     var todayLogs = logs.filter(function(r){ return r.date === today; });
     var seenToday = {};
     todayLogs.forEach(function(r){ seenToday[r.studentId] = r.action; });
-
-    // รวมสถิติทั้งหมด
     var allWork=0, allLeave=0, allLate=0;
     logs.forEach(function(r){
       if(r.action==="ทำเวร") allWork++;
@@ -920,15 +981,8 @@ function renderAdminAISummary(){
     var workPct  = Math.round(allWork/allTotal*100);
     var leavePct = Math.round(allLeave/allTotal*100);
     var latePct  = Math.round(allLate/allTotal*100);
-
-    // วันนี้
-    var todayWork  = Object.values(seenToday).filter(function(a){return a==="ทำเวร";}).length;
-    var todayLeave = Object.values(seenToday).filter(function(a){return a==="ลา";}).length;
-    var todayLate  = Object.values(seenToday).filter(function(a){return a==="มาสาย";}).length;
     var todayChecked = Object.keys(seenToday).length;
     var todayAbsent = total - todayChecked;
-
-    // หานักเรียนขาดบ่อย (ลา+มาสาย >= 3 ครั้ง)
     var studentCount = {};
     logs.forEach(function(r){
       if(r.action==="ลา"||r.action==="มาสาย"){
@@ -937,7 +991,6 @@ function renderAdminAISummary(){
       }
     });
     var atRisk = Object.values(studentCount).filter(function(x){return x.count>=3;}).sort(function(a,b){return b.count-a.count;}).slice(0,3);
-
     var tips = [];
     if(todayAbsent>0) tips.push("⚠️ วันนี้ยังไม่เช็คชื่อ "+todayAbsent+" คน");
     if(leavePct>20) tips.push("📋 อัตราการลาสูง "+leavePct+"% ควรติดตามนักเรียน");
@@ -945,28 +998,207 @@ function renderAdminAISummary(){
     if(workPct>=70) tips.push("🌟 ทำเวรดีมาก "+workPct+"% ยอดเยี่ยม!");
     if(atRisk.length) tips.push("🚨 นักเรียนขาด/ลาบ่อย: "+atRisk.map(function(x){return x.name.split(" ")[1]||x.name+" ("+x.count+"ครั้ง)";}).join(", "));
     if(!tips.length) tips.push("✅ สถิติการเข้าเวรปกติดี ไม่มีปัญหา");
-
     document.getElementById("adminAiCard").innerHTML =
       '<div style="font-size:.75rem;color:#aaa;margin-bottom:10px;">🤖 AI วิเคราะห์สถิติการเข้าเวร M5/1</div>'+
       '<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">'+
-        '<div style="flex:1;min-width:80px;background:white;border-radius:14px;padding:12px 8px;text-align:center;">'+
-          '<div style="font-size:1.5rem;font-weight:700;color:var(--green);">'+workPct+'%</div>'+
-          '<div style="font-size:.72rem;color:#bbb;">🧹 ทำเวร</div>'+
-        '</div>'+
-        '<div style="flex:1;min-width:80px;background:white;border-radius:14px;padding:12px 8px;text-align:center;">'+
-          '<div style="font-size:1.5rem;font-weight:700;color:var(--red);">'+leavePct+'%</div>'+
-          '<div style="font-size:.72rem;color:#bbb;">📋 ลา</div>'+
-        '</div>'+
-        '<div style="flex:1;min-width:80px;background:white;border-radius:14px;padding:12px 8px;text-align:center;">'+
-          '<div style="font-size:1.5rem;font-weight:700;color:var(--yellow);">'+latePct+'%</div>'+
-          '<div style="font-size:.72rem;color:#bbb;">⏰ มาสาย</div>'+
-        '</div>'+
-        '<div style="flex:1;min-width:80px;background:white;border-radius:14px;padding:12px 8px;text-align:center;">'+
-          '<div style="font-size:1.5rem;font-weight:700;color:var(--c4);">'+todayChecked+'/'+total+'</div>'+
-          '<div style="font-size:.72rem;color:#bbb;">วันนี้</div>'+
-        '</div>'+
+        '<div style="flex:1;min-width:80px;background:white;border-radius:14px;padding:12px 8px;text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:var(--green);">'+workPct+'%</div><div style="font-size:.72rem;color:#bbb;">🧹 ทำเวร</div></div>'+
+        '<div style="flex:1;min-width:80px;background:white;border-radius:14px;padding:12px 8px;text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:var(--red);">'+leavePct+'%</div><div style="font-size:.72rem;color:#bbb;">📋 ลา</div></div>'+
+        '<div style="flex:1;min-width:80px;background:white;border-radius:14px;padding:12px 8px;text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:var(--yellow);">'+latePct+'%</div><div style="font-size:.72rem;color:#bbb;">⏰ มาสาย</div></div>'+
+        '<div style="flex:1;min-width:80px;background:white;border-radius:14px;padding:12px 8px;text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:var(--c4);">'+todayChecked+'/'+total+'</div><div style="font-size:.72rem;color:#bbb;">วันนี้</div></div>'+
       '</div>'+
       '<ul class="ai-tips">'+tips.map(function(t){return '<li>'+escapeHtml(t)+'</li>';}).join('')+'</ul>';
+  });
+}
+
+/* ══════════════════════════════════════════════════════
+   ADMIN: ตารางเปอร์เซ็นต์การส่งงาน
+══════════════════════════════════════════════════════ */
+function renderAdminAssignTable() {
+  loadAssignData();
+  var totalAssign = assignments.length;
+  if(totalAssign === 0) {
+    document.getElementById("adminAssignTable").innerHTML = '<p style="color:#bbb;font-size:.85rem;text-align:center;padding:16px;">ยังไม่มีงานในระบบ</p>';
+    return;
+  }
+  showLoading("กำลังโหลดสถานะการส่งงาน...");
+  assignStatusCol().get().then(function(snapshot) {
+    hideLoading();
+    var statusMap = {}; // uid → { assignId: bool }
+    var uidToStudent = {}; // uid → studentId
+    snapshot.forEach(function(doc) {
+      var d = doc.data();
+      if(!statusMap[d.uid]) statusMap[d.uid] = {};
+      uidToStudent[d.uid] = d.studentId || "";
+      if(d.done) statusMap[d.uid][d.assignId] = true;
+    });
+
+    // สร้าง studentId → assignId[] map
+    var studentDoneMap = {}; // studentId → Set of assignIds done
+    Object.keys(statusMap).forEach(function(uid) {
+      var sid = uidToStudent[uid];
+      if(!sid) return;
+      if(!studentDoneMap[sid]) studentDoneMap[sid] = {};
+      Object.keys(statusMap[uid]).forEach(function(aid) {
+        studentDoneMap[sid][aid] = true;
+      });
+    });
+
+    var rows = STUDENTS.map(function(s) {
+      var doneCount = 0;
+      assignments.forEach(function(a) {
+        if(studentDoneMap[s.id] && studentDoneMap[s.id][a.id]) doneCount++;
+      });
+      var pct = totalAssign > 0 ? Math.round(doneCount / totalAssign * 100) : 0;
+      return { student: s, done: doneCount, total: totalAssign, pct: pct };
+    }).sort(function(a, b){ return a.pct - b.pct; }); // เรียงจากน้อยสุด
+
+    var html = '<div style="overflow-x:auto;border-radius:14px;"><table class="ai-submit-table">' +
+      '<thead><tr><th>เลขที่</th><th style="text-align:left;min-width:130px;">ชื่อ</th><th>ส่งแล้ว</th><th>เปอร์เซ็นต์</th><th>ความเสี่ยง</th></tr></thead><tbody>';
+    rows.forEach(function(r) {
+      var pct = r.pct;
+      var risk, riskClass, barColor;
+      if(pct < 40)      { risk="สูง 🔴";   riskClass="risk-high"; barColor="#e58d8d"; }
+      else if(pct < 70) { risk="ปานกลาง 🟡"; riskClass="risk-mid";  barColor="#e5c08d"; }
+      else               { risk="ต่ำ 🟢";   riskClass="risk-low";  barColor="#89b89a"; }
+      html += '<tr>' +
+        '<td>'+r.student.no+'</td>' +
+        '<td style="text-align:left;">'+escapeHtml(r.student.name.replace(/^(นาย|นางสาว|นาง)/,""))+'</td>' +
+        '<td>'+r.done+'/'+r.total+'</td>' +
+        '<td><div style="display:flex;align-items:center;gap:6px;justify-content:center;">'+
+          '<div class="pct-bar-wrap"><div class="pct-bar-fill" style="width:'+pct+'%;background:'+barColor+';"></div></div>'+
+          '<span style="font-weight:600;font-size:.8rem;">'+pct+'%</span></div></td>' +
+        '<td><span class="risk-badge '+riskClass+'">'+risk+'</span></td>' +
+        '</tr>';
+    });
+    html += '</tbody></table></div>';
+    // สรุปภาพรวม
+    var highRisk = rows.filter(function(r){ return r.pct < 40; }).length;
+    var midRisk  = rows.filter(function(r){ return r.pct >= 40 && r.pct < 70; }).length;
+    var lowRisk  = rows.filter(function(r){ return r.pct >= 70; }).length;
+    var avgPct = Math.round(rows.reduce(function(s,r){ return s+r.pct; },0)/rows.length);
+    html += '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">' +
+      '<div style="flex:1;min-width:70px;background:white;border-radius:12px;padding:10px 6px;text-align:center;"><div style="font-size:1.3rem;font-weight:700;color:#e58d8d;">'+highRisk+'</div><div style="font-size:.7rem;color:#bbb;">เสี่ยงสูง</div></div>'+
+      '<div style="flex:1;min-width:70px;background:white;border-radius:12px;padding:10px 6px;text-align:center;"><div style="font-size:1.3rem;font-weight:700;color:#e5c08d;">'+midRisk+'</div><div style="font-size:.7rem;color:#bbb;">เสี่ยงกลาง</div></div>'+
+      '<div style="flex:1;min-width:70px;background:white;border-radius:12px;padding:10px 6px;text-align:center;"><div style="font-size:1.3rem;font-weight:700;color:#89b89a;">'+lowRisk+'</div><div style="font-size:.7rem;color:#bbb;">เสี่ยงต่ำ</div></div>'+
+      '<div style="flex:1;min-width:70px;background:white;border-radius:12px;padding:10px 6px;text-align:center;"><div style="font-size:1.3rem;font-weight:700;color:var(--c4);">'+avgPct+'%</div><div style="font-size:.7rem;color:#bbb;">เฉลี่ยรวม</div></div>'+
+    '</div>';
+    document.getElementById("adminAssignTable").innerHTML = html;
+  }).catch(function(e) {
+    hideLoading();
+    document.getElementById("adminAssignTable").innerHTML = '<p style="color:#c75b5b;font-size:.85rem;padding:10px;">❌ โหลดข้อมูลไม่สำเร็จ</p>';
+    console.error(e);
+  });
+}
+
+/* ══════════════════════════════════════════════════════
+   ADMIN: AI วิเคราะห์การส่งงาน (Claude API)
+══════════════════════════════════════════════════════ */
+function runAdminAssignAI() {
+  loadAssignData();
+  var totalAssign = assignments.length;
+  if(totalAssign === 0) { showStatus("⚠️ ยังไม่มีงานในระบบ"); return; }
+
+  showLoading("กำลังรวบรวมข้อมูล...");
+  assignStatusCol().get().then(function(snapshot) {
+    hideLoading();
+    var statusMap = {};
+    var uidToSid = {};
+    snapshot.forEach(function(doc) {
+      var d = doc.data();
+      if(!statusMap[d.uid]) statusMap[d.uid] = {};
+      uidToSid[d.uid] = d.studentId || "";
+      if(d.done) statusMap[d.uid][d.assignId] = true;
+    });
+    var studentDoneMap = {};
+    Object.keys(statusMap).forEach(function(uid) {
+      var sid = uidToSid[uid];
+      if(!sid) return;
+      if(!studentDoneMap[sid]) studentDoneMap[sid] = {};
+      Object.keys(statusMap[uid]).forEach(function(aid) { studentDoneMap[sid][aid] = true; });
+    });
+
+    var studentStats = STUDENTS.map(function(s) {
+      var doneCount = 0;
+      assignments.forEach(function(a) {
+        if(studentDoneMap[s.id] && studentDoneMap[s.id][a.id]) doneCount++;
+      });
+      var pct = totalAssign > 0 ? Math.round(doneCount/totalAssign*100) : 0;
+      return { name: s.name.replace(/^(นาย|นางสาว|นาง)/,""), no: s.no, done: doneCount, total: totalAssign, pct: pct };
+    });
+
+    var highRiskStudents = studentStats.filter(function(s){ return s.pct < 40; });
+    var midRiskStudents  = studentStats.filter(function(s){ return s.pct >= 40 && s.pct < 70; });
+    var avgPct = Math.round(studentStats.reduce(function(s,r){ return s+r.pct; },0)/studentStats.length);
+
+    var prompt =
+      "คุณเป็น AI ช่วยครูวิเคราะห์ข้อมูลการส่งงานของนักเรียนห้อง ม.5/1 จำนวน "+STUDENTS.length+" คน\n\n" +
+      "ข้อมูลรวม:\n" +
+      "- จำนวนงานทั้งหมดในระบบ: "+totalAssign+" ชิ้น\n" +
+      "- เปอร์เซ็นต์การส่งงานเฉลี่ยทั้งห้อง: "+avgPct+"%\n" +
+      "- นักเรียนความเสี่ยงสูง (ส่งงาน < 40%): "+highRiskStudents.length+" คน\n" +
+      "- นักเรียนความเสี่ยงปานกลาง (40-70%): "+midRiskStudents.length+" คน\n\n" +
+      "รายชื่อนักเรียนความเสี่ยงสูง:\n" +
+      (highRiskStudents.length ? highRiskStudents.map(function(s){ return "  เลขที่ "+s.no+" "+s.name+" ส่งงาน "+s.done+"/"+s.total+" ("+s.pct+"%)"; }).join("\n") : "  ไม่มี") + "\n\n" +
+      "รายชื่อนักเรียนความเสี่ยงปานกลาง:\n" +
+      (midRiskStudents.length ? midRiskStudents.map(function(s){ return "  เลขที่ "+s.no+" "+s.name+" ส่งงาน "+s.done+"/"+s.total+" ("+s.pct+"%)"; }).join("\n") : "  ไม่มี") + "\n\n" +
+      "กรุณา:\n" +
+      "1. สรุปภาพรวมสถานการณ์การส่งงานของห้อง\n" +
+      "2. วิเคราะห์แนวโน้มและปัญหาที่อาจเกิดขึ้น\n" +
+      "3. เสนอแนะวิธีช่วยเหลือนักเรียนที่มีความเสี่ยงสูง\n" +
+      "4. ข้อเสนอแนะเชิงปฏิบัติสำหรับครูผู้ดูแล\n" +
+      "ตอบเป็นภาษาไทย กระชับ ได้ใจความ ไม่เกิน 300 คำ";
+
+    document.getElementById("adminAssignAIStream").classList.remove("hidden");
+    var streamEl = document.getElementById("aiStreamText");
+    streamEl.innerHTML = '<span class="cursor"></span>';
+
+    fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        stream: true,
+        messages: [{ role: "user", content: prompt }]
+      })
+    }).then(function(res) {
+      var reader = res.body.getReader();
+      var decoder = new TextDecoder();
+      var fullText = "";
+      function read() {
+        reader.read().then(function(result) {
+          if(result.done) {
+            streamEl.innerHTML = fullText.replace(/\n/g,"<br>");
+            return;
+          }
+          var chunk = decoder.decode(result.value, {stream: true});
+          var lines = chunk.split("\n");
+          lines.forEach(function(line) {
+            if(line.startsWith("data: ")) {
+              var json = line.slice(6).trim();
+              if(json === "[DONE]") return;
+              try {
+                var parsed = JSON.parse(json);
+                if(parsed.type === "content_block_delta" && parsed.delta && parsed.delta.text) {
+                  fullText += parsed.delta.text;
+                  streamEl.innerHTML = fullText.replace(/\n/g,"<br>") + '<span class="cursor"></span>';
+                  streamEl.scrollIntoView({behavior:"smooth",block:"nearest"});
+                }
+              } catch(e) {}
+            }
+          });
+          read();
+        });
+      }
+      read();
+    }).catch(function(e) {
+      streamEl.innerHTML = "<span style='color:#c75b5b;'>❌ เกิดข้อผิดพลาดในการเชื่อมต่อ AI: " + escapeHtml(e.message) + "</span>";
+      console.error(e);
+    });
+  }).catch(function(e) {
+    hideLoading();
+    showStatus("❌ โหลดข้อมูลไม่สำเร็จ");
+    console.error(e);
   });
 }
 
@@ -1077,7 +1309,7 @@ function renderChart(){
 }
 
 /* ══════════════════════════════════════════════════════
-   FLOW
+   FLOW (admin only)
 ══════════════════════════════════════════════════════ */
 function initFlow(){
   if(!isAdmin){document.getElementById("flowLockedMsg").classList.remove("hidden");[1,2,3].forEach(function(i){document.getElementById("flowStep"+i).classList.add("hidden");});return;}
@@ -1184,7 +1416,7 @@ function deleteRetroRecord(){
 }
 
 /* ══════════════════════════════════════════════════════
-   SETTING
+   SETTING (admin only)
 ══════════════════════════════════════════════════════ */
 function openSetting(){ if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;} document.getElementById("settingModal").style.display="flex"; renderSubjectSetting(); }
 function closeSetting(){ document.getElementById("settingModal").style.display="none"; }
@@ -1270,23 +1502,31 @@ function deleteAssignFromCloud(fid){
 function getSubject(id){ return subjects.find(function(s){return s.id===id;})||{code:"",name:"ไม่ระบุ",teacher:"",color:"#eee"}; }
 function todayISO(){ var n=new Date(); return n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0")+"-"+String(n.getDate()).padStart(2,"0"); }
 function isoToThai(iso){ if(!iso) return ""; var p=iso.split("-"); return p[2]+"/"+p[1]+"/"+(parseInt(p[0])+543); }
+
 function assignStatus(a){
-  var done=isAdmin?a.done:isAssignDone(a.id);
+  /* นักเรียนใช้สถานะของตัวเอง, admin ใช้ a.done (global) */
+  var done = isAdmin ? a.done : isAssignDone(a.id);
   if(done) return "done";
   if(!a.due) return "ok";
   var today=todayISO();
   if(a.due<today) return "overdue";
   return (new Date(a.due)-new Date(today))/86400000<=3?"due-soon":"ok";
 }
+
 function renderAssignPage(){
   loadAssignData();if(!calYear)initCal();
+  /* ปุ่มเพิ่มงาน/ลบงาน/แก้งาน: เฉพาะแอดมิน */
   document.getElementById("addAssignBtn").classList.toggle("hidden",!isAdmin);
   renderAssignSummary();renderSubjectTabs();renderAssignList();
   if(assignViewMode==="cal")renderCal();
 }
 function renderAssignSummary(){
   var total=assignments.length,done=assignments.filter(function(a){return isAdmin?a.done:isAssignDone(a.id);}).length,overdue=assignments.filter(function(a){return assignStatus(a)==="overdue";}).length,pending=total-done;
-  document.getElementById("assignSummary").innerHTML='<div class="assign-sum-card"><p>ทั้งหมด</p><h2>'+total+'</h2></div><div class="assign-sum-card"><p>รอส่ง</p><h2 style="color:var(--yellow);">'+pending+'</h2></div><div class="assign-sum-card"><p>ส่งแล้ว</p><h2 style="color:var(--green);">'+done+'</h2></div><div class="assign-sum-card"><p>เกินกำหนด</p><h2 style="color:var(--red);">'+overdue+'</h2></div>';
+  document.getElementById("assignSummary").innerHTML=
+    '<div class="assign-sum-card"><p>ทั้งหมด</p><h2>'+total+'</h2></div>'+
+    '<div class="assign-sum-card"><p>รอส่ง</p><h2 style="color:var(--yellow);">'+pending+'</h2></div>'+
+    '<div class="assign-sum-card"><p>ส่งแล้ว</p><h2 style="color:var(--green);">'+done+'</h2></div>'+
+    '<div class="assign-sum-card"><p>เกินกำหนด</p><h2 style="color:var(--red);">'+overdue+'</h2></div>';
 }
 function renderSubjectTabs(){
   var html='<button class="subject-tab'+(currentSubjectFilter==="all"?" active":"")+'" onclick="filterBySubject(\'all\')">📚 ทั้งหมด</button>';
@@ -1294,6 +1534,7 @@ function renderSubjectTabs(){
   document.getElementById("subjectTabs").innerHTML=html;
 }
 function filterBySubject(id){currentSubjectFilter=id;renderSubjectTabs();renderAssignList();}
+
 function renderAssignList(){
   var filtered=assignments.filter(function(a){return currentSubjectFilter==="all"||a.subjectId===currentSubjectFilter;});
   filtered.sort(function(a,b){var da=assignStatus(a)==="done",db=assignStatus(b)==="done";if(da!==db)return da?1:-1;if(!a.due&&!b.due)return 0;if(!a.due)return 1;if(!b.due)return -1;return a.due<b.due?-1:1;});
@@ -1303,12 +1544,38 @@ function renderAssignList(){
     var subj=getSubject(a.subjectId),status=assignStatus(a),isDone=status==="done";
     var diffDays=a.due?Math.round((new Date(a.due)-new Date(today))/86400000):null;
     var dueLabel="",deadlineColor="#888";
-    if(a.due){if(isDone){dueLabel="ส่งแล้ว · "+isoToThai(a.due);deadlineColor="#aaa";}else if(status==="overdue"){dueLabel="⚠️ เกินกำหนดมา "+Math.abs(diffDays)+" วัน (ครบ "+isoToThai(a.due)+")";deadlineColor="#c75b5b";}else if(diffDays===0){dueLabel="⏰ ส่งวันนี้!";deadlineColor="#b87a30";}else if(diffDays===1){dueLabel="⏰ พรุ่งนี้เป็นวันสุดท้าย";deadlineColor="#b87a30";}else if(diffDays<=3){dueLabel="⏰ อีก "+diffDays+" วัน ("+isoToThai(a.due)+")";deadlineColor="#b87a30";}else{dueLabel="📅 กำหนดส่ง "+isoToThai(a.due)+" (อีก "+diffDays+" วัน)";}}else{dueLabel="📅 ไม่ระบุวันส่ง";}
-    var editBtn=isAdmin?'<button class="assign-edit-btn" onclick="openEditAssign(\''+a.id+'\')">✏️</button><button class="assign-del-btn" onclick="deleteAssign(\''+a.id+'\')">🗑️</button>':'';
-    html+='<div class="assign-card '+status+'"><div class="assign-check '+(isDone?"checked":"")+'" onclick="toggleAssignDone(\''+a.id+'\')">'+(isDone?"✓":"")+'</div><div class="assign-body"><div style="margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><span style="background:'+subj.color+';padding:2px 10px;border-radius:8px;color:#555;font-size:.74rem;font-weight:600;">'+escapeHtml(subj.name)+'</span>'+(subj.classroom?'<a href="'+escapeHtml(subj.classroom)+'" target="_blank" class="subj-link-btn">🎓 Classroom</a>':'')+(subj.drive?'<a href="'+escapeHtml(subj.drive)+'" target="_blank" class="subj-link-btn">📁 Drive</a>':'')+'</div><div class="assign-title">'+escapeHtml(a.title)+'</div>'+(a.detail?'<div style="font-size:.78rem;color:#aaa;margin-bottom:4px;">'+escapeHtml(a.detail)+'</div>':'')+'<div style="font-size:.76rem;font-weight:600;color:'+deadlineColor+';margin-top:3px;">'+dueLabel+'</div></div>'+(editBtn?'<div class="assign-actions">'+editBtn+'</div>':'')+'</div>';
+    if(a.due){
+      if(isDone){dueLabel="ส่งแล้ว · "+isoToThai(a.due);deadlineColor="#aaa";}
+      else if(status==="overdue"){dueLabel="⚠️ เกินกำหนดมา "+Math.abs(diffDays)+" วัน (ครบ "+isoToThai(a.due)+")";deadlineColor="#c75b5b";}
+      else if(diffDays===0){dueLabel="⏰ ส่งวันนี้!";deadlineColor="#b87a30";}
+      else if(diffDays===1){dueLabel="⏰ พรุ่งนี้เป็นวันสุดท้าย";deadlineColor="#b87a30";}
+      else if(diffDays<=3){dueLabel="⏰ อีก "+diffDays+" วัน ("+isoToThai(a.due)+")";deadlineColor="#b87a30";}
+      else{dueLabel="📅 กำหนดส่ง "+isoToThai(a.due)+" (อีก "+diffDays+" วัน)";}
+    }else{dueLabel="📅 ไม่ระบุวันส่ง";}
+
+    /* ปุ่มแก้/ลบ: เฉพาะแอดมิน */
+    var editBtn = isAdmin
+      ? '<button class="assign-edit-btn" onclick="openEditAssign(\''+a.id+'\')">✏️</button><button class="assign-del-btn" onclick="deleteAssign(\''+a.id+'\')">🗑️</button>'
+      : '';
+
+    html+='<div class="assign-card '+status+'">' +
+      '<div class="assign-check '+(isDone?"checked":"")+'" onclick="toggleAssignDone(\''+a.id+'\')">'+(isDone?"✓":"")+'</div>'+
+      '<div class="assign-body">'+
+        '<div style="margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'+
+          '<span style="background:'+subj.color+';padding:2px 10px;border-radius:8px;color:#555;font-size:.74rem;font-weight:600;">'+escapeHtml(subj.name)+'</span>'+
+          (subj.classroom?'<a href="'+escapeHtml(subj.classroom)+'" target="_blank" class="subj-link-btn">🎓 Classroom</a>':'')+
+          (subj.drive?'<a href="'+escapeHtml(subj.drive)+'" target="_blank" class="subj-link-btn">📁 Drive</a>':'')+
+        '</div>'+
+        '<div class="assign-title">'+escapeHtml(a.title)+'</div>'+
+        (a.detail?'<div style="font-size:.78rem;color:#aaa;margin-bottom:4px;">'+escapeHtml(a.detail)+'</div>':'')+
+        '<div style="font-size:.76rem;font-weight:600;color:'+deadlineColor+';margin-top:3px;">'+dueLabel+'</div>'+
+      '</div>'+
+      (editBtn?'<div class="assign-actions">'+editBtn+'</div>':'')+
+    '</div>';
   });
   document.getElementById("assignList").innerHTML=html;
 }
+
 var assignViewMode="list";
 function switchAssignView(mode){
   assignViewMode=mode;
@@ -1320,31 +1587,139 @@ function switchAssignView(mode){
   document.getElementById("viewCalBtn").style.color=mode==="cal"?"white":"var(--text)";
   if(mode==="cal")renderCal();
 }
+
+/* toggleAssignDone — นักเรียนติ๊กของตัวเอง, แอดมินใช้ global done */
 function toggleAssignDone(id){
   var a=assignments.find(function(x){return x.id===id;});if(!a) return;
-  if(isAdmin){a.done=!a.done;saveAssignData();saveAssignToCloud(a);}
-  else{var newDone=!isAssignDone(id);var key=currentUser.uid+"_"+id;_cachedAssignmentStatus[key]={done:newDone,doneAt:Date.now()};saveAssignStatusCloud(id,newDone);}
+  if(isAdmin){
+    a.done=!a.done;saveAssignData();saveAssignToCloud(a);
+  } else {
+    var newDone=!isAssignDone(id);
+    var key=currentUser.uid+"_"+id;
+    _cachedAssignmentStatus[key]={done:newDone,doneAt:Date.now(),studentId:currentUserDoc.studentId||""};
+    saveAssignStatusCloud(id,newDone);
+  }
   renderAssignSummary();renderSubjectTabs();renderAssignList();
+  if(!isAdmin) {
+    /* อัปเดต AI summary ด้วย */
+    var total=assignments.length;
+    var done=assignments.filter(function(a2){return isAssignDone(a2.id);}).length;
+    var overdue=assignments.filter(function(a2){var s=assignStatus(a2);return s==="overdue"&&!isAssignDone(a2.id);}).length;
+    var dueSoon=assignments.filter(function(a2){var s=assignStatus(a2);return s==="due-soon"&&!isAssignDone(a2.id);}).length;
+    renderAISummaryCard(generateAISummary(total,done,overdue,dueSoon,total-done));
+  }
 }
-function openAddAssign(){if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}editingAssignId=null;document.getElementById("assignModalTitle").textContent="📌 เพิ่มงานใหม่";document.getElementById("assignTitleInput").value="";document.getElementById("assignDetailInput").value="";document.getElementById("assignDueInput").value="";populateSubjectSelect();document.getElementById("assignModal").style.display="flex";}
-function openEditAssign(id){if(!isAdmin)return;var a=assignments.find(function(x){return x.id===id;});if(!a)return;editingAssignId=id;document.getElementById("assignModalTitle").textContent="✏️ แก้ไขงาน";document.getElementById("assignTitleInput").value=a.title;document.getElementById("assignDetailInput").value=a.detail||"";document.getElementById("assignDueInput").value=a.due||"";populateSubjectSelect(a.subjectId);document.getElementById("assignModal").style.display="flex";}
-function populateSubjectSelect(selId){document.getElementById("assignSubjectInput").innerHTML=subjects.map(function(s){return'<option value="'+s.id+'"'+(s.id===selId?" selected":"")+'>'+escapeHtml(s.code)+' - '+escapeHtml(s.name)+'</option>';}).join("");}
-function saveAssign(){var title=document.getElementById("assignTitleInput").value.trim();if(!title){showStatus("⚠️ กรุณากรอกชื่องาน");return;}var subjectId=document.getElementById("assignSubjectInput").value,detail=document.getElementById("assignDetailInput").value.trim(),due=document.getElementById("assignDueInput").value;if(editingAssignId){var a=assignments.find(function(x){return x.id===editingAssignId;});if(a){a.title=title;a.subjectId=subjectId;a.detail=detail;a.due=due;}}else{assignments.push({id:"a"+Date.now(),subjectId:subjectId,title:title,detail:detail,due:due,done:false,createdAt:todayISO()});}saveAssignToCloud(editingAssignId?assignments.find(function(x){return x.id===editingAssignId;}):assignments[assignments.length-1]).then(function(){loadAssignDataFromCloud();});saveAssignData();closeAssignModal();renderAssignPage();showStatus(editingAssignId?"✅ แก้ไขงานแล้ว":"✅ เพิ่มงานแล้ว");}
-function deleteAssign(id){if(!confirm("ลบงานนี้?"))return;var a=assignments.find(function(x){return x.id===id||x._fid===id;});if(a&&a._fid)deleteAssignFromCloud(a._fid);assignments=assignments.filter(function(a){return a.id!==id&&a._fid!==id;});saveAssignData();renderAssignPage();showStatus("🗑️ ลบงานแล้ว");}
+
+/* เพิ่ม/แก้/ลบงาน: admin เท่านั้น */
+function openAddAssign(){
+  if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
+  editingAssignId=null;
+  document.getElementById("assignModalTitle").textContent="📌 เพิ่มงานใหม่";
+  ["assignTitleInput","assignDetailInput","assignDueInput"].forEach(function(id){document.getElementById(id).value="";});
+  populateSubjectSelect();
+  document.getElementById("assignModal").style.display="flex";
+}
+function openEditAssign(id){
+  if(!isAdmin)return;
+  var a=assignments.find(function(x){return x.id===id;});if(!a)return;
+  editingAssignId=id;
+  document.getElementById("assignModalTitle").textContent="✏️ แก้ไขงาน";
+  document.getElementById("assignTitleInput").value=a.title;
+  document.getElementById("assignDetailInput").value=a.detail||"";
+  document.getElementById("assignDueInput").value=a.due||"";
+  populateSubjectSelect(a.subjectId);
+  document.getElementById("assignModal").style.display="flex";
+}
+function populateSubjectSelect(selId){
+  document.getElementById("assignSubjectInput").innerHTML=subjects.map(function(s){
+    return'<option value="'+s.id+'"'+(s.id===selId?" selected":"")+'>'+escapeHtml(s.code)+' - '+escapeHtml(s.name)+'</option>';
+  }).join("");
+}
+function saveAssign(){
+  if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
+  var title=document.getElementById("assignTitleInput").value.trim();
+  if(!title){showStatus("⚠️ กรุณากรอกชื่องาน");return;}
+  var subjectId=document.getElementById("assignSubjectInput").value,
+      detail=document.getElementById("assignDetailInput").value.trim(),
+      due=document.getElementById("assignDueInput").value;
+  if(editingAssignId){
+    var a=assignments.find(function(x){return x.id===editingAssignId;});
+    if(a){a.title=title;a.subjectId=subjectId;a.detail=detail;a.due=due;}
+  }else{
+    assignments.push({id:"a"+Date.now(),subjectId:subjectId,title:title,detail:detail,due:due,done:false,createdAt:todayISO()});
+  }
+  saveAssignToCloud(editingAssignId?assignments.find(function(x){return x.id===editingAssignId;}):assignments[assignments.length-1]).then(function(){loadAssignDataFromCloud();});
+  saveAssignData();closeAssignModal();renderAssignPage();
+  showStatus(editingAssignId?"✅ แก้ไขงานแล้ว":"✅ เพิ่มงานแล้ว");
+}
+function deleteAssign(id){
+  if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
+  if(!confirm("ลบงานนี้?"))return;
+  var a=assignments.find(function(x){return x.id===id||x._fid===id;});
+  if(a&&a._fid)deleteAssignFromCloud(a._fid);
+  assignments=assignments.filter(function(a){return a.id!==id&&a._fid!==id;});
+  saveAssignData();renderAssignPage();showStatus("🗑️ ลบงานแล้ว");
+}
 function closeAssignModal(){document.getElementById("assignModal").style.display="none";editingAssignId=null;}
+
+/* วิชา: admin เท่านั้น (เพิ่ม/แก้/ลบ) */
 function renderSubjectSetting(){
   loadAssignData();
   var html="";
-  subjects.forEach(function(s){var count=assignments.filter(function(a){return a.subjectId===s.id;}).length;html+='<div class="assign-setting-item"><div class="asi-dot" style="background:'+s.color+';"></div><div class="asi-info"><div class="asi-name">'+escapeHtml(s.code)+' '+escapeHtml(s.name)+'</div><div class="asi-teacher">'+escapeHtml(s.teacher)+' · '+count+' งาน</div></div><button class="assign-setting-edit" onclick="openEditSubject(\''+s.id+'\')">✏️ แก้ไข</button>'+(count===0?'<button class="assign-del-btn" style="margin-left:4px;" onclick="deleteSubject(\''+s.id+'\')">🗑️</button>':'')+'</div>';});
+  subjects.forEach(function(s){
+    var count=assignments.filter(function(a){return a.subjectId===s.id;}).length;
+    html+='<div class="assign-setting-item"><div class="asi-dot" style="background:'+s.color+';"></div><div class="asi-info"><div class="asi-name">'+escapeHtml(s.code)+' '+escapeHtml(s.name)+'</div><div class="asi-teacher">'+escapeHtml(s.teacher)+' · '+count+' งาน</div></div>'+
+      '<button class="assign-setting-edit" onclick="openEditSubject(\''+s.id+'\')">✏️ แก้ไข</button>'+
+      (count===0?'<button class="assign-del-btn" style="margin-left:4px;" onclick="deleteSubject(\''+s.id+'\')">🗑️</button>':'')+
+    '</div>';
+  });
   document.getElementById("subjectSettingList").innerHTML=html||'<p style="color:#bbb;font-size:.85rem;padding:10px 0;">ยังไม่มีวิชา</p>';
 }
-function openAddSubject(){editingSubjId=null;["subjEditId","subjEditCode","subjEditName","subjEditTeacher","subjEditClassroom","subjEditDrive"].forEach(function(id){document.getElementById(id).value="";});renderColorPicker(SUBJECT_COLORS[0]);document.getElementById("subjModal").style.display="flex";}
-function openEditSubject(id){var s=subjects.find(function(x){return x.id===id;});if(!s)return;editingSubjId=id;document.getElementById("subjEditId").value=id;document.getElementById("subjEditCode").value=s.code;document.getElementById("subjEditName").value=s.name;document.getElementById("subjEditTeacher").value=s.teacher;document.getElementById("subjEditClassroom").value=s.classroom||"";document.getElementById("subjEditDrive").value=s.drive||"";renderColorPicker(s.color);document.getElementById("subjModal").style.display="flex";}
+function openAddSubject(){
+  if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
+  editingSubjId=null;
+  ["subjEditId","subjEditCode","subjEditName","subjEditTeacher","subjEditClassroom","subjEditDrive"].forEach(function(id){document.getElementById(id).value="";});
+  renderColorPicker(SUBJECT_COLORS[0]);
+  document.getElementById("subjModal").style.display="flex";
+}
+function openEditSubject(id){
+  if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
+  var s=subjects.find(function(x){return x.id===id;});if(!s)return;
+  editingSubjId=id;
+  document.getElementById("subjEditId").value=id;
+  document.getElementById("subjEditCode").value=s.code;
+  document.getElementById("subjEditName").value=s.name;
+  document.getElementById("subjEditTeacher").value=s.teacher;
+  document.getElementById("subjEditClassroom").value=s.classroom||"";
+  document.getElementById("subjEditDrive").value=s.drive||"";
+  renderColorPicker(s.color);
+  document.getElementById("subjModal").style.display="flex";
+}
 function renderColorPicker(selected){document.getElementById("subjColorPicker").innerHTML=SUBJECT_COLORS.map(function(c){return'<div class="assign-color-swatch'+(c===selected?" selected":"")+'" style="background:'+c+';" onclick="selectColor(\''+c+'\')"></div>';}).join("");}
 function selectColor(c){renderColorPicker(c);}
-function saveSubject(){var code=document.getElementById("subjEditCode").value.trim(),name=document.getElementById("subjEditName").value.trim(),teacher=document.getElementById("subjEditTeacher").value.trim(),classroom=document.getElementById("subjEditClassroom").value.trim(),drive=document.getElementById("subjEditDrive").value.trim();if(!name){showStatus("⚠️ กรุณากรอกชื่อวิชา");return;}var selSwatch=document.querySelector("#subjColorPicker .assign-color-swatch.selected");var color=selSwatch?selSwatch.style.backgroundColor:SUBJECT_COLORS[0];if(color.startsWith("rgb")){var m=color.match(/\d+/g);color="#"+m.map(function(x){return parseInt(x).toString(16).padStart(2,"0");}).join("");}if(editingSubjId){var s=subjects.find(function(x){return x.id===editingSubjId;});if(s){s.code=code;s.name=name;s.teacher=teacher;s.color=color;s.classroom=classroom;s.drive=drive;}}else{subjects.push({id:"s"+Date.now(),code:code,name:name,teacher:teacher,color:color,classroom:classroom,drive:drive});}var savedSubj=editingSubjId?subjects.find(function(x){return x.id===editingSubjId;}):subjects[subjects.length-1];saveSubjectToCloud(savedSubj);saveAssignData();closeSubjModal();renderSubjectSetting();showStatus(editingSubjId?"✅ แก้ไขวิชาแล้ว":"✅ เพิ่มวิชาแล้ว");}
-function deleteSubject(id){if(!confirm("ลบวิชานี้?"))return;var s=subjects.find(function(x){return x.id===id||x._fid===id;});if(s&&s._fid)deleteSubjectFromCloud(s._fid);subjects=subjects.filter(function(s){return s.id!==id&&s._fid!==id;});saveAssignData();renderSubjectSetting();showStatus("🗑️ ลบวิชาแล้ว");}
+function saveSubject(){
+  if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
+  var code=document.getElementById("subjEditCode").value.trim(),name=document.getElementById("subjEditName").value.trim(),teacher=document.getElementById("subjEditTeacher").value.trim(),classroom=document.getElementById("subjEditClassroom").value.trim(),drive=document.getElementById("subjEditDrive").value.trim();
+  if(!name){showStatus("⚠️ กรุณากรอกชื่อวิชา");return;}
+  var selSwatch=document.querySelector("#subjColorPicker .assign-color-swatch.selected");
+  var color=selSwatch?selSwatch.style.backgroundColor:SUBJECT_COLORS[0];
+  if(color.startsWith("rgb")){var m=color.match(/\d+/g);color="#"+m.map(function(x){return parseInt(x).toString(16).padStart(2,"0");}).join("");}
+  if(editingSubjId){var s=subjects.find(function(x){return x.id===editingSubjId;});if(s){s.code=code;s.name=name;s.teacher=teacher;s.color=color;s.classroom=classroom;s.drive=drive;}}
+  else{subjects.push({id:"s"+Date.now(),code:code,name:name,teacher:teacher,color:color,classroom:classroom,drive:drive});}
+  var savedSubj=editingSubjId?subjects.find(function(x){return x.id===editingSubjId;}):subjects[subjects.length-1];
+  saveSubjectToCloud(savedSubj);saveAssignData();closeSubjModal();renderSubjectSetting();
+  showStatus(editingSubjId?"✅ แก้ไขวิชาแล้ว":"✅ เพิ่มวิชาแล้ว");
+}
+function deleteSubject(id){
+  if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
+  if(!confirm("ลบวิชานี้?"))return;
+  var s=subjects.find(function(x){return x.id===id||x._fid===id;});
+  if(s&&s._fid)deleteSubjectFromCloud(s._fid);
+  subjects=subjects.filter(function(s){return s.id!==id&&s._fid!==id;});
+  saveAssignData();renderSubjectSetting();showStatus("🗑️ ลบวิชาแล้ว");
+}
 function closeSubjModal(){document.getElementById("subjModal").style.display="none";editingSubjId=null;}
+
 document.getElementById("assignModal").addEventListener("click",function(e){if(e.target===this)closeAssignModal();});
 document.getElementById("subjModal").addEventListener("click",function(e){if(e.target===this)closeSubjModal();});
 
@@ -1382,44 +1757,24 @@ function renderCalDayDetail(iso){
 }
 
 /* ══════════════════════════════════════════════════════
-   ★ STARTUP — ทุกอย่างเริ่มใน window.onload ★
+   STARTUP
 ══════════════════════════════════════════════════════ */
 window.onload = function() {
-  /* แสดงวันที่ */
   document.getElementById("todayDate").innerHTML = "📅 " + getThaiDate();
-
-  /* โหลด slides จาก localStorage */
   var savedSlides = localStorage.getItem("slideImages");
   slideImages = savedSlides ? JSON.parse(savedSlides) : DEFAULT_SLIDES.slice();
   renderSlides();
   setInterval(function(){ showSlide((curSlide+1)%slideImages.length); }, 4000);
-
-  /* โหลด background */
   var bg = localStorage.getItem("customBackground");
   if(bg){ document.body.style.backgroundImage="url('"+bg+"')"; document.body.style.backgroundSize="cover"; }
-
-  /* โหลด assignment data */
   loadAssignData();
-
-  /* ★ Init Firebase ★ */
-  if(!initFirebase()) {
-    showStatus("❌ Firebase โหลดไม่สำเร็จ โปรดรีเฟรช");
-    return;
-  }
-
-  /* ★ Auth state listener — รอหลัง Firebase ready ★ */
+  if(!initFirebase()) { showStatus("❌ Firebase โหลดไม่สำเร็จ โปรดรีเฟรช"); return; }
   firebaseAuth.onAuthStateChanged(function(user) {
-    /* ถ้า login page ซ่อนอยู่แล้ว (reload หลัง startSystem) ไม่ต้อง re-login */
     if(user && !document.getElementById("loginPage").classList.contains("hidden")) {
       showLoading("กำลังโหลดข้อมูล...");
       checkUserRole(user).catch(function(){ hideLoading(); });
-    } else if(user && document.getElementById("loginPage").classList.contains("hidden")) {
-      /* already started, do nothing */
     }
-    /* ถ้า user = null → แสดง login page (default state แล้ว) */
   });
-
-  /* Safari keyboard fix */
   if(window.visualViewport){
     var initialHeight=window.visualViewport.height;
     window.visualViewport.addEventListener("resize",function(){
@@ -1427,8 +1782,6 @@ window.onload = function() {
       document.body.classList.toggle("keyboard-open",open);
     });
   }
-
-  /* Safari 100vh fix */
   function setVH(){ document.documentElement.style.setProperty("--vh",(window.innerHeight*.01)+"px"); }
   setVH(); window.addEventListener("resize",setVH);
   if(window.visualViewport) window.visualViewport.addEventListener("resize",setVH);
