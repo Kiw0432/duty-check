@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>ระบบเช็คชื่อเวร M5/1 v5</title>
@@ -1458,7 +1459,7 @@ function saveApiKey(){
   if(!k){showStatus("⚠️ กรุณากรอก API Key");return;}
   if(!k.startsWith("sk-ant-")){showStatus("⚠️ API Key ไม่ถูกต้อง (ต้องขึ้นต้นด้วย sk-ant-)");return;}
   localStorage.setItem("claude_api_key",k);
-  document.getElementById("apiKeyStatus").innerHTML='<span style="color:var(--green);">✅ บันทึก Key แล้ว ('+k.slice(0,14)+"...")+'</span>';
+  document.getElementById("apiKeyStatus").innerHTML='<span style="color:var(--green);">✅ บันทึก Key แล้ว (' + k.slice(0,14) + '...)</span>';
   showStatus("✅ บันทึก API Key แล้ว");
 }
 function clearApiKey(){
@@ -1474,7 +1475,7 @@ function openSetting(){
   // แสดงสถานะ key
   var k=getApiKey();
   document.getElementById("apiKeyInput").value="";
-  document.getElementById("apiKeyStatus").innerHTML=k?'<span style="color:var(--green);">✅ มี Key แล้ว ('+k.slice(0,14)+"...")+'</span>':'<span style="color:#bbb;">ยังไม่มี Key</span>';
+  document.getElementById("apiKeyStatus").innerHTML = k ? '<span style="color:var(--green);">✅ มี Key แล้ว (' + k.slice(0,14) + '...)</span>' : '<span style="color:#bbb;">ยังไม่มี Key</span>';
 }
 function closeSetting(){ document.getElementById("settingModal").style.display="none"; }
 window.onclick=function(e){
