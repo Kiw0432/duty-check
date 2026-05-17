@@ -2,7 +2,9 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>ระบบเช็คชื่อเวร M5/1 (Cloud)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -32,7 +34,7 @@ body{background:var(--c1);color:var(--text);}
 /* ============================================================
   LAYOUT: CONTAINER หลักของทุกหน้า
 ============================================================ */
-.container{max-width:1100px;margin:auto;padding:20px;padding-bottom:130px;}
+.container{max-width:1100px;margin:auto;padding:20px;padding-bottom:calc(130px + env(safe-area-inset-bottom));}
 
 /* ============================================================
   HEADER BAR: แถบบนสุดแสดงชื่อระบบ + ปุ่มออกจากระบบ/ตั้งค่า
@@ -62,12 +64,21 @@ input[type=text],input[type=password],input[type=date],select{
   width:100%;border:none;background:var(--c1);
   padding:13px;border-radius:14px;outline:none;
   margin-bottom:12px;font-size:1rem;font-family:'Mitr',sans-serif;
+  /* Fix: iOS Safari zoom เมื่อ focus input ที่ font-size < 16px */
+  font-size:16px;
+  /* Fix: Safari date input appearance */
+  -webkit-appearance:none;
+  appearance:none;
 }
 
 /* ============================================================
   BUTTONS: ปุ่มต่างๆ ทั่วระบบ
 ============================================================ */
-button{border:none;border-radius:14px;padding:13px;cursor:pointer;font-size:1rem;transition:.2s;font-family:'Mitr',sans-serif;}
+button{border:none;border-radius:14px;padding:13px;cursor:pointer;font-size:1rem;transition:.2s;font-family:'Mitr',sans-serif;
+  /* Fix: Safari tap highlight & touch delay */
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
 button:hover{transform:translateY(-2px);}
 .btn-main{background:var(--c4);color:white;}
 .btn-soft{background:var(--c2);color:var(--text);}
@@ -99,14 +110,27 @@ button:hover{transform:translateY(-2px);}
 /* ============================================================
   BOTTOM NAV: แถบเมนูด้านล่าง (Fixed)
   แสดงเมนูต่างกันตาม role: ครู vs นักเรียน
+  Fix: Safari safe-area, keyboard resize, viewport
 ============================================================ */
 .bottom-nav{
   position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
   background:white;padding:10px;border-radius:26px;
   display:flex;gap:6px;box-shadow:0 8px 25px rgba(0,0,0,.08);z-index:999;
   max-width:calc(100vw - 20px);width:auto;
+  /* Safari safe area (notch/home bar) */
+  bottom:calc(14px + env(safe-area-inset-bottom));
+  /* ป้องกัน nav ขยับเมื่อ keyboard popup บน iOS */
+  -webkit-transform:translateX(-50%);
+  will-change:transform;
 }
-.bottom-nav button{background:var(--c4);color:white;padding:11px 8px;font-size:.82rem;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* เมื่อ keyboard เปิด ให้ nav ซ่อนชั่วคราวบน mobile */
+body.keyboard-open .bottom-nav{
+  display:none;
+}
+.bottom-nav button{background:var(--c4);color:white;padding:11px 8px;font-size:.82rem;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  /* Safari tap highlight */
+  -webkit-tap-highlight-color:transparent;
+}
 
 /* ============================================================
   MODAL: หน้าต่างลอย (ตั้งค่า, แก้ไขย้อนหลัง, รายละเอียด)
@@ -262,7 +286,7 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   .table-wrapper{display:none;}
   .history-cards{display:flex;}
 
-  .container{padding:10px;padding-bottom:130px;}
+  .container{padding:10px;padding-bottom:calc(130px + env(safe-area-inset-bottom));}
   .logo h1{font-size:1.1rem;}
   .top-actions button{padding:8px 10px;font-size:.76rem;}
   .banner-slider{height:170px;border-radius:16px;}
@@ -1298,9 +1322,6 @@ function updateStorageStatus(targetId) {
 /* ============================================================
   AUTH: ฟังก์ชันเข้า/ออกระบบ
 ============================================================ */
-
-/* loginTeacher: ตรวจสอบ username+password แบบตรงๆ
-   เปลี่ยน TEACHER_USER / TEACHER_PASS ด้านบนได้เลย */
 function loginTeacher() {
   var u = document.getElementById("username").value.trim();
   var p = document.getElementById("password").value;
@@ -1308,23 +1329,35 @@ function loginTeacher() {
 
   if (u === TEACHER_USER && p === TEACHER_PASS) {
     isTeacher = true;
+    /* Fix: บันทึก session ไว้ ไม่หายเมื่อ reload */
+    sessionStorage.setItem("role","teacher");
     startSystem();
   } else {
     showStatus("❌ username หรือ password ไม่ถูกต้อง");
   }
 }
 
-/* loginStudent: เข้าระบบแบบนักเรียน ไม่ต้องรหัสผ่าน อ่านอย่างเดียว */
 function loginStudent() {
   isTeacher = false;
+  sessionStorage.setItem("role","student");
   startSystem();
 }
 
-/* logout: ล้าง state และ reload หน้า */
 function logout() {
   if (monthlyChart) { monthlyChart.destroy(); monthlyChart = null; }
+  if (realtimeUnsubscribe) realtimeUnsubscribe();
+  sessionStorage.removeItem("role");
   location.reload();
 }
+
+/* ============================================================
+  FIX: ตรวจสอบ session เมื่อโหลดหน้า — ไม่ต้อง login ใหม่เมื่อ reload
+============================================================ */
+(function checkSession() {
+  var role = sessionStorage.getItem("role");
+  if (role === "teacher") { isTeacher = true; startSystem(); }
+  else if (role === "student") { isTeacher = false; startSystem(); }
+})();
 
 /* startSystem: เริ่มต้นระบบหลังล็อกอิน */
 function startSystem() {
@@ -2541,13 +2574,63 @@ loadAssignData();
 
 /* ============================================================
   STARTUP: รันตอนโหลดหน้า
-  - เปิด IndexedDB เป็น fallback สำรองเผื่อ Firebase ยังไม่ตั้งค่า
 ============================================================ */
 openDB().then(function() {
   console.log("✅ IndexedDB fallback พร้อม");
 }).catch(function(e) {
   console.warn("IndexedDB ไม่พร้อม (จะใช้ Firebase แทน):", e);
 });
+
+/* ============================================================
+  FIX: Safari/iOS keyboard popup ทำให้ nav ขยับ
+  ใช้ visualViewport API ตรวจจับ keyboard
+============================================================ */
+(function fixKeyboardNav() {
+  if (!window.visualViewport) return;
+  var nav1 = document.getElementById("teacherNav");
+  var nav2 = document.getElementById("studentNav");
+  var initialHeight = window.visualViewport.height;
+
+  window.visualViewport.addEventListener("resize", function() {
+    var currentHeight = window.visualViewport.height;
+    var keyboardOpen = currentHeight < initialHeight - 100;
+    document.body.classList.toggle("keyboard-open", keyboardOpen);
+
+    /* Fix: ขยับ nav ให้อยู่เหนือ keyboard */
+    var offset = keyboardOpen ? 0 : 14;
+    var safeArea = keyboardOpen ? 0 : "env(safe-area-inset-bottom, 0px)";
+    [nav1, nav2].forEach(function(nav) {
+      if (!nav) return;
+      if (keyboardOpen) {
+        nav.style.bottom = "0";
+        nav.style.display = "none";
+      } else {
+        nav.style.display = "";
+        nav.style.bottom = "";
+      }
+    });
+  });
+
+  /* reset เมื่อ scroll (Safari เปิด keyboard แล้ว scroll) */
+  window.addEventListener("scroll", function() {
+    initialHeight = window.visualViewport.height;
+  }, {passive: true});
+})();
+
+/* ============================================================
+  FIX: Safari 100vh bug — ใช้ dvh หรือ JS fallback
+============================================================ */
+(function fixSafariVH() {
+  function setVH() {
+    var vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty("--vh", vh + "px");
+  }
+  setVH();
+  window.addEventListener("resize", setVH);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", setVH);
+  }
+})();
 </script>
 </body>
 </html>
