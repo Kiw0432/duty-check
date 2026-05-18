@@ -966,9 +966,9 @@ function renderAISummary(){
   document.getElementById("aiSummarySection").classList.remove("hidden");
   loadAssignData();
   var total=assignments.length;
-  var done=assignments.filter(function(a){return isAssignDone(a.id);}).length;
-  var overdue=assignments.filter(function(a){var s=assignStatus(a);return s==="overdue"&&!isAssignDone(a.id);}).length;
-  var dueSoon=assignments.filter(function(a){var s=assignStatus(a);return s==="due-soon"&&!isAssignDone(a.id);}).length;
+  var done=assignments.filter(function(a){return isAssignDone(a._fid||a.id);}).length;
+  var overdue=assignments.filter(function(a){var s=assignStatus(a);return s==="overdue"&&!isAssignDone(a._fid||a.id);}).length;
+  var dueSoon=assignments.filter(function(a){var s=assignStatus(a);return s==="due-soon"&&!isAssignDone(a._fid||a.id);}).length;
   renderAISummaryCard(generateAISummary(total,done,overdue,dueSoon,total-done));
 }
 
@@ -1029,17 +1029,18 @@ function renderAdminAISummary(){
     var todayLogs = logs.filter(function(r){ return r.date === today; });
     var seenToday = {};
     todayLogs.forEach(function(r){ seenToday[r.studentId] = r.action; });
-    var allWork=0, allLeave=0, allLate=0;
-    logs.forEach(function(r){
-      if(r.action==="ทำเวร") allWork++;
-      else if(r.action==="ลา") allLeave++;
-      else if(r.action==="มาสาย") allLate++;
+    /* คำนวณเปอร์เซ็นจากวันนี้เท่านั้น เพื่อให้ตรงกับ dashboard ด้านล่าง */
+    var todayWork=0, todayLeave=0, todayLate=0;
+    todayLogs.forEach(function(r){
+      if(r.action==="ทำเวร") todayWork++;
+      else if(r.action==="ลา") todayLeave++;
+      else if(r.action==="มาสาย") todayLate++;
     });
-    var allTotal = allWork+allLeave+allLate || 1;
-    var workPct  = Math.round(allWork/allTotal*100);
-    var leavePct = Math.round(allLeave/allTotal*100);
-    var latePct  = Math.round(allLate/allTotal*100);
     var todayChecked = Object.keys(seenToday).length;
+    var todayTotal = todayChecked || 1;
+    var workPct  = Math.round(todayWork/total*100);
+    var leavePct = Math.round(todayLeave/total*100);
+    var latePct  = Math.round(todayLate/total*100);
     var todayAbsent = total - todayChecked;
     var studentCount = {};
     logs.forEach(function(r){
@@ -1589,13 +1590,13 @@ function deleteAssignFromCloud(fid){
   if(!firestoreDB||!fid) return Promise.resolve();
   return firestoreDB.collection("assignments_m51").doc(fid).delete();
 }
-function getSubject(id){ return subjects.find(function(s){return s.id===id;})||{code:"",name:"ไม่ระบุ",teacher:"",color:"#eee"}; }
+function getSubject(id){ return subjects.find(function(s){return s.id===id||s._fid===id;})||{code:"",name:"ไม่ระบุ",teacher:"",color:"#eee"}; }
 function todayISO(){ var n=new Date(); return n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0")+"-"+String(n.getDate()).padStart(2,"0"); }
 function isoToThai(iso){ if(!iso) return ""; var p=iso.split("-"); return p[2]+"/"+p[1]+"/"+(parseInt(p[0])+543); }
 
 function assignStatus(a){
   /* นักเรียนใช้สถานะของตัวเอง, admin ใช้ a.done (global) */
-  var done = isAdmin ? a.done : isAssignDone(a.id);
+  var done = isAdmin ? a.done : isAssignDone(a._fid||a.id);
   if(done) return "done";
   if(!a.due) return "ok";
   var today=todayISO();
@@ -1611,7 +1612,7 @@ function renderAssignPage(){
   if(assignViewMode==="cal")renderCal();
 }
 function renderAssignSummary(){
-  var total=assignments.length,done=assignments.filter(function(a){return isAdmin?a.done:isAssignDone(a.id);}).length,overdue=assignments.filter(function(a){return assignStatus(a)==="overdue";}).length,pending=total-done;
+  var total=assignments.length,done=assignments.filter(function(a){return isAdmin?a.done:isAssignDone(a._fid||a.id);}).length,overdue=assignments.filter(function(a){return assignStatus(a)==="overdue";}).length,pending=total-done;
   document.getElementById("assignSummary").innerHTML=
     '<div class="assign-sum-card"><p>ทั้งหมด</p><h2>'+total+'</h2></div>'+
     '<div class="assign-sum-card"><p>รอส่ง</p><h2 style="color:var(--yellow);">'+pending+'</h2></div>'+
@@ -1650,7 +1651,7 @@ function renderAssignList(){
       : '';
 
     html+='<div class="assign-card '+status+'">' +
-      '<div class="assign-check '+(isDone?"checked":"")+'" onclick="toggleAssignDone(\''+a.id+'\')">'+(isDone?"✓":"")+'</div>'+
+      '<div class="assign-check '+(isDone?"checked":"")+'" onclick="toggleAssignDone(\'\"+(a._fid||a.id)+"\')">'+(isDone?"✓":"")+'</div>'+
       '<div class="assign-body">'+
         '<div style="margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'+
           '<span style="background:'+subj.color+';padding:2px 10px;border-radius:8px;color:#555;font-size:.74rem;font-weight:600;">'+escapeHtml(subj.name)+'</span>'+
@@ -1681,27 +1682,30 @@ function switchAssignView(mode){
 
 /* toggleAssignDone — นักเรียนติ๊กของตัวเอง, แอดมินใช้ global done */
 function toggleAssignDone(id){
-  var a=assignments.find(function(x){return x.id===id||x._fid===id;});if(!a) return;
+  /* id ที่รับมาคือ _fid หรือ id ขึ้นกับ renderAssignList */
+  var a=assignments.find(function(x){return (x._fid||x.id)===id;});if(!a) return;
+  /* ใช้ _fid เป็น assignKey หลัก ถ้าไม่มีค่อยใช้ id */
+  var assignKey=a._fid||a.id;
   if(isAdmin){
     a.done=!a.done;saveAssignData();
     saveAssignToCloud(a).catch(function(e){showStatus("❌ บันทึกไม่สำเร็จ");a.done=!a.done;renderAssignPage();});
   } else {
-    var newDone=!isAssignDone(id);
-    var key=currentUser.uid+"_"+id;
-    _cachedAssignmentStatus[key]={done:newDone,doneAt:Date.now(),studentId:currentUserDoc.studentId||""};
+    var newDone=!isAssignDone(assignKey);
+    var cacheKey=currentUser.uid+"_"+assignKey;
+    _cachedAssignmentStatus[cacheKey]={done:newDone,doneAt:Date.now(),studentId:currentUserDoc.studentId||""};
     /* optimistic update — แสดงผลทันที แล้วค่อย sync cloud */
-    saveAssignStatusCloud(id,newDone).catch(function(){
+    saveAssignStatusCloud(assignKey,newDone).catch(function(){
       /* rollback ถ้า cloud fail */
-      _cachedAssignmentStatus[key]={done:!newDone,doneAt:Date.now(),studentId:currentUserDoc.studentId||""};
+      _cachedAssignmentStatus[cacheKey]={done:!newDone,doneAt:Date.now(),studentId:currentUserDoc.studentId||""};
       renderAssignPage();showStatus("❌ เชื่อมต่อไม่ได้ ลองใหม่");
     });
   }
   renderAssignSummary();renderSubjectTabs();renderAssignList();
   if(!isAdmin){
     var total=assignments.length;
-    var done=assignments.filter(function(a2){return isAssignDone(a2.id);}).length;
-    var overdue=assignments.filter(function(a2){var s=assignStatus(a2);return s==="overdue"&&!isAssignDone(a2.id);}).length;
-    var dueSoon=assignments.filter(function(a2){var s=assignStatus(a2);return s==="due-soon"&&!isAssignDone(a2.id);}).length;
+    var done=assignments.filter(function(a2){return isAssignDone(a2._fid||a2.id);}).length;
+    var overdue=assignments.filter(function(a2){var s=assignStatus(a2);return s==="overdue"&&!isAssignDone(a2._fid||a2.id);}).length;
+    var dueSoon=assignments.filter(function(a2){var s=assignStatus(a2);return s==="due-soon"&&!isAssignDone(a2._fid||a2.id);}).length;
     renderAISummaryCard(generateAISummary(total,done,overdue,dueSoon,total-done));
   }
 }
