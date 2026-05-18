@@ -868,12 +868,15 @@ function pruneLogsOlderThan(months) {
 function assignStatusCol(){ return firestoreDB.collection("assignment_status"); }
 
 function loadStudentAssignmentStatus() {
-  if (!currentUser) return;
-  assignStatusCol().where("uid","==",currentUser.uid).get()
-    .then(function(snapshot){
-      _cachedAssignmentStatus = {};
-      snapshot.forEach(function(doc){ _cachedAssignmentStatus[doc.id]=doc.data(); });
-    });
+  if (!currentUser || isAdmin) return;
+  /* ใช้ onSnapshot เพื่อให้สถานะอัปเดต realtime */
+  assignStatusCol().where("uid","==",currentUser.uid).onSnapshot(function(snapshot){
+    _cachedAssignmentStatus = {};
+    snapshot.forEach(function(doc){ _cachedAssignmentStatus[doc.id]=doc.data(); });
+    /* re-render หน้างานทันทีที่ status โหลดเสร็จ */
+    var ap=document.getElementById("assignPage");
+    if(ap&&!ap.classList.contains("hidden")) renderAssignPage();
+  }, function(err){ console.error("Status sync error:", err); });
 }
 
 /* โหลดสถานะส่งงานของนักเรียนทุกคน (สำหรับแอดมิน) */
@@ -1029,7 +1032,6 @@ function renderAdminAISummary(){
     var todayLogs = logs.filter(function(r){ return r.date === today; });
     var seenToday = {};
     todayLogs.forEach(function(r){ seenToday[r.studentId] = r.action; });
-    /* คำนวณจากวันนี้เท่านั้น ให้ตรงกับ dashboard ด้านล่าง */
     var todayWork=0, todayLeave=0, todayLate=0;
     todayLogs.forEach(function(r){
       if(r.action==="ทำเวร") todayWork++;
@@ -1562,7 +1564,8 @@ function loadAssignDataFromCloud(){
     assignments=[];
     snap.forEach(function(doc){ var d=doc.data(); d._fid=doc.id; assignments.push(d); });
     localStorage.setItem("assignments_v1",JSON.stringify(assignments));
-    renderAssignPage();
+    /* รอให้ status โหลดก่อน (50ms) แล้วค่อย render เพื่อให้ checkbox ถูกต้อง */
+    setTimeout(function(){ renderAssignPage(); }, 50);
   });
 }
 function saveAssignData(){
@@ -1681,6 +1684,7 @@ function switchAssignView(mode){
 
 /* toggleAssignDone — นักเรียนติ๊กของตัวเอง, แอดมินใช้ global done */
 function toggleAssignDone(id){
+  /* id ที่รับมาคือ _fid (Firestore doc id) */
   var a=assignments.find(function(x){return (x._fid||x.id)===id;});if(!a) return;
   var assignKey=a._fid||a.id;
   if(isAdmin){
@@ -1689,22 +1693,18 @@ function toggleAssignDone(id){
   } else {
     var newDone=!isAssignDone(assignKey);
     var cacheKey=currentUser.uid+"_"+assignKey;
-    _cachedAssignmentStatus[cacheKey]={done:newDone,doneAt:Date.now(),studentId:currentUserDoc.studentId||""};
-    /* optimistic update — แสดงผลทันที แล้วค่อย sync cloud */
+    /* อัปเดต cache ก่อน (optimistic) */
+    _cachedAssignmentStatus[cacheKey]={done:newDone,doneAt:Date.now(),studentId:currentUserDoc?currentUserDoc.studentId||"":""};
+    renderAssignSummary();renderSubjectTabs();renderAssignList();
+    /* sync cloud — onSnapshot จะอัปเดต cache ซ้ำอีกครั้งโดยอัตโนมัติ */
     saveAssignStatusCloud(assignKey,newDone).catch(function(){
       /* rollback ถ้า cloud fail */
-      _cachedAssignmentStatus[cacheKey]={done:!newDone,doneAt:Date.now(),studentId:currentUserDoc.studentId||""};
+      _cachedAssignmentStatus[cacheKey]={done:!newDone,doneAt:Date.now(),studentId:currentUserDoc?currentUserDoc.studentId||"":""};
       renderAssignPage();showStatus("❌ เชื่อมต่อไม่ได้ ลองใหม่");
     });
+    return;
   }
   renderAssignSummary();renderSubjectTabs();renderAssignList();
-  if(!isAdmin){
-    var total=assignments.length;
-    var done=assignments.filter(function(a2){return isAssignDone(a2._fid||a2.id);}).length;
-    var overdue=assignments.filter(function(a2){var s=assignStatus(a2);return s==="overdue"&&!isAssignDone(a2._fid||a2.id);}).length;
-    var dueSoon=assignments.filter(function(a2){var s=assignStatus(a2);return s==="due-soon"&&!isAssignDone(a2._fid||a2.id);}).length;
-    renderAISummaryCard(generateAISummary(total,done,overdue,dueSoon,total-done));
-  }
 }
 
 /* เพิ่ม/แก้/ลบงาน: admin เท่านั้น */
