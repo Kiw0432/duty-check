@@ -1029,7 +1029,7 @@ function renderAdminAISummary(){
     var todayLogs = logs.filter(function(r){ return r.date === today; });
     var seenToday = {};
     todayLogs.forEach(function(r){ seenToday[r.studentId] = r.action; });
-    /* คำนวณเปอร์เซ็นจากวันนี้เท่านั้น เพื่อให้ตรงกับ dashboard ด้านล่าง */
+    /* คำนวณจากวันนี้เท่านั้น ให้ตรงกับ dashboard ด้านล่าง */
     var todayWork=0, todayLeave=0, todayLate=0;
     todayLogs.forEach(function(r){
       if(r.action==="ทำเวร") todayWork++;
@@ -1037,7 +1037,6 @@ function renderAdminAISummary(){
       else if(r.action==="มาสาย") todayLate++;
     });
     var todayChecked = Object.keys(seenToday).length;
-    var todayTotal = todayChecked || 1;
     var workPct  = Math.round(todayWork/total*100);
     var leavePct = Math.round(todayLeave/total*100);
     var latePct  = Math.round(todayLate/total*100);
@@ -1555,7 +1554,7 @@ function loadAssignDataFromCloud(){
   firestoreDB.collection("subjects_m51").orderBy("createdAt").get().then(function(snap){
     if(!snap.empty){
       subjects=[];
-      snap.forEach(function(doc){ var d=doc.data(); d._fid=doc.id; subjects.push(d); });
+      snap.forEach(function(doc){ var d=doc.data(); d._fid=doc.id; if(!d.id) d.id=doc.id; subjects.push(d); });
       localStorage.setItem("subjects_v1",JSON.stringify(subjects));
     }
   });
@@ -1572,7 +1571,7 @@ function saveAssignData(){
 }
 function saveSubjectToCloud(s){
   if(!firestoreDB) return Promise.resolve();
-  var data={code:s.code,name:s.name,teacher:s.teacher,color:s.color,classroom:s.classroom||"",drive:s.drive||"",createdAt:s.createdAt||Date.now()};
+  var data={id:s.id||"",code:s.code,name:s.name,teacher:s.teacher,color:s.color,classroom:s.classroom||"",drive:s.drive||"",createdAt:s.createdAt||Date.now()};
   if(s._fid) return firestoreDB.collection("subjects_m51").doc(s._fid).set(data);
   return firestoreDB.collection("subjects_m51").add(Object.assign(data,{createdAt:Date.now()}));
 }
@@ -1651,7 +1650,7 @@ function renderAssignList(){
       : '';
 
     html+='<div class="assign-card '+status+'">' +
-      '<div class="assign-check '+(isDone?"checked":"")+'" onclick="toggleAssignDone(\'\"+(a._fid||a.id)+"\')">'+(isDone?"✓":"")+'</div>'+
+      '<div class="assign-check '+(isDone?"checked":"")+'" onclick="toggleAssignDone(\'"+(a._fid||a.id)+"\')">' +(isDone?"✓":"")+'</div>'+
       '<div class="assign-body">'+
         '<div style="margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'+
           '<span style="background:'+subj.color+';padding:2px 10px;border-radius:8px;color:#555;font-size:.74rem;font-weight:600;">'+escapeHtml(subj.name)+'</span>'+
@@ -1682,9 +1681,7 @@ function switchAssignView(mode){
 
 /* toggleAssignDone — นักเรียนติ๊กของตัวเอง, แอดมินใช้ global done */
 function toggleAssignDone(id){
-  /* id ที่รับมาคือ _fid หรือ id ขึ้นกับ renderAssignList */
   var a=assignments.find(function(x){return (x._fid||x.id)===id;});if(!a) return;
-  /* ใช้ _fid เป็น assignKey หลัก ถ้าไม่มีค่อยใช้ id */
   var assignKey=a._fid||a.id;
   if(isAdmin){
     a.done=!a.done;saveAssignData();
