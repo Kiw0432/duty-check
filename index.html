@@ -19,6 +19,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"
   onerror="window._firebaseLoadError=true;console.error('❌ โหลด firebase-firestore-compat.js ไม่ได้')"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
 <style>
 :root{
@@ -479,6 +481,21 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
       <div class="filter-bar">
         <input type="date" id="historyDate" onchange="filterHistoryDate()">
         <button class="btn-soft" onclick="clearHistoryFilter()" style="padding:10px 14px;font-size:.85rem;white-space:nowrap;">แสดงทั้งหมด</button>
+      </div>
+      <!-- PDF Export Section (admin only) -->
+      <div id="pdfExportSection" class="hidden" style="background:var(--c1);border-radius:16px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:.85rem;font-weight:600;color:var(--c4);margin-bottom:10px;">📄 ส่งออก PDF รายเดือน</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <select id="pdfMonthSelect" style="flex:1;min-width:140px;margin-bottom:0;padding:10px 12px;border-radius:12px;background:white;border:none;font-size:.88rem;font-family:Mitr,sans-serif;">
+            <option value="">-- เลือกเดือน --</option>
+          </select>
+          <button class="btn-main" onclick="exportMonthlyPDF()" style="padding:10px 16px;font-size:.85rem;white-space:nowrap;">
+            📥 ดาวน์โหลด PDF
+          </button>
+          <button class="btn-soft" onclick="exportAllMonthsPDF()" style="padding:10px 12px;font-size:.85rem;white-space:nowrap;">
+            📦 ทุกเดือน
+          </button>
+        </div>
       </div>
       <div class="storage-bar-wrap" id="storageBarWrap"></div>
       <div class="table-wrapper">
@@ -1313,6 +1330,248 @@ function runAdminAssignAI() {
 }
 
 /* ══════════════════════════════════════════════════════
+   PDF EXPORT
+══════════════════════════════════════════════════════ */
+
+/* โหลด font Sarabun สำหรับภาษาไทยใน PDF */
+var _pdfFontLoaded = false;
+var _pdfFontBase64 = null;
+
+function loadThaiFont(callback) {
+  if (_pdfFontLoaded) { callback(); return; }
+  /* ใช้ built-in helvetica + encode ชื่อภาษาอังกฤษ สำหรับภาษาไทยใช้ encoding ผ่าน URL */
+  /* วิธีที่ใช้งานได้จริงโดยไม่ต้องโหลด font ไฟล์: render ผ่าน canvas แล้วใส่เป็น image */
+  _pdfFontLoaded = true;
+  callback();
+}
+
+/* แปลงข้อความไทยเป็น image สำหรับใส่ใน PDF cell */
+function thaiToCanvas(text, fontSize, bold) {
+  var canvas = document.createElement('canvas');
+  var ctx = canvas.getContext('2d');
+  var fSize = fontSize || 11;
+  var weight = bold ? '600' : '400';
+  ctx.font = weight + ' ' + fSize + 'px Mitr, sans-serif';
+  var w = Math.ceil(ctx.measureText(text).width) + 4;
+  canvas.width = Math.max(w, 1);
+  canvas.height = Math.ceil(fSize * 1.5);
+  ctx.font = weight + ' ' + fSize + 'px Mitr, sans-serif';
+  ctx.fillStyle = '#000000';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 2, canvas.height / 2);
+  return canvas.toDataURL('image/png');
+}
+
+function getMonthsFromLogs(logs) {
+  var months = {};
+  logs.forEach(function(r) {
+    if (!r.date) return;
+    var p = r.date.split('/');
+    if (p.length < 3) return;
+    var key = p[1] + '/' + p[2]; // MM/YYYY
+    months[key] = true;
+  });
+  return Object.keys(months).sort();
+}
+
+function getThaiMonthLabel(key) {
+  var THAI_M = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  var p = key.split('/');
+  return THAI_M[parseInt(p[0])] + ' ' + p[1];
+}
+
+function populatePDFMonthSelect() {
+  getAllLogs().then(function(logs) {
+    var months = getMonthsFromLogs(logs);
+    var sel = document.getElementById('pdfMonthSelect');
+    sel.innerHTML = '<option value="">-- เลือกเดือน --</option>';
+    months.reverse().forEach(function(m) {
+      var opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = getThaiMonthLabel(m);
+      sel.appendChild(opt);
+    });
+  });
+}
+
+function buildMonthlyPDF(logs, monthKey, doc, addPage) {
+  var { jsPDF } = window.jspdf;
+  var THAI_M_FULL = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  var p = monthKey.split('/');
+  var monthNum = parseInt(p[0]);
+  var yearBE = parseInt(p[1]);
+  var monthLabel = THAI_M_FULL[monthNum] + ' พ.ศ. ' + yearBE;
+
+  /* กรองข้อมูลเดือนนี้ */
+  var monthLogs = logs.filter(function(r) {
+    if (!r.date) return false;
+    var dp = r.date.split('/');
+    return dp[1] === p[0] && dp[2] === p[1];
+  });
+
+  /* หาวันที่ที่มีในเดือนนี้ (unique, sort) */
+  var datesSet = {};
+  monthLogs.forEach(function(r) { datesSet[r.date] = true; });
+  var dates = Object.keys(datesSet).sort(function(a, b) {
+    var pa = a.split('/'), pb = b.split('/');
+    return parseInt(pa[0]) - parseInt(pb[0]);
+  });
+
+  /* สร้าง lookup: date → { studentId: action } */
+  var lookup = {};
+  monthLogs.forEach(function(r) {
+    if (!lookup[r.date]) lookup[r.date] = {};
+    lookup[r.date][r.studentId] = r.action;
+  });
+
+  /* สร้าง header row: เลขที่ | ชื่อ | วันที่ 1 | วันที่ 2 | ... | สรุป */
+  var shortDates = dates.map(function(d) {
+    return d.split('/')[0]; // เอาแค่วันที่
+  });
+
+  /* สร้างแถว */
+  var tableRows = STUDENTS.map(function(s) {
+    var row = [String(s.no), s.name.replace(/^(นาย|นางสาว|นาง)/, '')];
+    var work = 0, leave = 0, late = 0;
+    dates.forEach(function(d) {
+      var action = lookup[d] && lookup[d][s.id];
+      if (action === 'ทำเวร') { row.push('V'); work++; }
+      else if (action === 'ลา') { row.push('L'); leave++; }
+      else if (action === 'มาสาย') { row.push('S'); late++; }
+      else { row.push('-'); }
+    });
+    row.push(work + '/' + dates.length);
+    return row;
+  });
+
+  /* Header columns */
+  var headRow = ['ที่', 'ชื่อ-สกุล'].concat(shortDates).concat(['รวม']);
+
+  /* วาด PDF page */
+  if (addPage) doc.addPage();
+
+  var pageW = doc.internal.pageSize.getWidth();
+  var pageH = doc.internal.pageSize.getHeight();
+  var margin = 14;
+
+  /* Title */
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('M5/1 - Report: ' + getThaiMonthLabel(monthKey), margin, 20);
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text('V=Work  L=Leave  S=Late  -=No record', margin, 28);
+
+  /* Legend สี */
+  /* Summary row */
+  var workTotal = 0, leaveTotal = 0, lateTotal = 0;
+  monthLogs.forEach(function(r) {
+    if (r.action === 'ทำเวร') workTotal++;
+    else if (r.action === 'ลา') leaveTotal++;
+    else if (r.action === 'มาสาย') lateTotal++;
+  });
+  doc.text('Work: ' + workTotal + '  Leave: ' + leaveTotal + '  Late: ' + lateTotal + '  Days: ' + dates.length, margin, 34);
+
+  /* คำนวณขนาด column */
+  var usableW = pageW - margin * 2;
+  var nameColW = 52;
+  var noColW = 10;
+  var sumColW = 14;
+  var dayColW = Math.max(7, Math.floor((usableW - nameColW - noColW - sumColW) / Math.max(dates.length, 1)));
+  /* ถ้า column กว้างเกิน ลดลง */
+  if (dates.length > 20) dayColW = Math.max(6, Math.floor((usableW - nameColW - noColW - sumColW) / dates.length));
+
+  var colWidths = [noColW, nameColW].concat(dates.map(function() { return dayColW; })).concat([sumColW]);
+
+  doc.autoTable({
+    startY: 38,
+    head: [headRow],
+    body: tableRows,
+    margin: { left: margin, right: margin },
+    columnStyles: (function() {
+      var styles = {};
+      styles[0] = { cellWidth: noColW, halign: 'center', fontSize: 8 };
+      styles[1] = { cellWidth: nameColW, fontSize: 7.5 };
+      dates.forEach(function(_, i) {
+        styles[i + 2] = { cellWidth: dayColW, halign: 'center', fontSize: 8 };
+      });
+      styles[dates.length + 2] = { cellWidth: sumColW, halign: 'center', fontSize: 8, fontStyle: 'bold' };
+      return styles;
+    })(),
+    headStyles: {
+      fillColor: [217, 162, 153],
+      textColor: 255,
+      fontSize: 8,
+      fontStyle: 'bold',
+      halign: 'center',
+    },
+    bodyStyles: {
+      fontSize: 8,
+      cellPadding: { top: 2, bottom: 2, left: 2, right: 2 },
+    },
+    alternateRowStyles: { fillColor: [250, 247, 243] },
+    didParseCell: function(data) {
+      var val = data.cell.raw;
+      if (data.section === 'body' && data.column.index >= 2) {
+        if (val === 'V') {
+          data.cell.styles.textColor = [76, 155, 101];
+          data.cell.styles.fontStyle = 'bold';
+        } else if (val === 'L') {
+          data.cell.styles.textColor = [199, 91, 91];
+          data.cell.styles.fontStyle = 'bold';
+        } else if (val === 'S') {
+          data.cell.styles.textColor = [184, 122, 48];
+          data.cell.styles.fontStyle = 'bold';
+        }
+      }
+    },
+    theme: 'grid',
+  });
+
+  /* Footer */
+  var finalY = doc.lastAutoTable.finalY || pageH - 20;
+  doc.setFontSize(7.5);
+  doc.setTextColor(170);
+  doc.text('Generated: ' + new Date().toLocaleDateString('th-TH') + ' | System M5/1 v5', margin, Math.min(finalY + 10, pageH - 10));
+  doc.setTextColor(0);
+}
+
+function exportMonthlyPDF() {
+  var monthKey = document.getElementById('pdfMonthSelect').value;
+  if (!monthKey) { showStatus('⚠️ กรุณาเลือกเดือนก่อน'); return; }
+
+  if (!window.jspdf) { showStatus('❌ โหลด jsPDF ไม่สำเร็จ กรุณารีเฟรช'); return; }
+
+  showLoading('กำลังสร้าง PDF...');
+  getAllLogs().then(function(logs) {
+    hideLoading();
+    var { jsPDF } = window.jspdf;
+    var doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    buildMonthlyPDF(logs, monthKey, doc, false);
+    doc.save('M51_เวร_' + getThaiMonthLabel(monthKey) + '.pdf');
+    showStatus('✅ ดาวน์โหลด PDF แล้ว');
+  }).catch(function() { hideLoading(); showStatus('❌ เกิดข้อผิดพลาด'); });
+}
+
+function exportAllMonthsPDF() {
+  if (!window.jspdf) { showStatus('❌ โหลด jsPDF ไม่สำเร็จ'); return; }
+  showLoading('กำลังสร้าง PDF ทุกเดือน...');
+  getAllLogs().then(function(logs) {
+    hideLoading();
+    var months = getMonthsFromLogs(logs);
+    if (!months.length) { showStatus('⚠️ ยังไม่มีข้อมูล'); return; }
+    var { jsPDF } = window.jspdf;
+    var doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    months.forEach(function(m, i) {
+      buildMonthlyPDF(logs, m, doc, i > 0);
+    });
+    doc.save('M51_เวร_ทุกเดือน.pdf');
+    showStatus('✅ ดาวน์โหลด PDF ' + months.length + ' เดือน');
+  }).catch(function() { hideLoading(); showStatus('❌ เกิดข้อผิดพลาด'); });
+}
+
+/* ══════════════════════════════════════════════════════
    HELPERS
 ══════════════════════════════════════════════════════ */
 function escapeHtml(str){ return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
@@ -1333,7 +1592,13 @@ function openPage(id){
   ["homePage","checkPage","dashboardPage","historyPage","assignPage"].forEach(function(p){document.getElementById(p).classList.add("hidden");});
   document.getElementById(id).classList.remove("hidden");
   if(id==="dashboardPage"){updateDashboard();renderChart();if(isAdmin)renderAdminAISummary();}
-  if(id==="historyPage") updateStorageStatus("storageBarWrap");
+  if(id==="historyPage") {
+    updateStorageStatus("storageBarWrap");
+    if(isAdmin) {
+      document.getElementById("pdfExportSection").classList.remove("hidden");
+      populatePDFMonthSelect();
+    }
+  }
 }
 function goHome(){
   ["checkPage","dashboardPage","historyPage","assignPage"].forEach(function(p){document.getElementById(p).classList.add("hidden");});
