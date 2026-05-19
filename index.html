@@ -1588,7 +1588,7 @@ function renderChart(){
     var labels=keys.length?keys.map(monthKeyToLabel):["ยังไม่มีข้อมูล"];
     var canvas=document.getElementById("monthlyChart"); if(!canvas) return;
     if(monthlyChart){monthlyChart.destroy();monthlyChart=null;}
-    monthlyChart=new Chart(canvas.getContext("2d"),{type:"bar",data:{labels:labels,datasets:[{label:"ทำเวร",data:keys.map(function(k){return md[k].work;}),backgroundColor:"#89b89a"},{label:"ลา",data:keys.map(function(k){return md[k].leave;}),backgroundColor:"#e58d8d"},{label:"มาสาย",data:keys.map(function(k){return md[k].late;}),backgroundColor:"#e5c08d"}]},options:{responsive:true,plugins:{legend:{labels:{font:{family:inherit}}}}}});
+    monthlyChart=new Chart(canvas.getContext("2d"),{type:"bar",data:{labels:labels,datasets:[{label:"ทำเวร",data:keys.map(function(k){return md[k].work;}),backgroundColor:"#89b89a"},{label:"ลา",data:keys.map(function(k){return md[k].leave;}),backgroundColor:"#e58d8d"},{label:"มาสาย",data:keys.map(function(k){return md[k].late;}),backgroundColor:"#e5c08d"}]},options:{responsive:true,plugins:{legend:{labels:{font:{family:"inherit"}}}}}});
   });
 }
 
