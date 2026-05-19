@@ -259,11 +259,27 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
     transform:none!important;
     width:100%!important;max-width:100%!important;
     border-radius:22px 22px 0 0!important;
-    padding:10px 8px calc(10px + env(safe-area-inset-bottom))!important;
+    padding:8px 2px calc(8px + env(safe-area-inset-bottom))!important;
     gap:2px!important;
     justify-content:space-around!important;
+    overflow:hidden;
   }
-  .bottom-nav button{padding:10px 4px;font-size:.68rem;border-radius:12px;}
+  .bottom-nav button{
+    padding:7px 2px 5px;
+    font-size:.58rem;
+    border-radius:10px;
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+    line-height:1;
+    white-space:nowrap;
+    overflow:hidden;
+  }
+  .bottom-nav button .nav-icon{font-size:1.1rem;line-height:1;}
+  .bottom-nav button .nav-label{font-size:.55rem;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 
   .student-grid{grid-template-columns:repeat(2,1fr);gap:6px;}
   .type-card{padding:14px 4px;}
@@ -293,6 +309,9 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 @media(min-width:601px){
   .history-cards{display:none!important;}
   .table-wrapper{display:block;}
+  .bottom-nav button{flex-direction:row;gap:5px;}
+  .bottom-nav button .nav-icon{font-size:1rem;}
+  .bottom-nav button .nav-label{font-size:.82rem;}
 }
 </style>
 </head>
@@ -505,17 +524,17 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav hidden" id="teacherNav">
-  <button onclick="openPage('checkPage');initFlow()">📝 เช็คชื่อ</button>
-  <button onclick="openPage('dashboardPage');renderAdminAISummary()">📊 Dashboard</button>
-  <button onclick="openPage('historyPage');renderHistory()">🕒 ย้อนหลัง</button>
-  <button onclick="openPage('assignPage');renderAssignPage()">📚 งาน</button>
-  <button onclick="goHome()">🏠 Home</button>
+  <button onclick="openPage('checkPage');initFlow()"><span class="nav-icon">📝</span><span class="nav-label">เช็คชื่อ</span></button>
+  <button onclick="openPage('dashboardPage');renderAdminAISummary()"><span class="nav-icon">📊</span><span class="nav-label">Dash</span></button>
+  <button onclick="openPage('historyPage');renderHistory()"><span class="nav-icon">🕒</span><span class="nav-label">ย้อนหลัง</span></button>
+  <button onclick="openPage('assignPage');renderAssignPage()"><span class="nav-icon">📚</span><span class="nav-label">งาน</span></button>
+  <button onclick="goHome()"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
 </div>
 <div class="bottom-nav hidden" id="studentNav">
-  <button onclick="openPage('dashboardPage');renderAISummary()">🤖 สรุป AI</button>
-  <button onclick="openPage('historyPage');renderHistory()">📋 ย้อนหลัง</button>
-  <button onclick="openPage('assignPage');renderAssignPage()">📚 งาน</button>
-  <button onclick="goHome()">🏠 Home</button>
+  <button onclick="openPage('dashboardPage');renderAISummary()"><span class="nav-icon">🤖</span><span class="nav-label">สรุป AI</span></button>
+  <button onclick="openPage('historyPage');renderHistory()"><span class="nav-icon">📋</span><span class="nav-label">ย้อนหลัง</span></button>
+  <button onclick="openPage('assignPage');renderAssignPage()"><span class="nav-icon">📚</span><span class="nav-label">งาน</span></button>
+  <button onclick="goHome()"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
 </div>
 
 <!-- SETTING MODAL (admin only) -->
@@ -1037,9 +1056,16 @@ function renderAdminAISummary(){
       else if(r.action==="มาสาย") todayLate++;
     });
     var todayChecked = Object.keys(seenToday).length;
-    var workPct=Math.round(todayWork/total*100);
-    var leavePct=Math.round(todayLeave/total*100);
-    var latePct=Math.round(todayLate/total*100);
+    /* นับจาก seenToday (dedup แล้ว) เพื่อป้องกันนับซ้ำเมื่อแก้ประเภท */
+    var workCount=0, leaveCount=0, lateCount=0;
+    Object.values(seenToday).forEach(function(a){
+      if(a==="ทำเวร") workCount++;
+      else if(a==="ลา") leaveCount++;
+      else if(a==="มาสาย") lateCount++;
+    });
+    var workPct=Math.round(workCount/total*100);
+    var leavePct=Math.round(leaveCount/total*100);
+    var latePct=Math.round(lateCount/total*100);
     var todayAbsent = total - todayChecked;
     var studentCount = {};
     logs.forEach(function(r){
