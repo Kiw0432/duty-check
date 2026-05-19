@@ -9,8 +9,7 @@
 <meta name="theme-color" content="#DCC5B2">
 <meta name="format-detection" content="telephone=no">
 <title>ระบบเช็คชื่อเวร M5/1 v5</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
+
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"
   onerror="window._firebaseLoadError=true;console.error('❌ โหลด firebase-app-compat.js ไม่ได้')"></script>
@@ -27,7 +26,7 @@
   --c1:#FAF7F3;--c2:#F0E4D3;--c3:#DCC5B2;--c4:#D9A299;
   --text:#5c4d45;--green:#89b89a;--red:#e58d8d;--yellow:#e5c08d;--blue:#89aeb8;
 }
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Mitr',sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Noto Sans Thai','Sarabun','Prompt',system-ui,-apple-system,sans-serif;}
 body{background:var(--c1);color:var(--text);}
 .container{max-width:1100px;margin:auto;padding:20px;padding-bottom:calc(130px + env(safe-area-inset-bottom));}
 .header{background:linear-gradient(135deg,var(--c3),var(--c4));padding:16px 20px;border-radius:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px;color:white;}
@@ -41,8 +40,8 @@ body{background:var(--c1);color:var(--text);}
 .login-tabs{display:flex;background:var(--c1);border-radius:16px;padding:4px;gap:4px;margin-bottom:20px;}
 .login-tab{flex:1;padding:10px;border:none;border-radius:12px;cursor:pointer;font-size:.88rem;font-weight:600;background:transparent;color:#bbb;transition:.2s;}
 .login-tab.active{background:var(--c4);color:white;}
-input[type=text],input[type=password],input[type=date],select,textarea{width:100%;border:none;background:var(--c1);padding:13px;border-radius:14px;outline:none;margin-bottom:12px;font-size:16px;font-family:'Mitr',sans-serif;-webkit-appearance:none;appearance:none;}
-button{border:none;border-radius:14px;padding:13px;cursor:pointer;font-size:1rem;transition:.2s;font-family:'Mitr',sans-serif;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+input[type=text],input[type=password],input[type=date],select,textarea{width:100%;border:none;background:var(--c1);padding:13px;border-radius:14px;outline:none;margin-bottom:12px;font-size:16px;-webkit-appearance:none;appearance:none;}
+button{border:none;border-radius:14px;padding:13px;cursor:pointer;font-size:1rem;transition:.2s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
 button:hover{transform:translateY(-2px);}
 .btn-main{background:var(--c4);color:white;}
 .btn-soft{background:var(--c2);color:var(--text);}
@@ -175,7 +174,7 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 .assign-modal-box{background:white;width:100%;max-width:460px;padding:22px;border-radius:26px;max-height:90vh;overflow-y:auto;}
 .assign-form-label{font-size:.82rem;color:#999;font-weight:600;margin-bottom:4px;display:block;}
 .assign-form-group{margin-bottom:14px;}
-.assign-form-group input,.assign-form-group select,.assign-form-group textarea{width:100%;border:none;background:var(--c1);padding:12px;border-radius:12px;outline:none;font-size:.92rem;font-family:'Mitr',sans-serif;}
+.assign-form-group input,.assign-form-group select,.assign-form-group textarea{width:100%;border:none;background:var(--c1);padding:12px;border-radius:12px;outline:none;font-size:.92rem;font-family:inherit;}
 .assign-form-group textarea{resize:none;height:72px;}
 .assign-color-picker{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
 .assign-color-swatch{width:28px;height:28px;border-radius:8px;cursor:pointer;border:3px solid transparent;transition:.15s;}
@@ -486,7 +485,7 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
       <div id="pdfExportSection" class="hidden" style="background:var(--c1);border-radius:16px;padding:14px;margin-bottom:14px;">
         <div style="font-size:.85rem;font-weight:600;color:var(--c4);margin-bottom:10px;">📄 ส่งออก PDF รายเดือน</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-          <select id="pdfMonthSelect" style="flex:1;min-width:140px;margin-bottom:0;padding:10px 12px;border-radius:12px;background:white;border:none;font-size:.88rem;font-family:Mitr,sans-serif;">
+          <select id="pdfMonthSelect" style="flex:1;min-width:140px;margin-bottom:0;padding:10px 12px;border-radius:12px;background:white;border:none;font-size:.88rem;font-family:inherit;">
             <option value="">-- เลือกเดือน --</option>
           </select>
           <button class="btn-main" onclick="exportMonthlyPDF()" style="padding:10px 16px;font-size:.85rem;white-space:nowrap;">
@@ -1389,12 +1388,12 @@ function thaiToCanvas(text, fontSize, bold) {
   var ctx = canvas.getContext('2d');
   var fSize = (fontSize || 11) * 3;
   var weight = bold ? '600' : '400';
-  ctx.font = weight + ' ' + fSize + 'px Mitr, Sarabun, sans-serif';
+  ctx.font = weight + ' ' + fSize + 'px inherit';
   var w = Math.ceil(ctx.measureText(text).width) + 10;
   canvas.width = Math.max(w, 10);
   canvas.height = Math.ceil(fSize * 1.5);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.font = weight + ' ' + fSize + 'px Mitr, Sarabun, sans-serif';
+  ctx.font = weight + ' ' + fSize + 'px inherit';
   ctx.fillStyle = '#000000';
   ctx.textBaseline = 'middle';
   ctx.fillText(text, 4, canvas.height / 2);
@@ -1696,7 +1695,7 @@ function renderHistory(filterISO){
     var tableHtml="",cardHtml="";
     rows.forEach(function(r){
       var badge=actionBadgeClass(r.action);
-      var editBtn=isAdmin?'<button onclick="openRetroEdit(\''+r._firestoreId+'\')" style="background:var(--c2);border:none;border-radius:8px;padding:5px 9px;cursor:pointer;font-family:Mitr,sans-serif;font-size:.75rem;">✏️ แก้</button>':'';
+      var editBtn=isAdmin?'<button onclick="openRetroEdit(\''+r._firestoreId+'\')" style="background:var(--c2);border:none;border-radius:8px;padding:5px 9px;cursor:pointer;font-family:inherit;font-size:.75rem;">✏️ แก้</button>':'';
       tableHtml+='<tr><td style="white-space:nowrap;">'+escapeHtml(r.date)+'</td><td>'+escapeHtml(String(r.no))+'</td><td class="td-name">'+escapeHtml(r.name)+'</td><td><span class="retro-badge '+badge+'">'+actionIcon(r.action)+' '+escapeHtml(r.action)+'</span></td>'+(isAdmin?'<td>'+editBtn+'</td>':'')+'</tr>';
       cardHtml+='<div class="history-card"><div class="hc-no">'+escapeHtml(String(r.no))+'<br><span style="font-size:.6rem;color:#bbb;">เลขที่</span></div><div class="hc-mid"><div>'+escapeHtml(r.name)+'</div><div style="font-size:.72rem;color:#bbb;">'+escapeHtml(r.date)+'</div></div><div class="hc-right"><span class="retro-badge '+badge+'">'+actionIcon(r.action)+' '+escapeHtml(r.action)+'</span>'+(isAdmin?'<div style="margin-top:5px;">'+editBtn+'</div>':'')+'</div></div>';
     });
@@ -1719,7 +1718,7 @@ function renderChart(){
     var labels=keys.length?keys.map(monthKeyToLabel):["ยังไม่มีข้อมูล"];
     var canvas=document.getElementById("monthlyChart"); if(!canvas) return;
     if(monthlyChart){monthlyChart.destroy();monthlyChart=null;}
-    monthlyChart=new Chart(canvas.getContext("2d"),{type:"bar",data:{labels:labels,datasets:[{label:"ทำเวร",data:keys.map(function(k){return md[k].work;}),backgroundColor:"#89b89a"},{label:"ลา",data:keys.map(function(k){return md[k].leave;}),backgroundColor:"#e58d8d"},{label:"มาสาย",data:keys.map(function(k){return md[k].late;}),backgroundColor:"#e5c08d"}]},options:{responsive:true,plugins:{legend:{labels:{font:{family:"Mitr"}}}}}});
+    monthlyChart=new Chart(canvas.getContext("2d"),{type:"bar",data:{labels:labels,datasets:[{label:"ทำเวร",data:keys.map(function(k){return md[k].work;}),backgroundColor:"#89b89a"},{label:"ลา",data:keys.map(function(k){return md[k].leave;}),backgroundColor:"#e58d8d"},{label:"มาสาย",data:keys.map(function(k){return md[k].late;}),backgroundColor:"#e5c08d"}]},options:{responsive:true,plugins:{legend:{labels:{font:{family:inherit}}}}}});
   });
 }
 
@@ -1797,7 +1796,7 @@ function loadRetroData(){
   getAllLogs().then(function(log){
     var filtered=log.filter(function(r){return thaiDateToISO(r.date)===sel;}).sort(function(a,b){return a.no-b.no;});
     if(!filtered.length){tbody.innerHTML='<tr><td colspan="4" style="color:#bbb;padding:12px;">ไม่มีข้อมูล</td></tr>';return;}
-    tbody.innerHTML=filtered.map(function(r){return '<tr><td>'+escapeHtml(String(r.no))+'</td><td class="td-name">'+escapeHtml(r.name)+'</td><td><span class="retro-badge '+actionBadgeClass(r.action)+'">'+actionIcon(r.action)+' '+escapeHtml(r.action)+'</span></td><td><button onclick="openRetroEdit(\''+r._firestoreId+'\')" style="background:var(--c2);border:none;border-radius:8px;padding:5px 9px;cursor:pointer;font-family:Mitr,sans-serif;font-size:.75rem;">✏️ แก้</button></td></tr>';}).join("");
+    tbody.innerHTML=filtered.map(function(r){return '<tr><td>'+escapeHtml(String(r.no))+'</td><td class="td-name">'+escapeHtml(r.name)+'</td><td><span class="retro-badge '+actionBadgeClass(r.action)+'">'+actionIcon(r.action)+' '+escapeHtml(r.action)+'</span></td><td><button onclick="openRetroEdit(\''+r._firestoreId+'\')" style="background:var(--c2);border:none;border-radius:8px;padding:5px 9px;cursor:pointer;font-family:inherit;font-size:.75rem;">✏️ แก้</button></td></tr>';}).join("");
   });
 }
 function openRetroEdit(fid){
@@ -1857,7 +1856,7 @@ function hideLoading(){ document.getElementById("loadingOverlay").classList.add(
 function showStatus(text){
   var o=document.getElementById("__sp");if(o)o.remove();
   var p=document.createElement("div");p.id="__sp";p.textContent=text;
-  Object.assign(p.style,{position:"fixed",right:"14px",bottom:"88px",background:"#D9A299",color:"white",padding:"12px 16px",borderRadius:"14px",zIndex:"999999",fontFamily:"Mitr,sans-serif",boxShadow:"0 6px 18px rgba(0,0,0,.15)",fontSize:".88rem",maxWidth:"80vw",lineHeight:"1.4"});
+  Object.assign(p.style,{position:"fixed",right:"14px",bottom:"88px",background:"#D9A299",color:"white",padding:"12px 16px",borderRadius:"14px",zIndex:"999999",fontFamily:"inherit",boxShadow:"0 6px 18px rgba(0,0,0,.15)",fontSize:".88rem",maxWidth:"80vw",lineHeight:"1.4"});
   document.body.appendChild(p);
   setTimeout(function(){p.style.transition=".3s";p.style.opacity="0";setTimeout(function(){p.remove();},300);},2500);
 }
