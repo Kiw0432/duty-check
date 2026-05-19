@@ -1336,26 +1336,63 @@ function runAdminAssignAI() {
 /* โหลด font Sarabun สำหรับภาษาไทยใน PDF */
 var _pdfFontLoaded = false;
 var _pdfFontBase64 = null;
+var _pdfFontBase64Bold = null;
 
 function loadThaiFont(callback) {
   if (_pdfFontLoaded) { callback(); return; }
-  /* ใช้ built-in helvetica + encode ชื่อภาษาอังกฤษ สำหรับภาษาไทยใช้ encoding ผ่าน URL */
-  /* วิธีที่ใช้งานได้จริงโดยไม่ต้องโหลด font ไฟล์: render ผ่าน canvas แล้วใส่เป็น image */
-  _pdfFontLoaded = true;
-  callback();
+  /* โหลด Sarabun Regular และ Bold จาก Google Fonts static */
+  var urlRegular = 'https://fonts.gstatic.com/s/sarabun/v15/DtVmJx26TKEr37c9YHZJmnYI5gnOpg.woff2';
+  var urlBold    = 'https://fonts.gstatic.com/s/sarabun/v15/DtVhJx26TKEr37c9aBBx_nwMxAzephhN.woff2';
+
+  function toBase64(buffer) {
+    var bytes = new Uint8Array(buffer);
+    var binary = '';
+    for (var i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary);
+  }
+
+  Promise.all([
+    fetch(urlRegular).then(function(r){ return r.arrayBuffer(); }),
+    fetch(urlBold).then(function(r){ return r.arrayBuffer(); })
+  ]).then(function(buffers) {
+    _pdfFontBase64     = toBase64(buffers[0]);
+    _pdfFontBase64Bold = toBase64(buffers[1]);
+    _pdfFontLoaded = true;
+    callback();
+  }).catch(function(err) {
+    console.warn('โหลด Thai font ไม่ได้ ใช้ canvas fallback:', err);
+    _pdfFontLoaded = true;
+    callback();
+  });
 }
 
-/* แปลงข้อความไทยเป็น image สำหรับใส่ใน PDF cell */
+/* embed font เข้า jsPDF doc */
+function embedThaiFont(doc) {
+  if (!_pdfFontBase64) return false;
+  try {
+    doc.addFileToVFS('Sarabun-Regular.ttf', _pdfFontBase64);
+    doc.addFont('Sarabun-Regular.ttf', 'Sarabun', 'normal');
+    if (_pdfFontBase64Bold) {
+      doc.addFileToVFS('Sarabun-Bold.ttf', _pdfFontBase64Bold);
+      doc.addFont('Sarabun-Bold.ttf', 'Sarabun', 'bold');
+    }
+    return true;
+  } catch(e) {
+    console.warn('embed font error:', e);
+    return false;
+  }
+}
+
+/* fallback: แปลงข้อความไทยเป็น image (ใช้เมื่อโหลด font ไม่ได้) */
 function thaiToCanvas(text, fontSize, bold) {
   var canvas = document.createElement('canvas');
   var ctx = canvas.getContext('2d');
-  var fSize = (fontSize || 11) * 2; /* x2 เพื่อความคมชัด */
+  var fSize = (fontSize || 11) * 3;
   var weight = bold ? '600' : '400';
   ctx.font = weight + ' ' + fSize + 'px Mitr, Sarabun, sans-serif';
-  var w = Math.ceil(ctx.measureText(text).width) + 8;
+  var w = Math.ceil(ctx.measureText(text).width) + 10;
   canvas.width = Math.max(w, 10);
-  canvas.height = Math.ceil(fSize * 1.6);
-  /* วาด background โปร่งใส */
+  canvas.height = Math.ceil(fSize * 1.5);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.font = weight + ' ' + fSize + 'px Mitr, Sarabun, sans-serif';
   ctx.fillStyle = '#000000';
@@ -1404,6 +1441,11 @@ function buildMonthlyPDF(logs, monthKey, doc, addPage) {
   var yearBE = parseInt(p[1]);
   var monthLabel = THAI_M_FULL[monthNum] + ' พ.ศ. ' + yearBE;
 
+  /* embed Sarabun font */
+  var hasThaiFnt = embedThaiFont(doc);
+  var bodyFont   = hasThaiFnt ? 'Sarabun' : 'helvetica';
+  var titleFont  = hasThaiFnt ? 'Sarabun' : 'helvetica';
+
   /* กรองข้อมูลเดือนนี้ */
   var monthLogs = logs.filter(function(r) {
     if (!r.date) return false;
@@ -1426,10 +1468,7 @@ function buildMonthlyPDF(logs, monthKey, doc, addPage) {
     lookup[r.date][r.studentId] = r.action;
   });
 
-  /* สร้าง header row: เลขที่ | ชื่อ | วันที่ 1 | วันที่ 2 | ... | สรุป */
-  var shortDates = dates.map(function(d) {
-    return d.split('/')[0]; // เอาแค่วันที่
-  });
+  var shortDates = dates.map(function(d) { return d.split('/')[0]; });
 
   /* สร้างแถว */
   var tableRows = STUDENTS.map(function(s) {
@@ -1446,34 +1485,23 @@ function buildMonthlyPDF(logs, monthKey, doc, addPage) {
     return row;
   });
 
-  /* Header columns */
   var headRow = ['ที่', 'ชื่อ-สกุล'].concat(shortDates).concat(['รวม']);
 
-  /* วาด PDF page */
   if (addPage) doc.addPage();
 
   var pageW = doc.internal.pageSize.getWidth();
   var pageH = doc.internal.pageSize.getHeight();
   var margin = 14;
 
-  /* Title — วาดส่วนภาษาไทย (เดือน) เป็น canvas image */
+  /* Title */
+  doc.setFont(titleFont, 'bold');
   doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  var titlePrefix = 'M5/1 - Report: ';
-  doc.text(titlePrefix, margin, 20);
-  var prefixW = doc.getTextWidth(titlePrefix);
-  var monthImgData = thaiToCanvas(getThaiMonthLabel(monthKey), 14, true);
-  var monthImgEl = new Image(); monthImgEl.src = monthImgData;
-  var mNW = monthImgEl.naturalWidth || 80; var mNH = monthImgEl.naturalHeight || 21;
-  var mH = 6; var mW = mNW * (mH / mNH);
-  doc.addImage(monthImgData, 'PNG', margin + prefixW, 14.5, mW, mH);
+  doc.text('M5/1 - Report: ' + monthLabel, margin, 20);
 
+  doc.setFont(titleFont, 'normal');
   doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
   doc.text('V=Work  L=Leave  S=Late  -=No record', margin, 28);
 
-  /* Legend สี */
-  /* Summary row */
   var workTotal = 0, leaveTotal = 0, lateTotal = 0;
   monthLogs.forEach(function(r) {
     if (r.action === 'ทำเวร') workTotal++;
@@ -1482,25 +1510,12 @@ function buildMonthlyPDF(logs, monthKey, doc, addPage) {
   });
   doc.text('Work: ' + workTotal + '  Leave: ' + leaveTotal + '  Late: ' + lateTotal + '  Days: ' + dates.length, margin, 34);
 
-  /* คำนวณขนาด column */
   var usableW = pageW - margin * 2;
   var nameColW = 52;
   var noColW = 10;
   var sumColW = 14;
   var dayColW = Math.max(7, Math.floor((usableW - nameColW - noColW - sumColW) / Math.max(dates.length, 1)));
-  /* ถ้า column กว้างเกิน ลดลง */
   if (dates.length > 20) dayColW = Math.max(6, Math.floor((usableW - nameColW - noColW - sumColW) / dates.length));
-
-  var colWidths = [noColW, nameColW].concat(dates.map(function() { return dayColW; })).concat([sumColW]);
-
-  /* pre-render ชื่อภาษาไทยทุกแถวเป็น canvas image ก่อน */
-  var thaiNameImages = tableRows.map(function(row) {
-    return thaiToCanvas(row[1], 7.5, false);
-  });
-  /* pre-render header ภาษาไทย */
-  var thaiHeaders = ['ที่', 'ชื่อ-สกุล', 'รวม'].map(function(t) {
-    return thaiToCanvas(t, 8, true);
-  });
 
   doc.autoTable({
     startY: 38,
@@ -1509,12 +1524,12 @@ function buildMonthlyPDF(logs, monthKey, doc, addPage) {
     margin: { left: margin, right: margin },
     columnStyles: (function() {
       var styles = {};
-      styles[0] = { cellWidth: noColW, halign: 'center', fontSize: 8 };
-      styles[1] = { cellWidth: nameColW, fontSize: 7.5, textColor: [255,255,255] }; /* ซ่อนข้อความต้นฉบับ */
+      styles[0] = { cellWidth: noColW, halign: 'center', fontSize: 8, font: bodyFont };
+      styles[1] = { cellWidth: nameColW, fontSize: 8, font: bodyFont };
       dates.forEach(function(_, i) {
-        styles[i + 2] = { cellWidth: dayColW, halign: 'center', fontSize: 8 };
+        styles[i + 2] = { cellWidth: dayColW, halign: 'center', fontSize: 8, font: bodyFont };
       });
-      styles[dates.length + 2] = { cellWidth: sumColW, halign: 'center', fontSize: 8, fontStyle: 'bold' };
+      styles[dates.length + 2] = { cellWidth: sumColW, halign: 'center', fontSize: 8, fontStyle: 'bold', font: bodyFont };
       return styles;
     })(),
     headStyles: {
@@ -1523,10 +1538,12 @@ function buildMonthlyPDF(logs, monthKey, doc, addPage) {
       fontSize: 8,
       fontStyle: 'bold',
       halign: 'center',
+      font: bodyFont,
     },
     bodyStyles: {
       fontSize: 8,
       cellPadding: { top: 2, bottom: 2, left: 2, right: 2 },
+      font: bodyFont,
     },
     alternateRowStyles: { fillColor: [250, 247, 243] },
     didParseCell: function(data) {
@@ -1543,61 +1560,13 @@ function buildMonthlyPDF(logs, monthKey, doc, addPage) {
           data.cell.styles.fontStyle = 'bold';
         }
       }
-      /* ซ่อน text ในคอลัมน์ชื่อ (จะวาด image แทนใน didDrawCell) */
-      if (data.section === 'body' && data.column.index === 1) {
-        data.cell.styles.textColor = data.row.index % 2 === 0 ? [255,255,255] : [250,247,243];
-      }
-      /* ซ่อน header text สำหรับคอลัมน์ที่จะใช้ภาษาไทย */
-      if (data.section === 'head' && (data.column.index === 0 || data.column.index === 1 || data.column.index === headRow.length - 1)) {
-        data.cell.styles.textColor = [217,162,153];
-      }
-    },
-    didDrawCell: function(data) {
-      /* วาดชื่อภาษาไทยเป็น image ในคอลัมน์ชื่อ */
-      if (data.section === 'body' && data.column.index === 1) {
-        var img = thaiNameImages[data.row.index];
-        if (img) {
-          var cellH = data.cell.height;
-          var imgH = Math.min(cellH - 2, 5);
-          var imgW = imgH * (data.cell.width - 3) / imgH;
-          /* คำนวณ aspect ratio */
-          var tmpCanvas = document.createElement('canvas');
-          var tmpCtx = tmpCanvas.getContext('2d');
-          var tmpImg = new Image();
-          tmpImg.src = img;
-          var naturalW = tmpImg.naturalWidth || 100;
-          var naturalH = tmpImg.naturalHeight || 10;
-          var scale = imgH / naturalH;
-          var drawW = Math.min(naturalW * scale, data.cell.width - 3);
-          doc.addImage(img, 'PNG', data.cell.x + 1.5, data.cell.y + (cellH - imgH) / 2, drawW, imgH);
-        }
-      }
-      /* วาด header ภาษาไทยสำหรับคอลัมน์ที่, ชื่อ-สกุล, รวม */
-      if (data.section === 'head') {
-        var thaiIdx = -1;
-        if (data.column.index === 0) thaiIdx = 0;
-        else if (data.column.index === 1) thaiIdx = 1;
-        else if (data.column.index === headRow.length - 1) thaiIdx = 2;
-        if (thaiIdx >= 0) {
-          var hImg = thaiHeaders[thaiIdx];
-          var cellH2 = data.cell.height;
-          var imgH2 = Math.min(cellH2 - 2, 5);
-          var hImgObj = new Image();
-          hImgObj.src = hImg;
-          var nW = hImgObj.naturalWidth || 30;
-          var nH = hImgObj.naturalHeight || 10;
-          var sc = imgH2 / nH;
-          var dW = Math.min(nW * sc, data.cell.width - 2);
-          var xOff = data.cell.x + (data.cell.width - dW) / 2;
-          doc.addImage(hImg, 'PNG', xOff, data.cell.y + (cellH2 - imgH2) / 2, dW, imgH2);
-        }
-      }
     },
     theme: 'grid',
   });
 
   /* Footer */
   var finalY = doc.lastAutoTable.finalY || pageH - 20;
+  doc.setFont(bodyFont, 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(170);
   doc.text('Generated: ' + new Date().toLocaleDateString('th-TH') + ' | System M5/1 v5', margin, Math.min(finalY + 10, pageH - 10));
