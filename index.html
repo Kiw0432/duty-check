@@ -1349,16 +1349,18 @@ function loadThaiFont(callback) {
 function thaiToCanvas(text, fontSize, bold) {
   var canvas = document.createElement('canvas');
   var ctx = canvas.getContext('2d');
-  var fSize = fontSize || 11;
+  var fSize = (fontSize || 11) * 2; /* x2 เพื่อความคมชัด */
   var weight = bold ? '600' : '400';
-  ctx.font = weight + ' ' + fSize + 'px Mitr, sans-serif';
-  var w = Math.ceil(ctx.measureText(text).width) + 4;
-  canvas.width = Math.max(w, 1);
-  canvas.height = Math.ceil(fSize * 1.5);
-  ctx.font = weight + ' ' + fSize + 'px Mitr, sans-serif';
+  ctx.font = weight + ' ' + fSize + 'px Mitr, Sarabun, sans-serif';
+  var w = Math.ceil(ctx.measureText(text).width) + 8;
+  canvas.width = Math.max(w, 10);
+  canvas.height = Math.ceil(fSize * 1.6);
+  /* วาด background โปร่งใส */
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.font = weight + ' ' + fSize + 'px Mitr, Sarabun, sans-serif';
   ctx.fillStyle = '#000000';
   ctx.textBaseline = 'middle';
-  ctx.fillText(text, 2, canvas.height / 2);
+  ctx.fillText(text, 4, canvas.height / 2);
   return canvas.toDataURL('image/png');
 }
 
@@ -1454,10 +1456,17 @@ function buildMonthlyPDF(logs, monthKey, doc, addPage) {
   var pageH = doc.internal.pageSize.getHeight();
   var margin = 14;
 
-  /* Title */
+  /* Title — วาดส่วนภาษาไทย (เดือน) เป็น canvas image */
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.text('M5/1 - Report: ' + getThaiMonthLabel(monthKey), margin, 20);
+  var titlePrefix = 'M5/1 - Report: ';
+  doc.text(titlePrefix, margin, 20);
+  var prefixW = doc.getTextWidth(titlePrefix);
+  var monthImgData = thaiToCanvas(getThaiMonthLabel(monthKey), 14, true);
+  var monthImgEl = new Image(); monthImgEl.src = monthImgData;
+  var mNW = monthImgEl.naturalWidth || 80; var mNH = monthImgEl.naturalHeight || 21;
+  var mH = 6; var mW = mNW * (mH / mNH);
+  doc.addImage(monthImgData, 'PNG', margin + prefixW, 14.5, mW, mH);
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
@@ -1484,6 +1493,15 @@ function buildMonthlyPDF(logs, monthKey, doc, addPage) {
 
   var colWidths = [noColW, nameColW].concat(dates.map(function() { return dayColW; })).concat([sumColW]);
 
+  /* pre-render ชื่อภาษาไทยทุกแถวเป็น canvas image ก่อน */
+  var thaiNameImages = tableRows.map(function(row) {
+    return thaiToCanvas(row[1], 7.5, false);
+  });
+  /* pre-render header ภาษาไทย */
+  var thaiHeaders = ['ที่', 'ชื่อ-สกุล', 'รวม'].map(function(t) {
+    return thaiToCanvas(t, 8, true);
+  });
+
   doc.autoTable({
     startY: 38,
     head: [headRow],
@@ -1492,7 +1510,7 @@ function buildMonthlyPDF(logs, monthKey, doc, addPage) {
     columnStyles: (function() {
       var styles = {};
       styles[0] = { cellWidth: noColW, halign: 'center', fontSize: 8 };
-      styles[1] = { cellWidth: nameColW, fontSize: 7.5 };
+      styles[1] = { cellWidth: nameColW, fontSize: 7.5, textColor: [255,255,255] }; /* ซ่อนข้อความต้นฉบับ */
       dates.forEach(function(_, i) {
         styles[i + 2] = { cellWidth: dayColW, halign: 'center', fontSize: 8 };
       });
@@ -1523,6 +1541,55 @@ function buildMonthlyPDF(logs, monthKey, doc, addPage) {
         } else if (val === 'S') {
           data.cell.styles.textColor = [184, 122, 48];
           data.cell.styles.fontStyle = 'bold';
+        }
+      }
+      /* ซ่อน text ในคอลัมน์ชื่อ (จะวาด image แทนใน didDrawCell) */
+      if (data.section === 'body' && data.column.index === 1) {
+        data.cell.styles.textColor = data.row.index % 2 === 0 ? [255,255,255] : [250,247,243];
+      }
+      /* ซ่อน header text สำหรับคอลัมน์ที่จะใช้ภาษาไทย */
+      if (data.section === 'head' && (data.column.index === 0 || data.column.index === 1 || data.column.index === headRow.length - 1)) {
+        data.cell.styles.textColor = [217,162,153];
+      }
+    },
+    didDrawCell: function(data) {
+      /* วาดชื่อภาษาไทยเป็น image ในคอลัมน์ชื่อ */
+      if (data.section === 'body' && data.column.index === 1) {
+        var img = thaiNameImages[data.row.index];
+        if (img) {
+          var cellH = data.cell.height;
+          var imgH = Math.min(cellH - 2, 5);
+          var imgW = imgH * (data.cell.width - 3) / imgH;
+          /* คำนวณ aspect ratio */
+          var tmpCanvas = document.createElement('canvas');
+          var tmpCtx = tmpCanvas.getContext('2d');
+          var tmpImg = new Image();
+          tmpImg.src = img;
+          var naturalW = tmpImg.naturalWidth || 100;
+          var naturalH = tmpImg.naturalHeight || 10;
+          var scale = imgH / naturalH;
+          var drawW = Math.min(naturalW * scale, data.cell.width - 3);
+          doc.addImage(img, 'PNG', data.cell.x + 1.5, data.cell.y + (cellH - imgH) / 2, drawW, imgH);
+        }
+      }
+      /* วาด header ภาษาไทยสำหรับคอลัมน์ที่, ชื่อ-สกุล, รวม */
+      if (data.section === 'head') {
+        var thaiIdx = -1;
+        if (data.column.index === 0) thaiIdx = 0;
+        else if (data.column.index === 1) thaiIdx = 1;
+        else if (data.column.index === headRow.length - 1) thaiIdx = 2;
+        if (thaiIdx >= 0) {
+          var hImg = thaiHeaders[thaiIdx];
+          var cellH2 = data.cell.height;
+          var imgH2 = Math.min(cellH2 - 2, 5);
+          var hImgObj = new Image();
+          hImgObj.src = hImg;
+          var nW = hImgObj.naturalWidth || 30;
+          var nH = hImgObj.naturalHeight || 10;
+          var sc = imgH2 / nH;
+          var dW = Math.min(nW * sc, data.cell.width - 2);
+          var xOff = data.cell.x + (data.cell.width - dW) / 2;
+          doc.addImage(hImg, 'PNG', xOff, data.cell.y + (cellH2 - imgH2) / 2, dW, imgH2);
         }
       }
     },
