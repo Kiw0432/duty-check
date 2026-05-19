@@ -1000,7 +1000,20 @@ function resetStudentPassword(sid){
 function renderAISummary(){
   if(isAdmin){ renderAdminAISummary(); return; }
   document.getElementById("aiSummarySection").classList.remove("hidden");
-  loadAssignData();
+  /* โหลดจาก Firestore โดยตรงเพื่อให้ได้ข้อมูลล่าสุดเสมอ */
+  if(firestoreDB){
+    firestoreDB.collection("assignments_m51").orderBy("createdAt").get().then(function(snap){
+      assignments=[];
+      snap.forEach(function(doc){ var d=doc.data(); d._fid=doc.id; assignments.push(d); });
+      localStorage.setItem("assignments_v1",JSON.stringify(assignments));
+      _renderAISummaryCalc();
+    }).catch(function(){ loadAssignData(); _renderAISummaryCalc(); });
+  } else {
+    loadAssignData();
+    _renderAISummaryCalc();
+  }
+}
+function _renderAISummaryCalc(){
   var total=assignments.length;
   var done=assignments.filter(function(a){return isAssignDone(a._fid||a.id);}).length;
   var overdue=assignments.filter(function(a){var s=assignStatus(a);return s==="overdue"&&!isAssignDone(a._fid||a.id);}).length;
@@ -1764,6 +1777,10 @@ function loadAssignDataFromCloud(){
     snap.forEach(function(doc){ var d=doc.data(); d._fid=doc.id; assignments.push(d); });
     localStorage.setItem("assignments_v1",JSON.stringify(assignments));
     renderAssignPage();
+    var dashPage=document.getElementById("dashboardPage");
+    if(dashPage&&!dashPage.classList.contains("hidden")&&!isAdmin){
+      renderAISummary();
+    }
   });
 }
 function saveAssignData(){
