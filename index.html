@@ -126,10 +126,11 @@ thead{background:var(--c2);}
 th,td{padding:11px 8px;text-align:center;border-bottom:1px solid #eee;font-size:.88rem;white-space:nowrap;}
 td.td-name{white-space:normal;text-align:left;min-width:120px;}
 .history-cards{display:none;flex-direction:column;gap:10px;}
-.history-card{background:var(--c1);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;position:relative;}
-.history-card .hc-no{min-width:28px;font-size:.78rem;color:var(--c4);font-weight:700;text-align:center;}
-.history-card .hc-mid{flex:1;font-size:.88rem;font-weight:600;line-height:1.35;}
-.history-card .hc-edit{position:absolute;top:10px;right:12px;}
+.history-card{background:var(--c1);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.history-card .hc-no{min-width:28px;font-size:.78rem;color:var(--c4);font-weight:700;text-align:center;flex-shrink:0;}
+.history-card .hc-mid{flex:1;font-size:.88rem;font-weight:600;line-height:1.35;min-width:0;}
+.history-card .hc-right{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;gap:4px;}
+.history-card .hc-edit{}
 .retro-badge{display:inline-block;border-radius:8px;padding:3px 9px;font-size:.78rem;font-weight:600;}
 .badge-work{background:#e8f5ec;color:#4a9b65;}
 .badge-leave{background:#fff0f0;color:#c75b5b;}
@@ -1392,7 +1393,7 @@ function renderHistory(filterISO){
       var badge=actionBadgeClass(r.action);
       var editBtn=isAdmin?'<button onclick="openRetroEdit(\''+r._firestoreId+'\')" style="background:var(--c2);border:none;border-radius:8px;padding:5px 9px;cursor:pointer;font-family:Mitr,sans-serif;font-size:.75rem;">✏️ แก้</button>':'';
       tableHtml+='<tr><td style="white-space:nowrap;">'+escapeHtml(r.date)+'</td><td>'+escapeHtml(String(r.no))+'</td><td class="td-name">'+escapeHtml(r.name)+'</td><td><span class="retro-badge '+badge+'">'+actionIcon(r.action)+' '+escapeHtml(r.action)+'</span></td>'+(isAdmin?'<td>'+editBtn+'</td>':'')+'</tr>';
-      cardHtml+='<div class="history-card"><div class="hc-no">'+escapeHtml(String(r.no))+'<br><span style="font-size:.6rem;color:#bbb;">เลขที่</span></div><div class="hc-mid"><div>'+escapeHtml(r.name)+'</div><div style="font-size:.72rem;color:#bbb;">'+escapeHtml(r.date)+'</div></div><div><span class="retro-badge '+badge+'">'+actionIcon(r.action)+' '+escapeHtml(r.action)+'</span></div>'+(isAdmin?'<div class="hc-edit">'+editBtn+'</div>':'')+'</div>';
+      cardHtml+='<div class="history-card"><div class="hc-no">'+escapeHtml(String(r.no))+'<br><span style="font-size:.6rem;color:#bbb;">เลขที่</span></div><div class="hc-mid"><div>'+escapeHtml(r.name)+'</div><div style="font-size:.72rem;color:#bbb;">'+escapeHtml(r.date)+'</div></div><div class="hc-right"><span class="retro-badge '+badge+'">'+actionIcon(r.action)+' '+escapeHtml(r.action)+'</span>'+(isAdmin?'<div style="margin-top:5px;">'+editBtn+'</div>':'')+'</div></div>';
     });
     tbody.innerHTML=tableHtml; if(cards) cards.innerHTML=cardHtml;
   });
