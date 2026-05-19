@@ -1580,31 +1580,35 @@ function exportMonthlyPDF() {
   if (!window.jspdf) { showStatus('❌ โหลด jsPDF ไม่สำเร็จ กรุณารีเฟรช'); return; }
 
   showLoading('กำลังสร้าง PDF...');
-  getAllLogs().then(function(logs) {
-    hideLoading();
-    var { jsPDF } = window.jspdf;
-    var doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    buildMonthlyPDF(logs, monthKey, doc, false);
-    doc.save('M51_เวร_' + getThaiMonthLabel(monthKey) + '.pdf');
-    showStatus('✅ ดาวน์โหลด PDF แล้ว');
-  }).catch(function() { hideLoading(); showStatus('❌ เกิดข้อผิดพลาด'); });
+  loadThaiFont(function() {
+    getAllLogs().then(function(logs) {
+      hideLoading();
+      var { jsPDF } = window.jspdf;
+      var doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      buildMonthlyPDF(logs, monthKey, doc, false);
+      doc.save('M51_เวร_' + getThaiMonthLabel(monthKey) + '.pdf');
+      showStatus('✅ ดาวน์โหลด PDF แล้ว');
+    }).catch(function() { hideLoading(); showStatus('❌ เกิดข้อผิดพลาด'); });
+  });
 }
 
 function exportAllMonthsPDF() {
   if (!window.jspdf) { showStatus('❌ โหลด jsPDF ไม่สำเร็จ'); return; }
   showLoading('กำลังสร้าง PDF ทุกเดือน...');
-  getAllLogs().then(function(logs) {
-    hideLoading();
-    var months = getMonthsFromLogs(logs);
-    if (!months.length) { showStatus('⚠️ ยังไม่มีข้อมูล'); return; }
-    var { jsPDF } = window.jspdf;
-    var doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    months.forEach(function(m, i) {
-      buildMonthlyPDF(logs, m, doc, i > 0);
-    });
-    doc.save('M51_เวร_ทุกเดือน.pdf');
-    showStatus('✅ ดาวน์โหลด PDF ' + months.length + ' เดือน');
-  }).catch(function() { hideLoading(); showStatus('❌ เกิดข้อผิดพลาด'); });
+  loadThaiFont(function() {
+    getAllLogs().then(function(logs) {
+      hideLoading();
+      var months = getMonthsFromLogs(logs);
+      if (!months.length) { showStatus('⚠️ ยังไม่มีข้อมูล'); return; }
+      var { jsPDF } = window.jspdf;
+      var doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      months.forEach(function(m, i) {
+        buildMonthlyPDF(logs, m, doc, i > 0);
+      });
+      doc.save('M51_เวร_ทุกเดือน.pdf');
+      showStatus('✅ ดาวน์โหลด PDF ' + months.length + ' เดือน');
+    }).catch(function() { hideLoading(); showStatus('❌ เกิดข้อผิดพลาด'); });
+  });
 }
 
 /* ══════════════════════════════════════════════════════
