@@ -1021,14 +1021,14 @@ function generateAISummary(total,done,overdue,dueSoon,pending){
   if(done===total) tips.push("🎉 ส่งงานครบทุกชิ้นแล้ว! ยอดเยี่ยมมาก");
   else if(overdue>0) tips.push("🚨 มีงานเกินกำหนดส่ง "+overdue+" ชิ้น ควรรีบติดต่อครู");
   if(dueSoon>0&&done!==total){
-    var ua=assignments.filter(function(a){return assignStatus(a)==="due-soon"&&!isAssignDone(a.id);}).sort(function(a,b){return a.due<b.due?-1:1;})[0];
+    var ua=assignments.filter(function(a){return assignStatus(a)==="due-soon"&&!isAssignDone(a._fid||a.id);}).sort(function(a,b){return a.due<b.due?-1:1;})[0];
     if(ua) tips.push("⏰ งาน \""+ua.title+"\" วิชา "+getSubject(ua.subjectId).name+" ใกล้ครบกำหนดแล้ว");
   }
   if(pending>5) tips.push("📋 มีงานค้างอยู่ "+pending+" ชิ้น ลองแบ่งทำวันละ 1-2 ชิ้น");
   else if(pending>0) tips.push("💪 เหลืองานอีกแค่ "+pending+" ชิ้น สู้ๆ!");
   if(!tips.length) tips.push("📖 ทำงานได้ดี รักษาระดับนี้ไว้นะ");
-  var overdueList=assignments.filter(function(a){return assignStatus(a)==="overdue"&&!isAssignDone(a.id);});
-  var urgentItem=overdueList.length?overdueList[0]:assignments.filter(function(a){return assignStatus(a)==="due-soon"&&!isAssignDone(a.id);}).sort(function(a,b){return a.due<b.due?-1:1;})[0]||null;
+  var overdueList=assignments.filter(function(a){return assignStatus(a)==="overdue"&&!isAssignDone(a._fid||a.id);});
+  var urgentItem=overdueList.length?overdueList[0]:assignments.filter(function(a){return assignStatus(a)==="due-soon"&&!isAssignDone(a._fid||a.id);}).sort(function(a,b){return a.due<b.due?-1:1;})[0]||null;
   return{score:score,status:status,statusColor:statusColor,tips:tips,urgent:urgentItem?(getSubject(urgentItem.subjectId).name+" — "+urgentItem.title):null};
 }
 
