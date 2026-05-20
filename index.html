@@ -1162,7 +1162,8 @@ function renderAdminAssignTable() {
     var rows = STUDENTS.map(function(s) {
       var doneCount = 0;
       assignments.forEach(function(a) {
-        if(studentDoneMap[s.id] && studentDoneMap[s.id][a.id]) doneCount++;
+        var aKey = a._fid || a.id;
+        if(studentDoneMap[s.id] && studentDoneMap[s.id][aKey]) doneCount++;
       });
       var pct = totalAssign > 0 ? Math.round(doneCount / totalAssign * 100) : 0;
       return { student: s, done: doneCount, total: totalAssign, pct: pct };
@@ -1238,7 +1239,8 @@ function runAdminAssignAI() {
     var studentStats = STUDENTS.map(function(s) {
       var doneCount = 0;
       assignments.forEach(function(a) {
-        if(studentDoneMap[s.id] && studentDoneMap[s.id][a.id]) doneCount++;
+        var aKey = a._fid || a.id;
+        if(studentDoneMap[s.id] && studentDoneMap[s.id][aKey]) doneCount++;
       });
       var pct = Math.round(doneCount / totalAssign * 100);
       return { name: s.name.replace(/^(นาย|นางสาว|นาง)/,""), no: s.no, done: doneCount, total: totalAssign, pct: pct };
