@@ -1190,7 +1190,6 @@ function renderAdminAISummary(){
    ADMIN: ตารางเปอร์เซ็นต์การส่งงาน
 ══════════════════════════════════════════════════════ */
 function renderAdminAssignTable() {
-  loadAssignData();
   var doRender = function() {
   var totalAssign = assignments.length;
   if(totalAssign === 0) {
@@ -1207,15 +1206,6 @@ function renderAdminAssignTable() {
       uidToStudent[d.uid] = d.studentId || "";
       if(d.done) statusMap[d.uid][d.assignId] = true;
     });
-
-    // DEBUG: แสดง assignIds ที่บันทึกไว้ vs ที่อยู่ใน assignments
-    console.group("🔍 DEBUG renderAdminAssignTable");
-    var allSavedAssignIds = [];
-    Object.values(statusMap).forEach(function(m){ Object.keys(m).forEach(function(k){ if(allSavedAssignIds.indexOf(k)===-1) allSavedAssignIds.push(k); }); });
-    console.log("📦 assignIds ใน Firestore (จากนักเรียน):", allSavedAssignIds);
-    console.log("📋 assignments ในระบบ:", assignments.map(function(a){ return {title:a.title, id:a.id, _fid:a._fid, key:(a._fid||a.id)}; }));
-    console.log("👥 studentDoneMap preview:", Object.keys(statusMap).slice(0,3).map(function(uid){ return {uid:uid, sid:uidToStudent[uid], done:Object.keys(statusMap[uid])}; }));
-    console.groupEnd();
 
     // สร้าง studentId → assignId[] map
     var studentDoneMap = {}; // studentId → Set of assignIds done
@@ -1281,7 +1271,6 @@ function renderAdminAssignTable() {
    ADMIN: AI วิเคราะห์การส่งงาน (ฟรี — rule-based)
 ══════════════════════════════════════════════════════ */
 function runAdminAssignAI() {
-  loadAssignData();
   var totalAssign = assignments.length;
   if(totalAssign === 0) { showStatus("⚠️ ยังไม่มีงานในระบบ"); return; }
 
@@ -2141,7 +2130,8 @@ function saveAssign(){
     assignments.push({id:"a"+Date.now(),subjectId:subjectId,title:title,detail:detail,due:due,done:false,createdAt:todayISO()});
   }
   saveAssignToCloud(editingAssignId?assignments.find(function(x){return x.id===editingAssignId;}):assignments[assignments.length-1]).then(function(){loadAssignDataFromCloud();});
-  saveAssignData();closeAssignModal();renderAssignPage();
+  if(editingAssignId) saveAssignData(); // สำหรับ edit ที่มี _fid อยู่แล้ว
+  closeAssignModal();renderAssignPage();
   showStatus(editingAssignId?"✅ แก้ไขงานแล้ว":"✅ เพิ่มงานแล้ว");
 }
 function deleteAssign(id){
@@ -2159,7 +2149,6 @@ function closeAssignModal(){document.getElementById("assignModal").style.display
 
 /* วิชา: admin เท่านั้น (เพิ่ม/แก้/ลบ) */
 function renderSubjectSetting(){
-  loadAssignData();
   var html="";
   subjects.forEach(function(s){
     var count=assignments.filter(function(a){return a.subjectId===s.id;}).length;
