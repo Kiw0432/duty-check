@@ -206,6 +206,18 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 .subj-link-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:10px;font-size:.75rem;font-weight:600;text-decoration:none;background:var(--c1);color:var(--text);border:1px solid var(--c3);transition:.15s;}
 .subj-link-btn:hover{background:var(--c2);}
 .loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,.82);display:flex;justify-content:center;align-items:center;z-index:999999;}
+.img-upload-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);display:none;justify-content:center;align-items:center;z-index:999999;padding:14px;}
+.img-upload-modal-box{background:white;width:100%;max-width:420px;padding:22px;border-radius:26px;max-height:90vh;overflow-y:auto;}
+.img-drop-zone{border:2.5px dashed var(--c3);border-radius:18px;padding:28px 16px;text-align:center;cursor:pointer;background:var(--c1);transition:.2s;margin-bottom:12px;position:relative;}
+.img-drop-zone:hover,.img-drop-zone.drag-over{border-color:var(--c4);background:#fdf0ec;}
+.img-drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.img-preview-wrap{position:relative;display:inline-block;}
+.img-preview{width:100%;max-height:220px;object-fit:contain;border-radius:14px;border:2px solid var(--c2);margin-bottom:10px;background:#f5f5f5;}
+.img-clear-btn{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);color:white;border:none;border-radius:50%;width:26px;height:26px;font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.assign-img-thumb{width:44px;height:44px;object-fit:cover;border-radius:10px;border:2px solid var(--c2);cursor:pointer;vertical-align:middle;flex-shrink:0;}
+.img-view-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);display:none;justify-content:center;align-items:center;z-index:9999999;padding:16px;}
+.img-view-overlay img{max-width:100%;max-height:90vh;border-radius:14px;object-fit:contain;}
+.img-view-overlay .close-view{position:fixed;top:18px;right:18px;background:white;border:none;border-radius:50%;width:36px;height:36px;font-size:1.1rem;cursor:pointer;font-weight:700;}
 .loading-box{background:white;padding:28px 36px;border-radius:26px;text-align:center;}
 .loader{width:50px;height:50px;border:5px solid #eee;border-top:5px solid var(--c4);border-radius:50%;margin:auto;margin-bottom:12px;animation:spin 1s linear infinite;}
 @keyframes spin{100%{transform:rotate(360deg);}}
@@ -419,6 +431,19 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
             <span style="color:#bbb;margin-bottom:4px;">นักเรียนที่เลือก (<span id="cfCount">0</span> คน)</span>
             <div class="confirm-list" id="cfList"></div>
           </div>
+        </div>
+        <!-- รูปภาพประกอบการเช็คชื่อ -->
+        <div style="margin-bottom:12px;">
+          <div style="font-size:.82rem;font-weight:600;color:#888;margin-bottom:6px;">📷 รูปภาพประกอบ (ไม่บังคับ)</div>
+          <div class="img-drop-zone" id="flowImgDropZone" style="padding:14px 12px;" onclick="document.getElementById('flowImgInput').click()">
+            <input type="file" id="flowImgInput" accept="image/*" capture="environment" onchange="onFlowImgSelected(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
+            <div id="flowImgDropText" style="font-size:.82rem;color:#aaa;">📸 แตะเพื่อแนบรูป</div>
+          </div>
+          <div id="flowImgPreviewWrap" style="display:none;margin-top:8px;position:relative;text-align:center;">
+            <img id="flowImgPreview" class="img-preview" src="" alt="preview" style="max-height:160px;">
+            <button class="img-clear-btn" onclick="clearFlowImg()">✕</button>
+          </div>
+          <div id="flowImgSizeWarn" style="display:none;color:var(--red);font-size:.78rem;margin-top:4px;">⚠️ รูปใหญ่เกิน 1 MB กรุณาเลือกใหม่</div>
         </div>
         <div class="flow-nav">
           <button class="btn-soft" onclick="flowNext(2)">← ย้อนกลับ</button>
@@ -674,9 +699,42 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   </div>
 </div>
 
-<!-- LOADING -->
-<div class="loading-overlay hidden" id="loadingOverlay">
+
   <div class="loading-box"><div class="loader"></div><p id="loadingMsg">กำลังบันทึก...</p></div>
+</div>
+
+<!-- IMAGE UPLOAD MODAL (for assignment submission proof) -->
+<div class="img-upload-modal-overlay" id="imgUploadModal">
+  <div class="img-upload-modal-box">
+    <h3 style="margin-bottom:4px;">📸 แนบรูปหลักฐาน</h3>
+    <p id="imgUploadSubtitle" style="font-size:.8rem;color:#bbb;margin-bottom:16px;">สำหรับงาน: </p>
+    <div class="img-drop-zone" id="imgDropZone" onclick="document.getElementById('imgFileInput').click()">
+      <input type="file" id="imgFileInput" accept="image/*" capture="environment" onchange="onImgFileSelected(event)">
+      <div id="imgDropText">
+        <div style="font-size:2rem;margin-bottom:8px;">📷</div>
+        <div style="font-weight:600;color:var(--c4);">แตะเพื่อถ่ายหรือเลือกรูป</div>
+        <div style="font-size:.76rem;color:#bbb;margin-top:4px;">รองรับ JPG, PNG · ไม่เกิน 1 MB</div>
+      </div>
+    </div>
+    <div id="imgPreviewSection" style="display:none;">
+      <div class="img-preview-wrap" style="display:block;text-align:center;">
+        <img id="imgPreview" class="img-preview" src="" alt="preview">
+        <button class="img-clear-btn" onclick="clearImgPreview()">✕</button>
+      </div>
+    </div>
+    <div id="imgSizeWarn" style="display:none;color:var(--red);font-size:.78rem;margin-bottom:8px;">⚠️ รูปใหญ่เกิน 1 MB กรุณาเลือกรูปใหม่</div>
+    <div style="display:flex;gap:10px;margin-top:6px;">
+      <button class="btn-soft" style="flex:1;" onclick="closeImgUploadModal()">ยกเลิก</button>
+      <button class="btn-main" style="flex:2;" id="imgSubmitBtn" onclick="confirmImgSubmit()">✅ ส่งงาน</button>
+    </div>
+    <button class="btn-soft" style="width:100%;margin-top:8px;font-size:.82rem;color:#bbb;" onclick="submitWithoutImg()">ส่งงานโดยไม่แนบรูป →</button>
+  </div>
+</div>
+
+<!-- IMAGE VIEWER OVERLAY -->
+<div class="img-view-overlay" id="imgViewOverlay" onclick="closeImgView()">
+  <button class="close-view" onclick="closeImgView()">✕</button>
+  <img id="imgViewFull" src="" alt="หลักฐาน">
 </div>
 
 <script>
@@ -925,17 +983,19 @@ function loadAllStudentStatuses() {
   });
 }
 
-function saveAssignStatusCloud(assignId, done) {
+function saveAssignStatusCloud(assignId, done, imageBase64) {
   if (!currentUser) return Promise.resolve();
   var sid = currentUserDoc.studentId || "";
   var key = currentUser.uid+"_"+assignId;
-  return assignStatusCol().doc(key).set({
+  var data = {
     uid: currentUser.uid,
     studentId: sid,
     assignId: assignId,
     done: done,
     doneAt: Date.now()
-  });
+  };
+  if (imageBase64) data.imageBase64 = imageBase64;
+  return assignStatusCol().doc(key).set(data);
 }
 
 function isAssignDone(assignId) {
@@ -1621,6 +1681,111 @@ function renderChart(){
 }
 
 /* ══════════════════════════════════════════════════════
+   IMAGE UPLOAD — ASSIGNMENT PROOF
+══════════════════════════════════════════════════════ */
+var _pendingSubmitAssignId = null;
+var _pendingImgBase64 = null;
+
+function onImgFileSelected(e) {
+  var file = e.target.files[0]; if(!file) return;
+  if(file.size > 1.2 * 1024 * 1024) {
+    document.getElementById("imgSizeWarn").style.display = "block";
+    document.getElementById("imgPreviewSection").style.display = "none";
+    _pendingImgBase64 = null; return;
+  }
+  document.getElementById("imgSizeWarn").style.display = "none";
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    _pendingImgBase64 = ev.target.result;
+    document.getElementById("imgPreview").src = _pendingImgBase64;
+    document.getElementById("imgPreviewSection").style.display = "block";
+    document.getElementById("imgDropText").style.display = "none";
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImgPreview() {
+  _pendingImgBase64 = null;
+  document.getElementById("imgPreview").src = "";
+  document.getElementById("imgPreviewSection").style.display = "none";
+  document.getElementById("imgDropText").style.display = "block";
+  document.getElementById("imgSizeWarn").style.display = "none";
+  var inp = document.getElementById("imgFileInput"); if(inp) inp.value = "";
+}
+
+function closeImgUploadModal() {
+  document.getElementById("imgUploadModal").style.display = "none";
+  _pendingSubmitAssignId = null;
+  clearImgPreview();
+}
+
+function confirmImgSubmit() {
+  if(!_pendingSubmitAssignId) { closeImgUploadModal(); return; }
+  doSubmitAssign(_pendingSubmitAssignId, _pendingImgBase64);
+  closeImgUploadModal();
+}
+
+function submitWithoutImg() {
+  if(!_pendingSubmitAssignId) { closeImgUploadModal(); return; }
+  doSubmitAssign(_pendingSubmitAssignId, null);
+  closeImgUploadModal();
+}
+
+function doSubmitAssign(assignKey, imgBase64) {
+  var cacheKey = currentUser.uid + "_" + assignKey;
+  _cachedAssignmentStatus[cacheKey] = {done:true, doneAt:Date.now(), studentId:currentUserDoc?currentUserDoc.studentId||"":"", imageBase64:imgBase64||null};
+  renderAssignSummary(); renderSubjectTabs(); renderAssignList();
+  saveAssignStatusCloud(assignKey, true, imgBase64).then(function(){
+    showStatus(imgBase64 ? "✅ ส่งงานพร้อมรูปหลักฐานแล้ว 📸" : "✅ ส่งงานแล้ว");
+  }).catch(function(err){
+    showStatus("❌ บันทึกไม่สำเร็จ: "+(err.message||err));
+    delete _cachedAssignmentStatus[cacheKey];
+    renderAssignPage();
+  });
+}
+
+/* ── Image viewer ── */
+function openImgView(src) {
+  document.getElementById("imgViewFull").src = src;
+  document.getElementById("imgViewOverlay").style.display = "flex";
+}
+function closeImgView() {
+  document.getElementById("imgViewOverlay").style.display = "none";
+}
+
+/* ══════════════════════════════════════════════════════
+   IMAGE UPLOAD — FLOW (เช็คชื่อเวร แอดมิน)
+══════════════════════════════════════════════════════ */
+var _flowImgBase64 = null;
+
+function onFlowImgSelected(e) {
+  var file = e.target.files[0]; if(!file) return;
+  if(file.size > 1.2 * 1024 * 1024) {
+    document.getElementById("flowImgSizeWarn").style.display = "block";
+    document.getElementById("flowImgPreviewWrap").style.display = "none";
+    _flowImgBase64 = null; return;
+  }
+  document.getElementById("flowImgSizeWarn").style.display = "none";
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    _flowImgBase64 = ev.target.result;
+    document.getElementById("flowImgPreview").src = _flowImgBase64;
+    document.getElementById("flowImgPreviewWrap").style.display = "block";
+    document.getElementById("flowImgDropText").textContent = "✅ แนบรูปแล้ว — แตะเพื่อเปลี่ยน";
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearFlowImg() {
+  _flowImgBase64 = null;
+  document.getElementById("flowImgPreview").src = "";
+  document.getElementById("flowImgPreviewWrap").style.display = "none";
+  document.getElementById("flowImgDropText").textContent = "📸 แตะเพื่อแนบรูป";
+  document.getElementById("flowImgSizeWarn").style.display = "none";
+  var inp = document.getElementById("flowImgInput"); if(inp) inp.value = "";
+}
+
+/* ══════════════════════════════════════════════════════
    FLOW (admin only)
 ══════════════════════════════════════════════════════ */
 function initFlow(){
@@ -1918,17 +2083,20 @@ function toggleAssignDone(id){
     a.done=!a.done;saveAssignData();
     saveAssignToCloud(a).catch(function(e){showStatus("❌ บันทึกไม่สำเร็จ");a.done=!a.done;renderAssignPage();});
   } else {
-    var newDone=!isAssignDone(assignKey);
-    var cacheKey=currentUser.uid+"_"+assignKey;
-    _cachedAssignmentStatus[cacheKey]={done:newDone,doneAt:Date.now(),studentId:currentUserDoc?currentUserDoc.studentId||"":""};
-    renderAssignSummary();renderSubjectTabs();renderAssignList();
-    saveAssignStatusCloud(assignKey,newDone).then(function(){
-      showStatus(newDone?"✅ ส่งงานแล้ว":"↩️ ยกเลิกส่งงาน");
-    }).catch(function(err){
-      showStatus("❌ บันทึกไม่สำเร็จ: "+(err.message||err));
-      _cachedAssignmentStatus[cacheKey]={done:!newDone,doneAt:Date.now(),studentId:currentUserDoc?currentUserDoc.studentId||"":""};
-      renderAssignPage();
-    });
+    var currentDone=isAssignDone(assignKey);
+    if(currentDone){
+      /* ยกเลิกส่งงาน — ไม่ต้องใช้รูป */
+      var cacheKey=currentUser.uid+"_"+assignKey;
+      _cachedAssignmentStatus[cacheKey]={done:false,doneAt:Date.now(),studentId:currentUserDoc?currentUserDoc.studentId||"":""};
+      renderAssignSummary();renderSubjectTabs();renderAssignList();
+      saveAssignStatusCloud(assignKey,false,null).then(function(){showStatus("↩️ ยกเลิกส่งงาน");}).catch(function(err){showStatus("❌ บันทึกไม่สำเร็จ");});
+      return;
+    }
+    /* เปิด modal รูปภาพก่อนส่งงาน */
+    _pendingSubmitAssignId = assignKey;
+    document.getElementById("imgUploadSubtitle").textContent = "งาน: " + escapeHtml(a.title);
+    clearImgPreview();
+    document.getElementById("imgUploadModal").style.display = "flex";
     return;
   }
   renderAssignSummary();renderSubjectTabs();renderAssignList();
