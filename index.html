@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#DCC5B2">
 <meta name="format-detection" content="telephone=no">
 <title>ระบบเช็คชื่อเวร M5/1 v5</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
 
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"
@@ -1663,9 +1664,8 @@ function submitFlow(){
   showLoading("กำลังส่งข้อมูล...");
   var today=getThaiDate(),time=new Date().toLocaleTimeString("th-TH");
   var records=selectedIds.map(function(id){var s=STUDENTS.find(function(x){return x.id===id;});return{date:today,timestamp:time,no:s.no,studentId:s.id,name:s.name,action:selectedType};});
-  fetch(SHEET_URL+"?data="+encodeURIComponent(JSON.stringify({type:"flow_batch",date:today,timestamp:time,action:selectedType,records:records})))
-    .then(function(r){return r.text();})
-    .then(function(rt){if(rt&&rt.toLowerCase().includes("error"))throw new Error(rt);return addLogs(records);})
+  fetch(SHEET_URL, {method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({type:"flow_batch",date:today,timestamp:time,action:selectedType,records:records})})
+    .then(function(){return addLogs(records);})
     .then(function(){hideLoading();showStatus("บันทึกสำเร็จ ✅ "+selectedIds.length+" คน → "+selectedType);setTimeout(function(){initFlow();},1000);})
     .catch(function(err){console.error(err);hideLoading();showStatus("❌ เกิดข้อผิดพลาด");});
 }
@@ -1695,9 +1695,8 @@ function applyRetroEdit(newAction){
   if(!retroEditLogIndex) return;
   var r=_cachedLogs.find(function(x){return x._firestoreId===retroEditLogIndex;});if(!r) return;
   showLoading("กำลังอัปเดต...");
-  fetch(SHEET_URL+"?data="+encodeURIComponent(JSON.stringify({type:"retro_edit",date:r.date,studentId:r.studentId,no:r.no,name:r.name,oldAction:r.action,newAction:newAction,timestamp:r.timestamp})))
-    .then(function(res){return res.text();})
-    .then(function(rt){if(rt&&rt.toLowerCase().includes("error"))throw new Error(rt);return updateLog(Object.assign({},r,{action:newAction}));})
+  fetch(SHEET_URL, {method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({type:"retro_edit",date:r.date,studentId:r.studentId,no:r.no,name:r.name,oldAction:r.action,newAction:newAction,timestamp:r.timestamp})})
+    .then(function(){return updateLog(Object.assign({},r,{action:newAction}));})
     .then(function(){hideLoading();closeRetroEdit();showStatus("เปลี่ยนเป็น "+actionIcon(newAction)+" "+newAction+" แล้ว ✅");})
     .catch(function(err){console.error(err);hideLoading();showStatus("❌ อัปเดตไม่สำเร็จ");});
 }
@@ -1705,9 +1704,8 @@ function deleteRetroRecord(){
   if(!retroEditLogIndex||!confirm("ลบรายการนี้?")) return;
   var r=_cachedLogs.find(function(x){return x._firestoreId===retroEditLogIndex;});if(!r) return;
   showLoading("กำลังลบ...");
-  fetch(SHEET_URL+"?data="+encodeURIComponent(JSON.stringify({type:"retro_delete",date:r.date,studentId:r.studentId,no:r.no,name:r.name,action:r.action,timestamp:r.timestamp})))
-    .then(function(res){return res.text();})
-    .then(function(rt){if(rt&&rt.toLowerCase().includes("error"))throw new Error(rt);return deleteLog(r._firestoreId);})
+  fetch(SHEET_URL, {method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({type:"retro_delete",date:r.date,studentId:r.studentId,no:r.no,name:r.name,action:r.action,timestamp:r.timestamp})})
+    .then(function(){return deleteLog(r._firestoreId);})
     .then(function(){hideLoading();closeRetroEdit();showStatus("ลบแล้ว 🗑️");})
     .catch(function(err){console.error(err);hideLoading();showStatus("❌ ลบไม่สำเร็จ");});
 }
