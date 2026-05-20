@@ -886,21 +886,24 @@ function logout() {
 /* ══════════════════════════════════════════════════════
    START SYSTEM
 ══════════════════════════════════════════════════════ */
+function _safeEl(id){ return document.getElementById(id); }
+function _safeShow(id){ var e=_safeEl(id); if(e) e.classList.remove("hidden"); }
+function _safeHide(id){ var e=_safeEl(id); if(e) e.classList.add("hidden"); }
 function startSystem() {
-  document.getElementById("loginPage").classList.add("hidden");
-  document.getElementById("homePage").classList.remove("hidden");
+  _safeHide("loginPage");
+  _safeShow("homePage");
   if (isAdmin) {
-    document.getElementById("topActions").classList.remove("hidden");
-    document.getElementById("editColHeader").classList.remove("hidden");
-    document.getElementById("teacherNav").classList.remove("hidden");
-    document.getElementById("addAssignBtn").classList.remove("hidden");
+    _safeShow("topActions");
+    _safeShow("editColHeader");
+    _safeShow("teacherNav");
+    _safeShow("addAssignBtn");
   } else {
-    document.getElementById("studentActions").classList.remove("hidden");
-    document.getElementById("studentNav").classList.remove("hidden");
-    document.getElementById("studentProfileCard").classList.remove("hidden");
-    document.getElementById("addAssignBtn").classList.add("hidden");
-    document.getElementById("profileName").textContent = currentUserDoc.name || "";
-    document.getElementById("profileId").textContent   = "รหัส " + (currentUserDoc.studentId || "");
+    _safeShow("studentActions");
+    _safeShow("studentNav");
+    _safeShow("studentProfileCard");
+    _safeHide("addAssignBtn");
+    var _pn=_safeEl("profileName"); if(_pn) _pn.textContent = currentUserDoc.name || "";
+    var _pi=_safeEl("profileId");   if(_pi) _pi.textContent = "รหัส " + (currentUserDoc.studentId || "");
   }
   showStatus("🔥 เชื่อมต่อ Cloud สำเร็จ ✅");
   startRealtimeSync();
@@ -1900,8 +1903,8 @@ window.onclick=function(e){
 /* ══════════════════════════════════════════════════════
    LOADING / TOAST
 ══════════════════════════════════════════════════════ */
-function showLoading(msg){ document.getElementById("loadingMsg").textContent=msg||"กำลังโหลด..."; document.getElementById("loadingOverlay").classList.remove("hidden"); }
-function hideLoading(){ document.getElementById("loadingOverlay").classList.add("hidden"); }
+function showLoading(msg){ var ol=document.getElementById("loadingOverlay"),lm=document.getElementById("loadingMsg"); if(lm)lm.textContent=msg||"กำลังโหลด..."; if(ol)ol.classList.remove("hidden"); }
+function hideLoading(){ var ol=document.getElementById("loadingOverlay"); if(ol)ol.classList.add("hidden"); }
 function showStatus(text){
   var o=document.getElementById("__sp");if(o)o.remove();
   var p=document.createElement("div");p.id="__sp";p.textContent=text;
