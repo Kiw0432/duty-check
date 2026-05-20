@@ -461,6 +461,11 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
             <button class="img-clear-btn" onclick="clearFlowImg()">✕</button>
           </div>
           <div id="flowImgSizeWarn" style="display:none;color:var(--red);font-size:.78rem;margin-top:4px;">⚠️ รูปใหญ่เกิน 1 MB กรุณาเลือกใหม่</div>
+          <!-- AI ตรวจรูปเวร -->
+          <div id="flowAIProofBox" class="ai-proof-box" style="margin-top:8px;">
+            <div id="flowAIProofThinking" class="ai-proof-thinking"><span class="spin">⏳</span> AI กำลังตรวจสอบรูปหลักฐาน...</div>
+            <div id="flowAIProofResult" class="ai-proof-result" style="display:none;"></div>
+          </div>
         </div>
         <div class="flow-nav">
           <button class="btn-soft" onclick="flowNext(2)">← ย้อนกลับ</button>
@@ -846,6 +851,8 @@ function initFirebase() {
     }
     if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
     firestoreDB  = firebase.firestore();
+    /* แก้ QUIC_TOO_MANY_RTOS: force long-polling แทน WebChannel/QUIC */
+    firestoreDB.settings({ experimentalForceLongPolling: true, merge: true });
     firebaseAuth = firebase.auth();
     return true;
   } catch(e) {
@@ -1699,9 +1706,16 @@ function renderHistory(filterISO){
     var tableHtml="",cardHtml="";
     rows.forEach(function(r){
       var badge=actionBadgeClass(r.action);
+      var proofChip="";
+      if(isAdmin&&r.imageBase64){
+        var ai=r.aiResult;
+        var pClass=ai?(ai.verdict==="pass"?"pass":ai.verdict==="fail"?"fail":"none"):"none";
+        var pIcon=ai?(ai.verdict==="pass"?"✅":ai.verdict==="fail"?"❌":"⚠️"):"📸";
+        proofChip='<span class="admin-proof-chip '+pClass+'" onclick="openAdminProofDetail(\''+escapeHtml(r.name)+'\',\''+escapeHtml(r.date+' '+r.action)+'\',\''+encodeURIComponent(r.imageBase64||\"\")+'\',"+(r.aiResult?JSON.stringify(r.aiResult):"null")+")" style="margin-left:4px;">'+pIcon+' หลักฐาน</span>';
+      }
       var editBtn=isAdmin?'<button onclick="openRetroEdit(\''+r._firestoreId+'\')" style="background:var(--c2);border:none;border-radius:8px;padding:5px 9px;cursor:pointer;font-family:inherit;font-size:.75rem;">✏️ แก้</button>':'';
-      tableHtml+='<tr><td style="white-space:nowrap;">'+escapeHtml(r.date)+'</td><td>'+escapeHtml(String(r.no))+'</td><td class="td-name">'+escapeHtml(r.name)+'</td><td><span class="retro-badge '+badge+'">'+actionIcon(r.action)+' '+escapeHtml(r.action)+'</span></td>'+(isAdmin?'<td>'+editBtn+'</td>':'')+'</tr>';
-      cardHtml+='<div class="history-card"><div class="hc-no">'+escapeHtml(String(r.no))+'<br><span style="font-size:.6rem;color:#bbb;">เลขที่</span></div><div class="hc-mid"><div>'+escapeHtml(r.name)+'</div><div style="font-size:.72rem;color:#bbb;">'+escapeHtml(r.date)+'</div></div><div class="hc-right"><span class="retro-badge '+badge+'">'+actionIcon(r.action)+' '+escapeHtml(r.action)+'</span>'+(isAdmin?'<div style="margin-top:5px;">'+editBtn+'</div>':'')+'</div></div>';
+      tableHtml+='<tr><td style="white-space:nowrap;">'+escapeHtml(r.date)+'</td><td>'+escapeHtml(String(r.no))+'</td><td class="td-name">'+escapeHtml(r.name)+'</td><td><span class="retro-badge '+badge+'">'+actionIcon(r.action)+' '+escapeHtml(r.action)+'</span>'+proofChip+'</td>'+(isAdmin?'<td>'+editBtn+'</td>':'')+'</tr>';
+      cardHtml+='<div class="history-card"><div class="hc-no">'+escapeHtml(String(r.no))+'<br><span style="font-size:.6rem;color:#bbb;">เลขที่</span></div><div class="hc-mid"><div>'+escapeHtml(r.name)+'</div><div style="font-size:.72rem;color:#bbb;">'+escapeHtml(r.date)+'</div></div><div class="hc-right"><span class="retro-badge '+badge+'">'+actionIcon(r.action)+' '+escapeHtml(r.action)+'</span>'+proofChip+(isAdmin?'<div style="margin-top:5px;">'+editBtn+'</div>':'')+'</div></div>';
     });
     tbody.innerHTML=tableHtml; if(cards) cards.innerHTML=cardHtml;
   });
@@ -1876,7 +1890,7 @@ function openAdminProofDetail(studentName, assignTitle, imgBase64, aiResult) {
 }
 function closeAdminProofDetail() { document.getElementById("adminProofDetailModal").style.display = "none"; }
 
-
+function openImgView(src) {
   document.getElementById("imgViewFull").src = src;
   document.getElementById("imgViewOverlay").style.display = "flex";
 }
@@ -1888,6 +1902,7 @@ function closeImgView() {
    IMAGE UPLOAD — FLOW (เช็คชื่อเวร แอดมิน)
 ══════════════════════════════════════════════════════ */
 var _flowImgBase64 = null;
+var _flowAIResult = null;
 
 function onFlowImgSelected(e) {
   var file = e.target.files[0]; if(!file) return;
@@ -1903,17 +1918,79 @@ function onFlowImgSelected(e) {
     document.getElementById("flowImgPreview").src = _flowImgBase64;
     document.getElementById("flowImgPreviewWrap").style.display = "block";
     document.getElementById("flowImgDropText").textContent = "✅ แนบรูปแล้ว — แตะเพื่อเปลี่ยน";
+    /* เรียก AI ตรวจสอบรูปหลักฐานการทำเวร */
+    _flowAIResult = null;
+    runFlowAIProofCheck(_flowImgBase64, selectedType || "เวร");
   };
   reader.readAsDataURL(file);
 }
 
 function clearFlowImg() {
   _flowImgBase64 = null;
+  _flowAIResult = null;
   document.getElementById("flowImgPreview").src = "";
   document.getElementById("flowImgPreviewWrap").style.display = "none";
   document.getElementById("flowImgDropText").textContent = "📸 แตะเพื่อแนบรูป";
   document.getElementById("flowImgSizeWarn").style.display = "none";
+  var aiBox = document.getElementById("flowAIProofBox");
+  if(aiBox) { aiBox.classList.remove("visible"); document.getElementById("flowAIProofResult").style.display="none"; document.getElementById("flowAIProofThinking").style.display="flex"; }
   var inp = document.getElementById("flowImgInput"); if(inp) inp.value = "";
+}
+
+function runFlowAIProofCheck(imgBase64, actionType) {
+  var box = document.getElementById("flowAIProofBox");
+  var thinking = document.getElementById("flowAIProofThinking");
+  var result = document.getElementById("flowAIProofResult");
+  if(!box) return;
+  box.classList.add("visible");
+  thinking.style.display = "flex";
+  result.style.display = "none";
+
+  var imgData = imgBase64.split(",")[1];
+  var mimeMatch = imgBase64.match(/data:([^;]+);/);
+  var mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
+
+  fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 400,
+      system: "คุณเป็น AI ตรวจสอบหลักฐานการทำเวรนักเรียน ตอบเป็น JSON เท่านั้น ไม่มี markdown หรือ backtick ใดๆ\nรูปแบบ JSON: {\"verdict\":\"pass\"|\"warn\"|\"fail\",\"score\":0-100,\"reason\":\"ข้อความสั้นๆ ไม่เกิน 80 ตัวอักษร ภาษาไทย\"}",
+      messages: [{
+        role: "user",
+        content: [
+          { type: "image", source: { type: "base64", media_type: mimeType, data: imgData } },
+          { type: "text", text: "ตรวจสอบรูปนี้ว่าเป็นหลักฐานการทำเวร \"" + actionType + "\" จริงหรือไม่\n- pass = รูปแสดงการทำกิจกรรม/เวร/งาน อย่างชัดเจน เช่น กวาด ล้าง จัดห้อง หรืออยู่ในพื้นที่\n- warn = รูปมีคนหรือสถานที่ แต่ไม่ชัดว่ากำลังทำเวร\n- fail = รูปไม่เกี่ยวกับเวรเลย หรือรูปขาวๆ ว่างๆ\nตอบ JSON เท่านั้น" }
+        ]
+      }]
+    })
+  }).then(function(res){ return res.json(); }).then(function(data){
+    var text = (data.content||[]).map(function(b){ return b.text||""; }).join("").trim();
+    var parsed;
+    try { parsed = JSON.parse(text); } catch(e) {
+      var vm = text.match(/"verdict"\s*:\s*"(\w+)"/);
+      var rm = text.match(/"reason"\s*:\s*"([^"]+)"/);
+      var sm = text.match(/"score"\s*:\s*(\d+)/);
+      parsed = { verdict: vm?vm[1]:"warn", score: sm?parseInt(sm[1]):50, reason: rm?rm[1]:"ไม่สามารถวิเคราะห์ได้" };
+    }
+    _flowAIResult = parsed;
+    thinking.style.display = "none";
+    result.style.display = "block";
+    var icon  = parsed.verdict==="pass"?"✅":parsed.verdict==="fail"?"❌":"⚠️";
+    var cls   = parsed.verdict==="pass"?"ai-proof-pass":parsed.verdict==="fail"?"ai-proof-fail":"ai-proof-warn";
+    var label = parsed.verdict==="pass"?"รูปหลักฐานผ่าน!":parsed.verdict==="fail"?"รูปไม่ใช่หลักฐานเวร":"ตรวจสอบได้บางส่วน";
+    result.innerHTML =
+      '<div class="'+cls+'">'+icon+' '+label+' ('+parsed.score+'/100)</div>'+
+      '<div style="margin-top:6px;font-size:.8rem;color:#888;">'+escapeHtml(parsed.reason)+'</div>'+
+      (parsed.verdict==="fail"?'<div style="margin-top:8px;font-size:.78rem;color:var(--red);">⚠️ แนะนำให้เลือกรูปใหม่ที่แสดงการทำเวรจริง</div>':'');
+  }).catch(function(err){
+    console.error("Flow AI proof error:", err);
+    thinking.style.display = "none";
+    result.style.display = "block";
+    result.innerHTML = '<div style="color:#bbb;font-size:.8rem;">⚠️ ไม่สามารถตรวจสอบ AI ได้ในขณะนี้ บันทึกต่อได้เลย</div>';
+    _flowAIResult = { verdict:"unknown", score:0, reason:"" };
+  });
 }
 
 /* ══════════════════════════════════════════════════════
@@ -1973,10 +2050,21 @@ function submitFlow(){
   if(!selectedIds.length||!selectedType){showStatus("ข้อมูลไม่ครบ");return;}
   showLoading("กำลังส่งข้อมูล...");
   var today=getThaiDate(),time=new Date().toLocaleTimeString("th-TH");
-  var records=selectedIds.map(function(id){var s=STUDENTS.find(function(x){return x.id===id;});return{date:today,timestamp:time,no:s.no,studentId:s.id,name:s.name,action:selectedType};});
-  fetch(SHEET_URL, {method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({type:"flow_batch",date:today,timestamp:time,action:selectedType,records:records})})
+  var records=selectedIds.map(function(id){
+    var s=STUDENTS.find(function(x){return x.id===id;});
+    var rec={date:today,timestamp:time,no:s.no,studentId:s.id,name:s.name,action:selectedType};
+    if(_flowImgBase64)  rec.imageBase64 = _flowImgBase64;
+    if(_flowAIResult)   rec.aiResult    = _flowAIResult;
+    return rec;
+  });
+  fetch(SHEET_URL, {method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({type:"flow_batch",date:today,timestamp:time,action:selectedType,records:records.map(function(r){var c=Object.assign({},r);delete c.imageBase64;return c;})})})
     .then(function(){return addLogs(records);})
-    .then(function(){hideLoading();showStatus("บันทึกสำเร็จ ✅ "+selectedIds.length+" คน → "+selectedType);setTimeout(function(){initFlow();},1000);})
+    .then(function(){
+      hideLoading();
+      var aiMsg = _flowAIResult && _flowAIResult.verdict==="pass" ? " ✅ AI ยืนยันรูปผ่าน" : _flowAIResult && _flowAIResult.verdict==="fail" ? " ⚠️ AI: รูปอาจไม่ใช่เวร" : "";
+      showStatus("บันทึกสำเร็จ ✅ "+selectedIds.length+" คน → "+selectedType+aiMsg);
+      setTimeout(function(){initFlow();clearFlowImg();},1000);
+    })
     .catch(function(err){console.error(err);hideLoading();showStatus("❌ เกิดข้อผิดพลาด");});
 }
 
