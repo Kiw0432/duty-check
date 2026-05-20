@@ -1148,6 +1148,15 @@ function renderAdminAssignTable() {
       if(d.done) statusMap[d.uid][d.assignId] = true;
     });
 
+    // DEBUG: แสดง assignIds ที่บันทึกไว้ vs ที่อยู่ใน assignments
+    console.group("🔍 DEBUG renderAdminAssignTable");
+    var allSavedAssignIds = [];
+    Object.values(statusMap).forEach(function(m){ Object.keys(m).forEach(function(k){ if(allSavedAssignIds.indexOf(k)===-1) allSavedAssignIds.push(k); }); });
+    console.log("📦 assignIds ใน Firestore (จากนักเรียน):", allSavedAssignIds);
+    console.log("📋 assignments ในระบบ:", assignments.map(function(a){ return {title:a.title, id:a.id, _fid:a._fid, key:(a._fid||a.id)}; }));
+    console.log("👥 studentDoneMap preview:", Object.keys(statusMap).slice(0,3).map(function(uid){ return {uid:uid, sid:uidToStudent[uid], done:Object.keys(statusMap[uid])}; }));
+    console.groupEnd();
+
     // สร้าง studentId → assignId[] map
     var studentDoneMap = {}; // studentId → Set of assignIds done
     Object.keys(statusMap).forEach(function(uid) {
