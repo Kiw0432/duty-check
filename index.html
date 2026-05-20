@@ -852,7 +852,7 @@ function initFirebase() {
     if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
     firestoreDB  = firebase.firestore();
     /* แก้ QUIC_TOO_MANY_RTOS: force long-polling แทน WebChannel/QUIC */
-    firestoreDB.settings({ experimentalForceLongPolling: true, merge: true });
+    firestoreDB.settings({ experimentalAutoDetectLongPolling: true, merge: true });
     firebaseAuth = firebase.auth();
     return true;
   } catch(e) {
