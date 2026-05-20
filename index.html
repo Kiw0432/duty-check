@@ -1073,6 +1073,8 @@ function switchAdminTab(tab) {
 function renderAdminAISummary(){
   if(!isAdmin) return;
   document.getElementById("adminAiSection").classList.remove("hidden");
+  /* โหลดตารางงานอัตโนมัติทุกครั้งที่เปิด Dash */
+  renderAdminAssignTable();
   getAllLogs().then(function(logs){
     var total = STUDENTS.length;
     var today = getThaiDate();
@@ -1129,14 +1131,14 @@ function renderAdminAISummary(){
 ══════════════════════════════════════════════════════ */
 function renderAdminAssignTable() {
   loadAssignData();
+  var doRender = function() {
   var totalAssign = assignments.length;
   if(totalAssign === 0) {
     document.getElementById("adminAssignTable").innerHTML = '<p style="color:#bbb;font-size:.85rem;text-align:center;padding:16px;">ยังไม่มีงานในระบบ</p>';
     return;
   }
-  showLoading("กำลังโหลดสถานะการส่งงาน...");
+  document.getElementById("adminAssignTable").innerHTML = '<div style="text-align:center;color:#bbb;padding:20px;font-size:.85rem;">⏳ กำลังโหลดสถานะการส่งงาน...</div>';
   assignStatusCol().get().then(function(snapshot) {
-    hideLoading();
     var statusMap = {}; // uid → { assignId: bool }
     var uidToStudent = {}; // uid → studentId
     snapshot.forEach(function(doc) {
@@ -1198,10 +1200,11 @@ function renderAdminAssignTable() {
     '</div>';
     document.getElementById("adminAssignTable").innerHTML = html;
   }).catch(function(e) {
-    hideLoading();
-    document.getElementById("adminAssignTable").innerHTML = '<p style="color:#c75b5b;font-size:.85rem;padding:10px;">❌ โหลดข้อมูลไม่สำเร็จ</p>';
+    document.getElementById("adminAssignTable").innerHTML = '<p style="color:#c75b5b;font-size:.85rem;padding:10px;">❌ โหลดข้อมูลไม่สำเร็จ: '+e.message+'</p>';
     console.error(e);
   });
+  }; // end doRender
+  doRender();
 }
 
 /* ══════════════════════════════════════════════════════
@@ -1776,8 +1779,9 @@ function loadAssignDataFromCloud(){
     localStorage.setItem("assignments_v1",JSON.stringify(assignments));
     renderAssignPage();
     var dashPage=document.getElementById("dashboardPage");
-    if(dashPage&&!dashPage.classList.contains("hidden")&&!isAdmin){
-      renderAISummary();
+    if(dashPage&&!dashPage.classList.contains("hidden")){
+      if(isAdmin){ renderAdminAssignTable(); }
+      else { renderAISummary(); }
     }
   });
 }
