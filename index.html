@@ -914,7 +914,10 @@ function checkUserRole(user) {
         var s = STUDENTS.find(function(x){ return x.id === studentId; });
         currentUserDoc = { role:"student", studentId:studentId, name:s?s.name:user.email, no:s?s.no:0 };
         isAdmin = false;
-        return firestoreDB.collection("users").doc(user.uid).set(currentUserDoc);
+        /* Only create user doc if authenticated uid matches — prevents impersonation */
+        if (user.uid) {
+          return firestoreDB.collection("users").doc(user.uid).set(currentUserDoc);
+        }
       }
     })
     .then(function(){ hideLoading(); startSystem(); });
@@ -1114,8 +1117,12 @@ function renderAISummary(){
       assignments=[];
       snap.forEach(function(doc){ var d=doc.data(); d._fid=doc.id; assignments.push(d); });
       localStorage.setItem("assignments_v1",JSON.stringify(assignments));
+      _renderAISummaryCalc(); /* เรียกหลัง data พร้อมเท่านั้น */
+    }).catch(function(){
+      /* Firestore ล้มเหลว — ใช้ข้อมูลจาก localStorage แทน (ไม่เรียก _renderAISummaryCalc ก่อน loadAssignData เสร็จ) */
+      loadAssignData();
       _renderAISummaryCalc();
-    }).catch(function(){ loadAssignData(); _renderAISummaryCalc(); });
+    });
   } else {
     loadAssignData();
     _renderAISummaryCalc();
@@ -1673,7 +1680,19 @@ function showSlide(i){
   curSlide=i;
 }
 function changeSlide(e,i){ var f=e.target.files[0];if(!f) return; var r=new FileReader(); r.onload=function(ev){slideImages[i]=ev.target.result;safeSetItem("slideImages",JSON.stringify(slideImages));renderSlides();showStatus("เปลี่ยนรูปสไลด์ที่"+(i+1)+"แล้ว ✨");}; r.readAsDataURL(f); }
-function changeBackground(e){ var f=e.target.files[0];if(!f) return; var r=new FileReader(); r.onload=function(ev){safeSetItem("customBackground",ev.target.result);document.body.style.backgroundImage="url('"+ev.target.result+"')";document.body.style.backgroundSize="cover";showStatus("เปลี่ยนพื้นหลังแล้ว ✨");}; r.readAsDataURL(f); }
+function changeBackground(e){ 
+  var f=e.target.files[0];if(!f) return; 
+  /* จำกัดขนาดรูปพื้นหลัง ≤ 2MB เพื่อป้องกัน localStorage เต็ม */
+  if(f.size > 2 * 1024 * 1024){ showStatus("⚠️ รูปพื้นหลังใหญ่เกิน 2MB กรุณาเลือกรูปใหม่"); return; }
+  var r=new FileReader(); 
+  r.onload=function(ev){
+    if(!safeSetItem("customBackground",ev.target.result)) return; /* safeSetItem แสดง error เองแล้ว */
+    document.body.style.backgroundImage="url('"+ev.target.result+"')";
+    document.body.style.backgroundSize="cover";
+    showStatus("เปลี่ยนพื้นหลังแล้ว ✨");
+  }; 
+  r.readAsDataURL(f); 
+}
 function removeBackground(){ localStorage.removeItem("customBackground");document.body.style.backgroundImage="";showStatus("ลบพื้นหลังแล้ว"); }
 
 /* ══════════════════════════════════════════════════════
@@ -1735,7 +1754,12 @@ function renderChart(){
     var keys=Object.keys(md).sort();
     var labels=keys.length?keys.map(monthKeyToLabel):["ยังไม่มีข้อมูล"];
     var canvas=document.getElementById("monthlyChart"); if(!canvas) return;
-    if(monthlyChart){monthlyChart.destroy();monthlyChart=null;}
+    if(monthlyChart){
+      monthlyChart.destroy();
+      monthlyChart=null;
+      /* Re-query canvas after destroy in case DOM was re-rendered */
+      var canvas=document.getElementById("monthlyChart"); if(!canvas) return;
+    }
     monthlyChart=new Chart(canvas.getContext("2d"),{type:"bar",data:{labels:labels,datasets:[{label:"ทำเวร",data:keys.map(function(k){return md[k].work;}),backgroundColor:"#89b89a"},{label:"ลา",data:keys.map(function(k){return md[k].leave;}),backgroundColor:"#e58d8d"},{label:"มาสาย",data:keys.map(function(k){return md[k].late;}),backgroundColor:"#e5c08d"}]},options:{responsive:true,plugins:{legend:{labels:{font:{family:"inherit"}}}}}});
   });
 }
@@ -2120,12 +2144,12 @@ function openSetting(){
   renderSubjectSetting();
 }
 function closeSetting(){ document.getElementById("settingModal").style.display="none"; }
-window.onclick=function(e){
+window.addEventListener("click", function(e){
   if(e.target===document.getElementById("settingModal"))    closeSetting();
   if(e.target===document.getElementById("retroEditModal")) closeRetroEdit();
   if(e.target===document.getElementById("adminPanelModal"))closeAdminPanel();
   if(e.target===document.getElementById("changePwdModal")) closeChangePwd();
-};
+});
 
 /* ══════════════════════════════════════════════════════
    LOADING / TOAST
@@ -2219,7 +2243,9 @@ function assignStatus(a){
 }
 
 function renderAssignPage(){
-  loadAssignData();if(!calYear)initCal();
+  /* ไม่เรียก loadAssignData() ที่นี่อีกต่อไป — ข้อมูลมาจาก Firestore real-time listener แล้ว
+     loadAssignData() ใช้เฉพาะตอน startup ก่อน Firestore พร้อมเท่านั้น */
+  if(!calYear)initCal();
   /* ปุ่มเพิ่มงาน/ลบงาน/แก้งาน: เฉพาะแอดมิน */
   document.getElementById("addAssignBtn").classList.toggle("hidden",!isAdmin);
   renderAssignSummary();renderSubjectTabs();renderAssignList();
@@ -2483,10 +2509,13 @@ window.onload = function() {
   if(bg){ document.body.style.backgroundImage="url('"+bg+"')"; document.body.style.backgroundSize="cover"; }
   loadAssignData();
   if(!initFirebase()) { showStatus("❌ Firebase โหลดไม่สำเร็จ โปรดรีเฟรช"); return; }
+  var _authHandled = false;
   firebaseAuth.onAuthStateChanged(function(user) {
+    if(_authHandled) return;
     if(user && !document.getElementById("loginPage").classList.contains("hidden")) {
+      _authHandled = true;
       showLoading("กำลังโหลดข้อมูล...");
-      checkUserRole(user).catch(function(){ hideLoading(); });
+      checkUserRole(user).catch(function(){ hideLoading(); _authHandled = false; });
     }
   });
   /* keyboard detection — iPhone-safe */
