@@ -1321,9 +1321,15 @@ function renderAdminAssignTable() {
   var doRender = function() {
   var totalAssign = assignments.length;
   if(totalAssign === 0) {
-    document.getElementById("adminAssignTable").innerHTML = '<p style="color:#bbb;font-size:.85rem;text-align:center;padding:16px;">ยังไม่มีงานในระบบ</p>';
+    /* ถ้า Firestore ยังไม่ได้โหลดข้อมูล (firestoreDB พร้อมแต่ assignments ว่าง) ให้แสดง loading แทน */
+    if(firestoreDB && !document.getElementById("adminAssignTable").dataset.loaded) {
+      document.getElementById("adminAssignTable").innerHTML = '<div style="text-align:center;color:#bbb;padding:20px;font-size:.85rem;">⏳ กำลังโหลดข้อมูลงาน...</div>';
+    } else {
+      document.getElementById("adminAssignTable").innerHTML = '<p style="color:#bbb;font-size:.85rem;text-align:center;padding:16px;">ยังไม่มีงานในระบบ</p>';
+    }
     return;
   }
+  document.getElementById("adminAssignTable").dataset.loaded = "1";
   document.getElementById("adminAssignTable").innerHTML = '<div style="text-align:center;color:#bbb;padding:20px;font-size:.85rem;">⏳ กำลังโหลดสถานะการส่งงาน...</div>';
   assignStatusCol().get().then(function(snapshot) {
     var statusMap = {}; // uid → { assignId: bool }
@@ -2224,9 +2230,6 @@ function deleteRetroRecord(){
 /* ══════════════════════════════════════════════════════
    SETTING (admin only)
 ══════════════════════════════════════════════════════ */
-/* ══════════════════════════════════════════════════════
-   SETTING (admin only)
-══════════════════════════════════════════════════════ */
 function openSetting(){
   if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
   document.getElementById("settingModal").style.display="flex";
@@ -2285,6 +2288,9 @@ function loadAssignDataFromCloud(){
     assignments=[];
     snap.forEach(function(doc){ var d=doc.data(); d._fid=doc.id; assignments.push(d); });
     safeSetItem("assignments_v1",JSON.stringify(assignments));
+    /* ทำเครื่องหมายว่าโหลดจาก Firestore แล้ว (ไม่ว่าจะมีงานหรือเปล่า) */
+    var aat = document.getElementById("adminAssignTable");
+    if(aat) aat.dataset.loaded = "1";
     renderAssignPage();
     var dashPage=document.getElementById("dashboardPage");
     if(dashPage&&!dashPage.classList.contains("hidden")){
