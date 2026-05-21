@@ -223,6 +223,44 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 .subj-link-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:10px;font-size:.75rem;font-weight:600;text-decoration:none;background:var(--c1);color:var(--text);border:1px solid var(--c3);transition:.15s;}
 .subj-link-btn:hover{background:var(--c2);}
 .loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,.82);display:flex;justify-content:center;align-items:center;z-index:999999;}
+/* ── Beautiful Splash / Loading Page ── */
+#splashPage{
+  position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999999;
+  background:linear-gradient(145deg,#FAF7F3 0%,#F0E4D3 40%,#DCC5B2 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity .5s ease,transform .5s ease;
+}
+#splashPage.fade-out{opacity:0;transform:scale(1.04);pointer-events:none;}
+.splash-logo{
+  width:86px;height:86px;border-radius:28px;
+  background:linear-gradient(135deg,#DCC5B2,#D9A299);
+  display:flex;align-items:center;justify-content:center;
+  font-size:3rem;margin-bottom:22px;
+  box-shadow:0 12px 40px rgba(217,162,153,.35);
+  animation:splash-pop .6s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes splash-pop{from{transform:scale(.5);opacity:0;}to{transform:scale(1);opacity:1;}}
+.splash-title{font-size:1.35rem;font-weight:700;color:#5c4d45;margin-bottom:6px;
+  animation:splash-up .5s .15s ease both;}
+.splash-sub{font-size:.8rem;color:#b09984;margin-bottom:38px;
+  animation:splash-up .5s .25s ease both;}
+@keyframes splash-up{from{transform:translateY(14px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.splash-dots{display:flex;gap:9px;margin-bottom:28px;
+  animation:splash-up .5s .35s ease both;}
+.splash-dot{
+  width:10px;height:10px;border-radius:50%;background:var(--c3);
+}
+.splash-dot:nth-child(1){animation:dot-bounce .9s .0s ease-in-out infinite;}
+.splash-dot:nth-child(2){animation:dot-bounce .9s .15s ease-in-out infinite;}
+.splash-dot:nth-child(3){animation:dot-bounce .9s .30s ease-in-out infinite;}
+@keyframes dot-bounce{0%,80%,100%{transform:scale(.6);opacity:.4;}40%{transform:scale(1.2);opacity:1;}}
+.splash-msg{font-size:.82rem;color:#c0a898;letter-spacing:.04em;
+  animation:splash-up .5s .4s ease both;}
+.splash-bar-track{width:180px;height:3px;background:rgba(220,197,178,.35);border-radius:99px;margin-top:18px;overflow:hidden;
+  animation:splash-up .5s .45s ease both;}
+.splash-bar-fill{height:100%;background:var(--c4);border-radius:99px;width:0%;
+  animation:splash-bar 2.2s .5s ease forwards;}
+@keyframes splash-bar{0%{width:0%;}60%{width:75%;}80%{width:85%;}100%{width:95%;}}
 .img-upload-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);display:none;justify-content:center;align-items:center;z-index:999999;padding:14px;}
 .img-upload-modal-box{background:white;width:100%;max-width:420px;padding:22px;border-radius:26px;max-height:90vh;overflow-y:auto;}
 .img-drop-zone{border:2.5px dashed var(--c3);border-radius:18px;padding:28px 16px;text-align:center;cursor:pointer;background:var(--c1);transition:.2s;margin-bottom:12px;position:relative;}
@@ -347,6 +385,22 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 </style>
 </head>
 <body>
+
+<!-- ════ SPLASH / LOADING PAGE ════ -->
+<div id="splashPage">
+  <div class="splash-logo">📋</div>
+  <div class="splash-title">ระบบเช็คชื่อเวร M5/1</div>
+  <div class="splash-sub">☁️ Cloud · 🔐 Auth · 📡 Realtime · 🤖 AI</div>
+  <div class="splash-dots">
+    <div class="splash-dot"></div>
+    <div class="splash-dot"></div>
+    <div class="splash-dot"></div>
+  </div>
+  <div class="splash-msg" id="splashMsg">กำลังเชื่อมต่อ Firebase...</div>
+  <div class="splash-bar-track">
+    <div class="splash-bar-fill"></div>
+  </div>
+</div>
 
 <div class="container">
   <div class="header">
@@ -910,12 +964,18 @@ function checkUserRole(user) {
         currentUserDoc = doc.data();
         isAdmin = currentUserDoc.role === "admin";
       } else {
-        var studentId = user.email.replace(STUDENT_DOMAIN, "");
+        var studentId = user.email ? user.email.replace(STUDENT_DOMAIN, "") : "";
         var s = STUDENTS.find(function(x){ return x.id === studentId; });
-        currentUserDoc = { role:"student", studentId:studentId, name:s?s.name:user.email, no:s?s.no:0 };
+        if (!s) {
+          /* unknown user — sign out and show error */
+          return firebaseAuth.signOut().then(function(){
+            throw new Error("ไม่พบข้อมูลผู้ใช้ในระบบ กรุณาติดต่อครู");
+          });
+        }
+        currentUserDoc = { role:"student", studentId:studentId, name:s.name, no:s.no };
         isAdmin = false;
-        /* Only create user doc if authenticated uid matches — prevents impersonation */
-        if (user.uid) {
+        /* create user doc only when uid is valid and domain matches */
+        if (user.uid && user.email && user.email.endsWith(STUDENT_DOMAIN)) {
           return firestoreDB.collection("users").doc(user.uid).set(currentUserDoc);
         }
       }
@@ -924,9 +984,11 @@ function checkUserRole(user) {
 }
 
 function logout() {
-  if (monthlyChart) { monthlyChart.destroy(); monthlyChart = null; }
-  if (realtimeUnsubscribe) realtimeUnsubscribe();
-  firebaseAuth.signOut().then(function(){ location.reload(); });
+  if (monthlyChart) { try { monthlyChart.destroy(); } catch(e){} monthlyChart = null; }
+  if (realtimeUnsubscribe) { try { realtimeUnsubscribe(); } catch(e){} realtimeUnsubscribe = null; }
+  currentUser = null; currentUserDoc = null; isAdmin = false;
+  _cachedLogs = []; _cachedAssignmentStatus = {}; _allStudentStatuses = {};
+  firebaseAuth.signOut().then(function(){ location.reload(); }).catch(function(){ location.reload(); });
 }
 
 /* ══════════════════════════════════════════════════════
@@ -966,13 +1028,13 @@ function logsCol(){ return firestoreDB.collection("attendance_m51"); }
 
 function startRealtimeSync() {
   if (!firestoreDB) return;
-  if (realtimeUnsubscribe) realtimeUnsubscribe();
+  if (realtimeUnsubscribe) { try { realtimeUnsubscribe(); } catch(e){} realtimeUnsubscribe = null; }
   realtimeUnsubscribe = logsCol().onSnapshot(function(snapshot) {
     _cachedLogs = [];
     snapshot.forEach(function(doc){ var d=doc.data(); d._firestoreId=doc.id; _cachedLogs.push(d); });
     _cachedLogs.sort(function(a,b){ return (a.createdAt||0)-(b.createdAt||0); });
     renderHistory(); updateDashboard(); renderChart();
-  }, function(err){ console.error("Realtime error:", err); });
+  }, function(err){ console.error("Realtime error:", err); showStatus("⚠️ การเชื่อมต่อ real-time ขัดข้อง"); });
 }
 
 function getAllLogs(){ return Promise.resolve(_cachedLogs.slice()); }
@@ -1111,15 +1173,17 @@ function resetStudentPassword(sid){
 function renderAISummary(){
   if(isAdmin){ renderAdminAISummary(); return; }
   document.getElementById("aiSummarySection").classList.remove("hidden");
-  /* โหลดจาก Firestore โดยตรงเพื่อให้ได้ข้อมูลล่าสุดเสมอ */
   if(firestoreDB){
+    var aiSummaryCard = document.getElementById("aiSummaryCard");
+    if(aiSummaryCard) aiSummaryCard.innerHTML = '<div style="text-align:center;padding:20px;color:#bbb;font-size:.88rem;">🤖 กำลังวิเคราะห์ข้อมูลของคุณ...</div>';
     firestoreDB.collection("assignments_m51").orderBy("createdAt").get().then(function(snap){
       assignments=[];
       snap.forEach(function(doc){ var d=doc.data(); d._fid=doc.id; assignments.push(d); });
-      localStorage.setItem("assignments_v1",JSON.stringify(assignments));
-      _renderAISummaryCalc(); /* เรียกหลัง data พร้อมเท่านั้น */
-    }).catch(function(){
-      /* Firestore ล้มเหลว — ใช้ข้อมูลจาก localStorage แทน (ไม่เรียก _renderAISummaryCalc ก่อน loadAssignData เสร็จ) */
+      safeSetItem("assignments_v1",JSON.stringify(assignments));
+      _renderAISummaryCalc();
+    }).catch(function(e){
+      console.error("AI summary load error:", e);
+      /* fallback to cached data */
       loadAssignData();
       _renderAISummaryCalc();
     });
@@ -1717,6 +1781,7 @@ function updateDashboard(){
    HISTORY
 ══════════════════════════════════════════════════════ */
 function renderHistory(filterISO){
+  _proofChipData = []; /* reset proof chip data on each render */
   getAllLogs().then(function(log){
     var tbody=document.getElementById("historyTable"), cards=document.getElementById("historyCards");
     var rows=filterISO?log.filter(function(r){return thaiDateToISO(r.date)===filterISO;}).sort(function(a,b){return a.no-b.no;}):log.slice().reverse();
@@ -1730,7 +1795,9 @@ function renderHistory(filterISO){
         var ai=r.aiResult;
         var pClass=ai?(ai.verdict==="pass"?"pass":ai.verdict==="fail"?"fail":"none"):"none";
         var pIcon=ai?(ai.verdict==="pass"?"✅":ai.verdict==="fail"?"❌":"⚠️"):"📸";
-        proofChip='<span class="admin-proof-chip '+pClass+'" onclick="openAdminProofDetail(\''+escapeHtml(r.name)+'\',\''+escapeHtml(r.date+' '+r.action)+'\',\''+encodeURIComponent(r.imageBase64||'')+'\',"+(r.aiResult?JSON.stringify(r.aiResult):"null")+")" style="margin-left:4px;">'+pIcon+' หลักฐาน</span>';
+        var proofDataIdx=_proofChipData.length;
+        _proofChipData.push({name:r.name,meta:r.date+' '+r.action,img:r.imageBase64||'',ai:r.aiResult||null});
+        proofChip='<span class="admin-proof-chip '+pClass+'" onclick="openAdminProofDetailByIdx('+proofDataIdx+')" style="margin-left:4px;">'+pIcon+' หลักฐาน</span>';
       }
       var editBtn=isAdmin?'<button onclick="openRetroEdit(\''+r._firestoreId+'\')" style="background:var(--c2);border:none;border-radius:8px;padding:5px 9px;cursor:pointer;font-family:inherit;font-size:.75rem;">✏️ แก้</button>':'';
       tableHtml+='<tr><td style="white-space:nowrap;">'+escapeHtml(r.date)+'</td><td>'+escapeHtml(String(r.no))+'</td><td class="td-name">'+escapeHtml(r.name)+'</td><td><span class="retro-badge '+badge+'">'+actionIcon(r.action)+' '+escapeHtml(r.action)+'</span>'+proofChip+'</td>'+(isAdmin?'<td>'+editBtn+'</td>':'')+'</tr>';
@@ -1757,9 +1824,9 @@ function renderChart(){
     if(monthlyChart){
       monthlyChart.destroy();
       monthlyChart=null;
-      /* Re-query canvas after destroy in case DOM was re-rendered */
-      var canvas=document.getElementById("monthlyChart"); if(!canvas) return;
     }
+    /* Re-query canvas after destroy */
+    canvas=document.getElementById("monthlyChart"); if(!canvas) return;
     monthlyChart=new Chart(canvas.getContext("2d"),{type:"bar",data:{labels:labels,datasets:[{label:"ทำเวร",data:keys.map(function(k){return md[k].work;}),backgroundColor:"#89b89a"},{label:"ลา",data:keys.map(function(k){return md[k].leave;}),backgroundColor:"#e58d8d"},{label:"มาสาย",data:keys.map(function(k){return md[k].late;}),backgroundColor:"#e5c08d"}]},options:{responsive:true,plugins:{legend:{labels:{font:{family:"inherit"}}}}}});
   });
 }
@@ -1896,6 +1963,15 @@ function runAIProofCheck(imgBase64, assignTitle, onDone) {
     result.innerHTML = '<div style="color:#bbb;font-size:.8rem;">⚠️ ไม่สามารถตรวจสอบ AI ได้ในขณะนี้ ส่งงานต่อได้เลย</div>';
     if(onDone) onDone({ verdict:"unknown", score:0, reason:"" });
   });
+}
+
+var _proofChipData = []; /* สำหรับ admin proof chip onclick */
+
+/* เปิด modal ดูหลักฐาน (admin) โดยใช้ index */
+function openAdminProofDetailByIdx(idx) {
+  var d = _proofChipData[idx];
+  if(!d) return;
+  openAdminProofDetail(d.name, d.meta, d.img, d.ai);
 }
 
 /* เปิด modal ดูหลักฐาน (admin) */
@@ -2069,9 +2145,12 @@ function flowNext(step){
   if(step===3&&!selectedType){showStatus("กรุณาเลือกประเภท");return;}
   flowShowStep(step);
 }
+var _isSubmittingFlow = false;
 function submitFlow(){
   if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
   if(!selectedIds.length||!selectedType){showStatus("ข้อมูลไม่ครบ");return;}
+  if(_isSubmittingFlow){showStatus("⏳ กำลังบันทึก กรุณารอสักครู่...");return;}
+  _isSubmittingFlow = true;
   showLoading("กำลังส่งข้อมูล...");
   var today=getThaiDate(),time=new Date().toLocaleTimeString("th-TH");
   var records=selectedIds.map(function(id){
@@ -2084,12 +2163,12 @@ function submitFlow(){
   fetch(SHEET_URL, {method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({type:"flow_batch",date:today,timestamp:time,action:selectedType,records:records.map(function(r){var c=Object.assign({},r);delete c.imageBase64;return c;})})})
     .then(function(){return addLogs(records);})
     .then(function(){
-      hideLoading();
+      hideLoading(); _isSubmittingFlow = false;
       var aiMsg = _flowAIResult && _flowAIResult.verdict==="pass" ? " ✅ AI ยืนยันรูปผ่าน" : _flowAIResult && _flowAIResult.verdict==="fail" ? " ⚠️ AI: รูปอาจไม่ใช่เวร" : "";
       showStatus("บันทึกสำเร็จ ✅ "+selectedIds.length+" คน → "+selectedType+aiMsg);
       setTimeout(function(){initFlow();clearFlowImg();},1000);
     })
-    .catch(function(err){console.error(err);hideLoading();showStatus("❌ เกิดข้อผิดพลาด");});
+    .catch(function(err){console.error(err);hideLoading();_isSubmittingFlow=false;showStatus("❌ เกิดข้อผิดพลาด");});
 }
 
 /* ══════════════════════════════════════════════════════
@@ -2189,13 +2268,13 @@ function loadAssignDataFromCloud(){
     if(!snap.empty){
       subjects=[];
       snap.forEach(function(doc){ var d=doc.data(); d._fid=doc.id; if(!d.id) d.id=doc.id; subjects.push(d); });
-      localStorage.setItem("subjects_v1",JSON.stringify(subjects));
+      safeSetItem("subjects_v1",JSON.stringify(subjects));
     }
-  });
+  }).catch(function(e){ console.error("subjects load error:", e); });
   firestoreDB.collection("assignments_m51").orderBy("createdAt").onSnapshot(function(snap){
     assignments=[];
     snap.forEach(function(doc){ var d=doc.data(); d._fid=doc.id; assignments.push(d); });
-    localStorage.setItem("assignments_v1",JSON.stringify(assignments));
+    safeSetItem("assignments_v1",JSON.stringify(assignments));
     renderAssignPage();
     var dashPage=document.getElementById("dashboardPage");
     if(dashPage&&!dashPage.classList.contains("hidden")){
@@ -2205,8 +2284,8 @@ function loadAssignDataFromCloud(){
   });
 }
 function saveAssignData(){
-  localStorage.setItem("subjects_v1",JSON.stringify(subjects));
-  localStorage.setItem("assignments_v1",JSON.stringify(assignments));
+  safeSetItem("subjects_v1",JSON.stringify(subjects));
+  safeSetItem("assignments_v1",JSON.stringify(assignments));
 }
 function saveSubjectToCloud(s){
   if(!firestoreDB) return Promise.resolve();
@@ -2358,7 +2437,7 @@ function openAddAssign(){
 }
 function openEditAssign(id){
   if(!isAdmin)return;
-  var a=assignments.find(function(x){return x.id===id;});if(!a)return;
+  var a=assignments.find(function(x){return (x._fid||x.id)===id;});if(!a)return;
   editingAssignId=id;
   document.getElementById("assignModalTitle").textContent="✏️ แก้ไขงาน";
   document.getElementById("assignTitleInput").value=a.title;
@@ -2379,15 +2458,19 @@ function saveAssign(){
   var subjectId=document.getElementById("assignSubjectInput").value,
       detail=document.getElementById("assignDetailInput").value.trim(),
       due=document.getElementById("assignDueInput").value;
+  var targetAssign;
   if(editingAssignId){
-    var a=assignments.find(function(x){return x.id===editingAssignId;});
-    if(a){a.title=title;a.subjectId=subjectId;a.detail=detail;a.due=due;}
+    targetAssign=assignments.find(function(x){return (x._fid||x.id)===editingAssignId;});
+    if(targetAssign){targetAssign.title=title;targetAssign.subjectId=subjectId;targetAssign.detail=detail;targetAssign.due=due;}
   }else{
-    assignments.push({id:"a"+Date.now(),subjectId:subjectId,title:title,detail:detail,due:due,done:false,createdAt:todayISO()});
+    targetAssign={id:"a"+Date.now(),subjectId:subjectId,title:title,detail:detail,due:due,done:false,createdAt:todayISO()};
+    assignments.push(targetAssign);
   }
-  saveAssignToCloud(editingAssignId?assignments.find(function(x){return x.id===editingAssignId;}):assignments[assignments.length-1]).then(function(){loadAssignDataFromCloud();});
-  if(editingAssignId) saveAssignData(); // สำหรับ edit ที่มี _fid อยู่แล้ว
-  closeAssignModal();renderAssignPage();
+  if(targetAssign){
+    saveAssignToCloud(targetAssign).catch(function(e){ showStatus("❌ บันทึก Cloud ไม่สำเร็จ: "+(e.message||e)); });
+  }
+  if(editingAssignId) saveAssignData();
+  closeAssignModal(); renderAssignPage();
   showStatus(editingAssignId?"✅ แก้ไขงานแล้ว":"✅ เพิ่มงานแล้ว");
 }
 function deleteAssign(id){
@@ -2500,6 +2583,21 @@ function renderCalDayDetail(iso){
    STARTUP
 ══════════════════════════════════════════════════════ */
 window.onload = function() {
+  /* ── Splash messaging ── */
+  var splashMsgs = ["กำลังเชื่อมต่อ Firebase...","ตรวจสอบสิทธิ์ผู้ใช้...","โหลดข้อมูลห้องเรียน...","เตรียมระบบ AI..."];
+  var _smIdx = 0, _smEl = document.getElementById("splashMsg");
+  var _smTimer = setInterval(function(){
+    _smIdx = (_smIdx+1) % splashMsgs.length;
+    if(_smEl) _smEl.textContent = splashMsgs[_smIdx];
+  }, 900);
+  function hideSplash(){
+    clearInterval(_smTimer);
+    var sp = document.getElementById("splashPage");
+    if(sp && !sp.classList.contains("fade-out")){
+      setTimeout(function(){ sp.classList.add("fade-out"); setTimeout(function(){ sp.style.display="none"; }, 500); }, 400);
+    }
+  }
+
   document.getElementById("todayDate").innerHTML = "📅 " + getThaiDate();
   var savedSlides = localStorage.getItem("slideImages");
   slideImages = savedSlides ? JSON.parse(savedSlides) : DEFAULT_SLIDES.slice();
@@ -2508,15 +2606,32 @@ window.onload = function() {
   var bg = localStorage.getItem("customBackground");
   if(bg){ document.body.style.backgroundImage="url('"+bg+"')"; document.body.style.backgroundSize="cover"; }
   loadAssignData();
-  if(!initFirebase()) { showStatus("❌ Firebase โหลดไม่สำเร็จ โปรดรีเฟรช"); return; }
+  if(!initFirebase()) {
+    hideSplash();
+    showStatus("❌ Firebase โหลดไม่สำเร็จ โปรดรีเฟรช");
+    return;
+  }
   var _authHandled = false;
   firebaseAuth.onAuthStateChanged(function(user) {
     if(_authHandled) return;
-    if(user && !document.getElementById("loginPage").classList.contains("hidden")) {
-      _authHandled = true;
-      showLoading("กำลังโหลดข้อมูล...");
-      checkUserRole(user).catch(function(){ hideLoading(); _authHandled = false; });
+    if(user) {
+      var loginPage = document.getElementById("loginPage");
+      if(loginPage && !loginPage.classList.contains("hidden")) {
+        _authHandled = true;
+        showLoading("กำลังโหลดข้อมูล...");
+        checkUserRole(user).catch(function(e){
+          console.error("checkUserRole error:", e);
+          hideLoading();
+          _authHandled = false;
+          showLoginError("❌ โหลดข้อมูลผู้ใช้ไม่สำเร็จ: " + (e.message||e));
+        });
+      }
+    } else {
+      /* user signed out — reset flag so next login works */
+      _authHandled = false;
     }
+    /* Always hide splash once Firebase auth state is known */
+    hideSplash();
   });
   /* keyboard detection — iPhone-safe */
   var _baseVH = window.innerHeight;
