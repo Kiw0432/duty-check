@@ -832,6 +832,14 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   <img id="imgViewFull" src="" alt="หลักฐาน">
 </div>
 
+<!-- LOADING OVERLAY (global) -->
+<div class="loading-overlay hidden" id="loadingOverlay">
+  <div class="loading-box">
+    <div class="loader"></div>
+    <div id="loadingMsg" style="font-size:.9rem;color:var(--text);font-weight:600;">กำลังโหลด...</div>
+  </div>
+</div>
+
 <script>
 /* ══════════════════════════════════════════════════════
    CONFIG
@@ -1163,8 +1171,10 @@ function renderAdminStudentList(){
 }
 function resetStudentPassword(sid){
   if(!confirm("รีเซ็ตรหัสผ่านของ "+sid+" ?")) return;
+  showLoading("กำลังส่งคำขอ...");
   firestoreDB.collection("password_reset_requests").add({studentId:sid,requestedBy:currentUser.uid,requestedAt:Date.now(),status:"pending"})
-    .then(function(){ showStatus("📨 ส่งคำขอรีเซ็ตแล้ว"); });
+    .then(function(){ hideLoading(); showStatus("📨 ส่งคำขอรีเซ็ตแล้ว"); })
+    .catch(function(e){ hideLoading(); showStatus("❌ ส่งคำขอไม่สำเร็จ"); console.error(e); });
 }
 
 /* ══════════════════════════════════════════════════════
@@ -1808,8 +1818,8 @@ function renderHistory(filterISO){
 }
 function filterHistoryDate(){ var s=document.getElementById("historyDate").value; renderHistory(s||null); }
 function clearHistoryFilter(){ document.getElementById("historyDate").value=""; renderHistory(); }
-function clearHistory(){ if(!confirm("ลบประวัติทั้งหมด?")) return; clearAllLogs().then(function(){renderHistory();renderChart();updateDashboard();showStatus("ลบแล้ว 🗑️");}); }
-function pruneOldData(){ if(!confirm("ลบข้อมูลเก่ากว่า 5 เดือน?")) return; pruneLogsOlderThan(5).then(function(n){renderHistory();renderChart();updateDashboard();showStatus("ลบ "+n+" รายการ ✅");}); }
+function clearHistory(){ if(!confirm("ลบประวัติทั้งหมด?")) return; showLoading("กำลังลบ..."); clearAllLogs().then(function(){hideLoading();renderHistory();renderChart();updateDashboard();showStatus("ลบแล้ว 🗑️");}).catch(function(e){hideLoading();showStatus("❌ ลบไม่สำเร็จ");console.error(e);}); }
+function pruneOldData(){ if(!confirm("ลบข้อมูลเก่ากว่า 5 เดือน?")) return; showLoading("กำลังลบข้อมูลเก่า..."); pruneLogsOlderThan(5).then(function(n){hideLoading();renderHistory();renderChart();updateDashboard();showStatus("ลบ "+n+" รายการ ✅");}).catch(function(e){hideLoading();showStatus("❌ ลบไม่สำเร็จ");console.error(e);}); }
 
 /* ══════════════════════════════════════════════════════
    CHART
@@ -2467,11 +2477,22 @@ function saveAssign(){
     assignments.push(targetAssign);
   }
   if(targetAssign){
-    saveAssignToCloud(targetAssign).catch(function(e){ showStatus("❌ บันทึก Cloud ไม่สำเร็จ: "+(e.message||e)); });
+    showLoading(editingAssignId?"กำลังแก้ไขงาน...":"กำลังเพิ่มงาน...");
+    saveAssignToCloud(targetAssign).then(function(){
+      hideLoading();
+      if(editingAssignId) saveAssignData();
+      closeAssignModal(); renderAssignPage();
+      showStatus(editingAssignId?"✅ แก้ไขงานแล้ว":"✅ เพิ่มงานแล้ว");
+    }).catch(function(e){
+      hideLoading();
+      showStatus("❌ บันทึก Cloud ไม่สำเร็จ: "+(e.message||e));
+      console.error(e);
+    });
+  } else {
+    if(editingAssignId) saveAssignData();
+    closeAssignModal(); renderAssignPage();
+    showStatus(editingAssignId?"✅ แก้ไขงานแล้ว":"✅ เพิ่มงานแล้ว");
   }
-  if(editingAssignId) saveAssignData();
-  closeAssignModal(); renderAssignPage();
-  showStatus(editingAssignId?"✅ แก้ไขงานแล้ว":"✅ เพิ่มงานแล้ว");
 }
 function deleteAssign(id){
   if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
@@ -2530,8 +2551,17 @@ function saveSubject(){
   if(editingSubjId){var s=subjects.find(function(x){return x.id===editingSubjId;});if(s){s.code=code;s.name=name;s.teacher=teacher;s.color=color;s.classroom=classroom;s.drive=drive;}}
   else{subjects.push({id:"s"+Date.now(),code:code,name:name,teacher:teacher,color:color,classroom:classroom,drive:drive});}
   var savedSubj=editingSubjId?subjects.find(function(x){return x.id===editingSubjId;}):subjects[subjects.length-1];
-  saveSubjectToCloud(savedSubj);saveAssignData();closeSubjModal();renderSubjectSetting();
-  showStatus(editingSubjId?"✅ แก้ไขวิชาแล้ว":"✅ เพิ่มวิชาแล้ว");
+  showLoading(editingSubjId?"กำลังแก้ไขวิชา...":"กำลังเพิ่มวิชา...");
+  saveSubjectToCloud(savedSubj).then(function(){
+    hideLoading();
+    saveAssignData();closeSubjModal();renderSubjectSetting();
+    showStatus(editingSubjId?"✅ แก้ไขวิชาแล้ว":"✅ เพิ่มวิชาแล้ว");
+  }).catch(function(e){
+    hideLoading();
+    saveAssignData();closeSubjModal();renderSubjectSetting();
+    showStatus("⚠️ บันทึก Cloud ไม่สำเร็จ แต่บันทึกในเครื่องแล้ว: "+(e.message||e));
+    console.error(e);
+  });
 }
 function deleteSubject(id){
   if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
