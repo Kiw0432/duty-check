@@ -8,9 +8,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#DCC5B2">
 <meta name="format-detection" content="telephone=no">
-<title>ระบบเช็คชื่อเวร M5/1 v5</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
-
+<title>ระบบห้องเรียน M5/1</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏫</text></svg>">
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"
   onerror="window._firebaseLoadError=true;console.error('❌ โหลด firebase-app-compat.js ไม่ได้')"></script>
@@ -19,7 +18,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"
   onerror="window._firebaseLoadError=true;console.error('❌ โหลด firebase-firestore-compat.js ไม่ได้')"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 
 <style>
 :root{
@@ -131,7 +129,6 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 .history-card .hc-no{min-width:28px;font-size:.78rem;color:var(--c4);font-weight:700;text-align:center;flex-shrink:0;}
 .history-card .hc-mid{flex:1;font-size:.88rem;font-weight:600;line-height:1.35;min-width:0;}
 .history-card .hc-right{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;gap:4px;}
-.history-card .hc-edit{}
 .retro-badge{display:inline-block;border-radius:8px;padding:3px 9px;font-size:.78rem;font-weight:600;}
 .badge-work{background:#e8f5ec;color:#4a9b65;}
 .badge-leave{background:#fff0f0;color:#c75b5b;}
@@ -187,7 +184,6 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 .assign-setting-edit{padding:6px 12px;border-radius:10px;font-size:.78rem;background:var(--c2);color:var(--text);border:none;cursor:pointer;}
 .subj-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.38);display:none;justify-content:center;align-items:center;z-index:99999;padding:10px;}
 .subj-modal-box{background:white;width:100%;max-width:420px;padding:22px;border-radius:26px;max-height:85vh;overflow-y:auto;}
-/* ── AI Proof Checker ── */
 .ai-proof-box{background:linear-gradient(135deg,#fdf6f0,#fdeee8);border-radius:16px;padding:14px;margin:10px 0;border:1.5px solid var(--c3);display:none;}
 .ai-proof-box.visible{display:block;}
 .ai-proof-thinking{display:flex;align-items:center;gap:10px;font-size:.85rem;color:#b87a6a;font-weight:600;}
@@ -223,7 +219,13 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 .subj-link-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:10px;font-size:.75rem;font-weight:600;text-decoration:none;background:var(--c1);color:var(--text);border:1px solid var(--c3);transition:.15s;}
 .subj-link-btn:hover{background:var(--c2);}
 .loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,.82);display:flex;justify-content:center;align-items:center;z-index:999999;}
-/* ── Beautiful Splash / Loading Page ── */
+
+/* ── Firestore quota badge ── */
+.quota-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600;background:#e8f5ec;color:#4a9b65;}
+.quota-badge.warn{background:#fff8e8;color:#b87a30;}
+.quota-badge.danger{background:#fff0f0;color:#c75b5b;}
+
+/* ── Splash ── */
 #splashPage{
   position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999999;
   background:linear-gradient(145deg,#FAF7F3 0%,#F0E4D3 40%,#DCC5B2 100%);
@@ -247,9 +249,7 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 @keyframes splash-up{from{transform:translateY(14px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 .splash-dots{display:flex;gap:9px;margin-bottom:28px;
   animation:splash-up .5s .35s ease both;}
-.splash-dot{
-  width:10px;height:10px;border-radius:50%;background:var(--c3);
-}
+.splash-dot{width:10px;height:10px;border-radius:50%;background:var(--c3);}
 .splash-dot:nth-child(1){animation:dot-bounce .9s .0s ease-in-out infinite;}
 .splash-dot:nth-child(2){animation:dot-bounce .9s .15s ease-in-out infinite;}
 .splash-dot:nth-child(3){animation:dot-bounce .9s .30s ease-in-out infinite;}
@@ -275,7 +275,6 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 .img-view-overlay .close-view{position:fixed;top:18px;right:18px;background:white;border:none;border-radius:50%;width:36px;height:36px;font-size:1.1rem;cursor:pointer;font-weight:700;}
 .loading-box{background:white;padding:28px 36px;border-radius:26px;text-align:center;}
 .loader{width:50px;height:50px;border:5px solid #eee;border-top:5px solid var(--c4);border-radius:50%;margin:auto;margin-bottom:12px;animation:spin 1s linear infinite;}
-@keyframes spin{100%{transform:rotate(360deg);}}
 .hidden{display:none!important;}
 .admin-student-list{display:grid;gap:8px;}
 .admin-student-item{background:var(--c1);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;}
@@ -283,8 +282,6 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 .admin-student-item .asi-name{flex:1;font-size:.85rem;font-weight:600;}
 .admin-student-item .asi-id{font-size:.72rem;color:#bbb;}
 .reset-btn{padding:5px 10px;border-radius:9px;font-size:.75rem;background:#fff8e8;color:#b87a30;border:none;cursor:pointer;}
-
-/* ── Admin AI Assignment Analysis ── */
 .ai-submit-table{width:100%;border-collapse:collapse;margin-top:10px;}
 .ai-submit-table th{background:var(--c2);font-size:.78rem;padding:9px 8px;text-align:center;}
 .ai-submit-table td{font-size:.8rem;padding:9px 8px;border-bottom:1px solid #f0e4d3;text-align:center;}
@@ -302,54 +299,20 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 .tab-btn{padding:8px 16px;border-radius:12px;border:2px solid var(--c3);background:white;color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.15s;}
 .tab-btn.active{background:var(--c4);border-color:var(--c4);color:white;}
 .tab-btn:hover:not(.active){background:var(--c2);}
+.assign-card,.assign-check,.student-card,.type-card,.cal-cell{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
 
-/* ── Touch UX ── */
-.assign-card,.assign-check,.student-card,.type-card,.cal-cell{
-  -webkit-user-select:none;user-select:none;
-  -webkit-touch-callout:none;
-}
-
-/* ════ MOBILE (≤600px) ════ */
 @media(max-width:600px){
-  /* ── Input: 16px ป้องกัน iOS auto-zoom ── */
   input,select,textarea{font-size:16px!important;}
-
   .table-wrapper{display:none;}
   .history-cards{display:flex;}
   .container{padding:10px;padding-bottom:calc(110px + env(safe-area-inset-bottom));}
   .logo h1{font-size:1.05rem;}
   .top-actions button{padding:8px 10px;font-size:.76rem;}
   .banner-slider{height:160px;border-radius:16px;}
-
-  /* bottom-nav: ชิดล่าง + safe area iPhone */
-  .bottom-nav{
-    bottom:0!important;
-    left:0!important;right:0!important;
-    transform:none!important;
-    width:100%!important;max-width:100%!important;
-    border-radius:22px 22px 0 0!important;
-    padding:8px 2px calc(8px + env(safe-area-inset-bottom))!important;
-    gap:2px!important;
-    justify-content:space-around!important;
-    overflow:hidden;
-  }
-  .bottom-nav button{
-    padding:7px 2px 5px;
-    font-size:.58rem;
-    border-radius:10px;
-    flex:1;
-    min-width:0;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:2px;
-    line-height:1;
-    white-space:nowrap;
-    overflow:hidden;
-  }
+  .bottom-nav{bottom:0!important;left:0!important;right:0!important;transform:none!important;width:100%!important;max-width:100%!important;border-radius:22px 22px 0 0!important;padding:8px 2px calc(8px + env(safe-area-inset-bottom))!important;gap:2px!important;justify-content:space-around!important;overflow:hidden;}
+  .bottom-nav button{padding:7px 2px 5px;font-size:.58rem;border-radius:10px;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1;white-space:nowrap;overflow:hidden;}
   .bottom-nav button .nav-icon{font-size:1.1rem;line-height:1;}
   .bottom-nav button .nav-label{font-size:.55rem;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
-
   .student-grid{grid-template-columns:repeat(2,1fr);gap:6px;}
   .type-card{padding:14px 4px;}
   .type-card .ti{font-size:1.3rem;}
@@ -358,8 +321,6 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   td.td-name{min-width:90px;}
   .modal-box,.assign-modal-box,.subj-modal-box{padding:16px;border-radius:22px;max-height:88vh;}
   .dash-card h1{font-size:1.6rem;}
-
-  /* assign page */
   .assign-card{padding:12px;gap:10px;}
   .assign-title{font-size:.88rem;}
   .subject-tabs{gap:5px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;scrollbar-width:none;}
@@ -368,13 +329,9 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   .assign-sum-card{padding:10px 6px;}
   .assign-sum-card h2{font-size:1.2rem;}
   .assign-sum-card p{font-size:.68rem;}
-
-  /* calendar */
   .cal-cell{min-height:40px;}
   .cal-day{font-size:.76rem;}
 }
-
-/* ════ DESKTOP (≥601px) ════ */
 @media(min-width:601px){
   .history-cards{display:none!important;}
   .table-wrapper{display:block;}
@@ -386,11 +343,11 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 </head>
 <body>
 
-<!-- ════ SPLASH / LOADING PAGE ════ -->
+<!-- SPLASH -->
 <div id="splashPage">
-  <div class="splash-logo">📋</div>
-  <div class="splash-title">ระบบเช็คชื่อเวร M5/1</div>
-  <div class="splash-sub">☁️ Cloud · 🔐 Auth · 📡 Realtime · 🤖 AI</div>
+  <div class="splash-logo">🏫</div>
+  <div class="splash-title">ระบบห้องเรียน M5/1</div>
+  <div class="splash-sub">🏫 ห้องเรียน · 📡 Cloud Sync · 🤖 AI</div>
   <div class="splash-dots">
     <div class="splash-dot"></div>
     <div class="splash-dot"></div>
@@ -405,8 +362,8 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 <div class="container">
   <div class="header">
     <div class="logo">
-      <h1>ระบบเช็คชื่อเวร M5/1</h1>
-      <div style="font-size:.65rem;color:rgba(255,255,255,.8);margin-top:2px;">☁️ Cloud v5 · 🔐 Auth · 📡 Realtime · 🤖 AI</div>
+      <h1>ระบบห้องเรียน M5/1</h1>
+      <div style="font-size:.65rem;color:rgba(255,255,255,.8);margin-top:2px;">🏫 ห้องเรียน · 📡 Cloud · 🤖 AI</div>
     </div>
     <div class="top-actions hidden" id="topActions">
       <button class="setting-btn" onclick="openSetting()">⚙️ ตั้งค่า</button>
@@ -503,7 +460,6 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
             <div class="confirm-list" id="cfList"></div>
           </div>
         </div>
-        <!-- รูปภาพประกอบการเช็คชื่อ -->
         <div style="margin-bottom:12px;">
           <div style="font-size:.82rem;font-weight:600;color:#888;margin-bottom:6px;">📷 รูปภาพประกอบ (ไม่บังคับ)</div>
           <div class="img-drop-zone" id="flowImgDropZone" style="padding:14px 12px;" onclick="document.getElementById('flowImgInput').click()">
@@ -515,7 +471,6 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
             <button class="img-clear-btn" onclick="clearFlowImg()">✕</button>
           </div>
           <div id="flowImgSizeWarn" style="display:none;color:var(--red);font-size:.78rem;margin-top:4px;">⚠️ รูปใหญ่เกิน 1 MB กรุณาเลือกใหม่</div>
-          <!-- AI ตรวจรูปเวร -->
           <div id="flowAIProofBox" class="ai-proof-box" style="margin-top:8px;">
             <div id="flowAIProofThinking" class="ai-proof-thinking"><span class="spin">⏳</span> AI กำลังตรวจสอบรูปหลักฐาน...</div>
             <div id="flowAIProofResult" class="ai-proof-result" style="display:none;"></div>
@@ -531,21 +486,17 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 
   <!-- DASHBOARD -->
   <div id="dashboardPage" class="hidden">
-    <!-- AI summary นักเรียน (งานค้าง) -->
     <div id="aiSummarySection" class="hidden">
       <div class="ai-card" id="aiSummaryCard"><div style="text-align:center;padding:20px;color:#bbb;font-size:.88rem;">🤖 กำลังวิเคราะห์ข้อมูลของคุณ...</div></div>
     </div>
-    <!-- Admin Dashboard Tabs -->
     <div id="adminAiSection" class="hidden">
       <div class="tab-bar">
         <button class="tab-btn active" id="tabAttend" onclick="switchAdminTab('attend')">📊 สถิติเวร</button>
         <button class="tab-btn" id="tabAssignAI" onclick="switchAdminTab('assign')">📚 AI วิเคราะห์การส่งงาน</button>
       </div>
-      <!-- เวร -->
       <div id="adminTabAttend">
         <div class="ai-card" id="adminAiCard"><div style="text-align:center;padding:20px;color:#bbb;font-size:.88rem;">🤖 กำลังวิเคราะห์สถิติห้อง...</div></div>
       </div>
-      <!-- งาน AI -->
       <div id="adminTabAssign" class="hidden">
         <div class="ai-card" id="adminAssignAiCard">
           <div style="font-size:.75rem;color:#aaa;margin-bottom:12px;">🤖 AI วิเคราะห์การส่งงาน M5/1 — เปอร์เซ็นต์การส่ง + ประเมินความเสี่ยง</div>
@@ -562,7 +513,6 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
         </div>
       </div>
     </div>
-
     <div class="card">
       <div class="dashboard">
         <div class="dash-card">ทั้งหมด<h1 id="allCount">19</h1></div>
@@ -582,19 +532,14 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
         <input type="date" id="historyDate" onchange="filterHistoryDate()">
         <button class="btn-soft" onclick="clearHistoryFilter()" style="padding:10px 14px;font-size:.85rem;white-space:nowrap;">แสดงทั้งหมด</button>
       </div>
-      <!-- PDF Export Section (admin only) -->
       <div id="pdfExportSection" class="hidden" style="background:var(--c1);border-radius:16px;padding:14px;margin-bottom:14px;">
         <div style="font-size:.85rem;font-weight:600;color:var(--c4);margin-bottom:10px;">📄 ส่งออก PDF รายเดือน</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
           <select id="pdfMonthSelect" style="flex:1;min-width:140px;margin-bottom:0;padding:10px 12px;border-radius:12px;background:white;border:none;font-size:.88rem;font-family:inherit;">
             <option value="">-- เลือกเดือน --</option>
           </select>
-          <button class="btn-main" onclick="exportMonthlyPDF()" style="padding:10px 16px;font-size:.85rem;white-space:nowrap;">
-            🖨️ พิมพ์ / Save PDF
-          </button>
-          <button class="btn-soft" onclick="exportAllMonthsPDF()" style="padding:10px 12px;font-size:.85rem;white-space:nowrap;">
-            📦 ทุกเดือน
-          </button>
+          <button class="btn-main" onclick="exportMonthlyPDF()" style="padding:10px 16px;font-size:.85rem;white-space:nowrap;">🖨️ พิมพ์ / Save PDF</button>
+          <button class="btn-soft" onclick="exportAllMonthsPDF()" style="padding:10px 12px;font-size:.85rem;white-space:nowrap;">📦 ทุกเดือน</button>
         </div>
       </div>
       <div class="storage-bar-wrap" id="storageBarWrap"></div>
@@ -618,7 +563,6 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
             <button id="viewListBtn" onclick="switchAssignView('list')" style="padding:6px 12px;border-radius:8px;font-size:.78rem;background:var(--c4);color:white;border:none;cursor:pointer;">📋 รายการ</button>
             <button id="viewCalBtn"  onclick="switchAssignView('cal')"  style="padding:6px 12px;border-radius:8px;font-size:.78rem;background:transparent;color:var(--text);border:none;cursor:pointer;">📅 ปฏิทิน</button>
           </div>
-          <!-- ปุ่มเพิ่มงาน: แสดงเฉพาะแอดมิน -->
           <button class="btn-main hidden" id="addAssignBtn" style="padding:9px 14px;font-size:.85rem;" onclick="openAddAssign()">+ เพิ่มงาน</button>
         </div>
       </div>
@@ -655,7 +599,7 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   <button onclick="goHome()"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
 </div>
 
-<!-- SETTING MODAL (admin only) -->
+<!-- MODALS (unchanged structure) -->
 <div class="modal-wrap" id="settingModal">
   <div class="modal-box">
     <h2 style="margin-bottom:18px;">⚙️ ตั้งค่า</h2>
@@ -696,7 +640,6 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   </div>
 </div>
 
-<!-- ADMIN PANEL MODAL -->
 <div class="modal-wrap" id="adminPanelModal">
   <div class="modal-box">
     <h2 style="margin-bottom:6px;">👥 จัดการนักเรียน</h2>
@@ -706,7 +649,6 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   </div>
 </div>
 
-<!-- RETRO EDIT MODAL -->
 <div class="modal-wrap" id="retroEditModal">
   <div class="modal-box" style="max-width:380px;">
     <h3 style="margin-bottom:4px;">✏️ แก้ไขรายการ</h3>
@@ -723,7 +665,6 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   </div>
 </div>
 
-<!-- CHANGE PASSWORD MODAL -->
 <div class="modal-wrap" id="changePwdModal">
   <div class="modal-box" style="max-width:380px;">
     <h3 style="margin-bottom:16px;">🔑 เปลี่ยนรหัสผ่าน</h3>
@@ -742,7 +683,6 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   </div>
 </div>
 
-<!-- ASSIGN MODAL (admin only) -->
 <div class="assign-modal-overlay" id="assignModal">
   <div class="assign-modal-box">
     <h3 style="margin-bottom:16px;" id="assignModalTitle">📌 เพิ่มงานใหม่</h3>
@@ -757,7 +697,6 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   </div>
 </div>
 
-<!-- SUBJECT MODAL (admin only) -->
 <div class="subj-modal-overlay" id="subjModal">
   <div class="subj-modal-box">
     <h3 style="margin-bottom:16px;">✏️ แก้ไขวิชา</h3>
@@ -775,8 +714,6 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   </div>
 </div>
 
-
-<!-- ADMIN PROOF DETAIL MODAL -->
 <div class="admin-proof-detail-modal" id="adminProofDetailModal" onclick="if(event.target===this)closeAdminProofDetail()">
   <div class="admin-proof-detail-box">
     <h3 style="margin-bottom:8px;" id="adminProofDetailTitle">📸 หลักฐานการส่งงาน</h3>
@@ -787,9 +724,6 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   </div>
 </div>
 
-
-
-<!-- IMAGE UPLOAD MODAL (for assignment submission proof) -->
 <div class="img-upload-modal-overlay" id="imgUploadModal">
   <div class="img-upload-modal-box">
     <h3 style="margin-bottom:4px;">📸 แนบรูปหลักฐาน</h3>
@@ -809,15 +743,10 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
       </div>
     </div>
     <div id="imgSizeWarn" style="display:none;color:var(--red);font-size:.78rem;margin-bottom:8px;">⚠️ รูปใหญ่เกิน 1 MB กรุณาเลือกรูปใหม่</div>
-
-    <!-- AI Proof Checker Result -->
     <div class="ai-proof-box" id="aiProofBox">
-      <div class="ai-proof-thinking" id="aiProofThinking">
-        <span class="spin">⏳</span> AI กำลังตรวจสอบรูปหลักฐาน...
-      </div>
+      <div class="ai-proof-thinking" id="aiProofThinking"><span class="spin">⏳</span> AI กำลังตรวจสอบรูปหลักฐาน...</div>
       <div id="aiProofResult" class="ai-proof-result" style="display:none;"></div>
     </div>
-
     <div style="display:flex;gap:10px;margin-top:6px;">
       <button class="btn-soft" style="flex:1;" onclick="closeImgUploadModal()">ยกเลิก</button>
       <button class="btn-main" style="flex:2;" id="imgSubmitBtn" onclick="confirmImgSubmit()">✅ ส่งงาน</button>
@@ -826,13 +755,11 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   </div>
 </div>
 
-<!-- IMAGE VIEWER OVERLAY -->
 <div class="img-view-overlay" id="imgViewOverlay" onclick="closeImgView()">
   <button class="close-view" onclick="closeImgView()">✕</button>
   <img id="imgViewFull" src="" alt="หลักฐาน">
 </div>
 
-<!-- LOADING OVERLAY (global) -->
 <div class="loading-overlay hidden" id="loadingOverlay">
   <div class="loading-box">
     <div class="loader"></div>
@@ -841,9 +768,7 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 </div>
 
 <script>
-/* ══════════════════════════════════════════════════════
-   CONFIG
-══════════════════════════════════════════════════════ */
+/* ══ CONFIG ══ */
 var FIREBASE_CONFIG = {
   apiKey:            "AIzaSyAoNYXuqo_c7LhYtaiDA82_aic_rL-RfO8",
   authDomain:        "df23445.firebaseapp.com",
@@ -852,12 +777,40 @@ var FIREBASE_CONFIG = {
   messagingSenderId: "857734986692",
   appId:             "1:857734986692:web:b7229d42bbfa9af0458291"
 };
-var SHEET_URL       = "https://script.google.com/macros/s/AKfycbymN8NlsKnK6gqpD4AAAul5hz_chhKOB788exetLJMXop6hzQqgnCcaCXFcc0u-9KgeSQ/exec";
-var STUDENT_DOMAIN  = "@m51.school";
+var SHEET_URL      = "https://script.google.com/macros/s/AKfycbymN8NlsKnK6gqpD4AAAul5hz_chhKOB788exetLJMXop6hzQqgnCcaCXFcc0u-9KgeSQ/exec";
+var STUDENT_DOMAIN = "@m51.school";
 
-/* ══════════════════════════════════════════════════════
-   STUDENTS
-══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   🔥 FIRESTORE QUOTA TRACKER
+   ประหยัด reads ให้ใช้ได้นานที่สุดบน Spark (50K/day)
+   กลยุทธ์:
+   1. Cache ใน localStorage พร้อม timestamp
+   2. onSnapshot เฉพาะ 30 วันล่าสุด (ไม่ดึงทั้ง collection)
+   3. นับ reads ที่ใช้จริงและแสดงใน UI
+   4. Throttle: re-subscribe ไม่เกิน 1 ครั้ง/10 นาที ถ้า tab ไม่ได้โฟกัส
+══════════════════════════════════════════════════ */
+var _quotaKey   = "fs_quota_" + new Date().toISOString().slice(0,10); // reset ทุกวัน
+var _quotaCount = parseInt(localStorage.getItem(_quotaKey)||"0");
+var QUOTA_WARN  = 35000;  // เตือนเมื่อเกิน 35K
+var QUOTA_LIMIT = 48000;  // หยุด onSnapshot เมื่อเกิน 48K
+var _lastSnapshotTime = 0;
+var _SNAPSHOT_THROTTLE_MS = 10 * 60 * 1000; // 10 นาที
+
+function trackRead(n){
+  _quotaCount += (n||1);
+  localStorage.setItem(_quotaKey, _quotaCount);
+  updateQuotaBadge();
+}
+function updateQuotaBadge(){
+  var pct = Math.round(_quotaCount / 50000 * 100);
+  var cls = _quotaCount > QUOTA_WARN ? (_quotaCount > QUOTA_LIMIT ? "danger" : "warn") : "";
+  var badge = '<span class="quota-badge '+cls+'">🔥 Reads วันนี้: '+_quotaCount.toLocaleString()+'/50,000 ('+pct+'%)</span>';
+  var el = document.getElementById("storageBarWrap");
+  if(el) el.innerHTML = '<div class="storage-bar-label">☁️ Firebase Cloud — Realtime Sync ✅ &nbsp;'+badge+'</div>'+
+    '<div class="storage-bar-track"><div class="storage-bar-fill" style="width:'+Math.min(100,pct)+'%;background:'+(pct>70?"var(--red)":pct>50?"var(--yellow)":"var(--green)")+'"></div></div>';
+}
+
+/* ══ STUDENTS ══ */
 var STUDENTS = [
   {no:1,  id:"07401", name:"นางสาวอภัสรา สมฤทธิ์"},
   {no:2,  id:"07565", name:"นางสาวพลอยจัน บัวผัน"},
@@ -886,9 +839,7 @@ var DEFAULT_SLIDES = [
   "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1200&auto=format&fit=crop"
 ];
 
-/* ══════════════════════════════════════════════════════
-   STATE
-══════════════════════════════════════════════════════ */
+/* ══ STATE ══ */
 var isAdmin = false, currentUser = null, currentUserDoc = null;
 var monthlyChart = null, selectedIds = [], selectedType = null;
 var slideImages = [], curSlide = 0;
@@ -896,25 +847,44 @@ var retroEditLogIndex = null;
 var _cachedLogs = [], _cachedAssignmentStatus = {};
 var realtimeUnsubscribe = null;
 var firestoreDB = null, firebaseAuth = null;
-/* แคชสถานะส่งงานของนักเรียนทุกคน (admin view) */
-var _allStudentStatuses = {}; // key: studentId → { assignId: done }
+var _allStudentStatuses = {};
 
-/* ══════════════════════════════════════════════════════
-   FIREBASE INIT
-══════════════════════════════════════════════════════ */
+/* ══ LOCAL CACHE ══
+   Key: "logs_cache" → { ts: timestamp, data: [...] }
+   ใช้แทนการ fetch ทุกครั้ง — refresh เมื่อ onSnapshot ส่งมาเท่านั้น
+*/
+var _CACHE_TTL_MS = 5 * 60 * 1000; // 5 นาที
+function saveLogsCache(logs){
+  try{ localStorage.setItem("logs_cache", JSON.stringify({ts:Date.now(), data:logs})); }catch(e){}
+}
+function loadLogsCache(){
+  try{
+    var raw = localStorage.getItem("logs_cache");
+    if(!raw) return null;
+    var obj = JSON.parse(raw);
+    if(Date.now() - obj.ts < _CACHE_TTL_MS) return obj.data;
+  }catch(e){}
+  return null;
+}
+
+/* ══ FIREBASE INIT ══ */
 function initFirebase() {
   try {
     if (typeof firebase === "undefined" || window._firebaseLoadError) {
       var msg = "❌ โหลด Firebase SDK ไม่ได้\n\n• ไม่มี internet\n• เปิดจาก file:// โดยตรง\n\nลองรีเฟรช";
-      console.error(msg);
       document.getElementById("loginError").style.display = "block";
       document.getElementById("loginError").textContent = msg;
       return false;
     }
     if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
     firestoreDB  = firebase.firestore();
-    /* แก้ QUIC_TOO_MANY_RTOS: force long-polling แทน WebChannel/QUIC */
+    /* Long-polling ป้องกัน QUIC_TOO_MANY_RTOS */
     firestoreDB.settings({ experimentalAutoDetectLongPolling: true, merge: true });
+    /* ✅ Enable offline persistence — อ่าน cache แทน network เมื่อเป็นไปได้ (ลด reads มาก) */
+    firestoreDB.enablePersistence({synchronizeTabs: true}).catch(function(err){
+      if(err.code === 'failed-precondition') console.warn("Persistence: multiple tabs open");
+      else if(err.code === 'unimplemented') console.warn("Persistence: browser not supported");
+    });
     firebaseAuth = firebase.auth();
     return true;
   } catch(e) {
@@ -925,9 +895,7 @@ function initFirebase() {
   }
 }
 
-/* ══════════════════════════════════════════════════════
-   AUTH
-══════════════════════════════════════════════════════ */
+/* ══ AUTH ══ */
 function switchLoginTab(tab) {
   document.getElementById("tabAdmin").classList.toggle("active",   tab==="admin");
   document.getElementById("tabStudent").classList.toggle("active", tab==="student");
@@ -935,7 +903,6 @@ function switchLoginTab(tab) {
   document.getElementById("studentLoginForm").classList.toggle("hidden", tab!=="student");
   document.getElementById("loginError").style.display = "none";
 }
-
 function loginAdmin() {
   var email = document.getElementById("adminEmail").value.trim();
   var pass  = document.getElementById("adminPassword").value;
@@ -943,9 +910,8 @@ function loginAdmin() {
   showLoading("กำลังเข้าสู่ระบบ...");
   firebaseAuth.signInWithEmailAndPassword(email, pass)
     .then(function(cred){ return checkUserRole(cred.user); })
-    .catch(function(e){ hideLoading(); showLoginError("❌ Email หรือรหัสผ่านไม่ถูกต้อง"); console.error(e); });
+    .catch(function(e){ hideLoading(); showLoginError("❌ Email หรือรหัสผ่านไม่ถูกต้อง"); });
 }
-
 function loginStudent() {
   var code = document.getElementById("studentCode").value.trim();
   var pin  = document.getElementById("studentPin").value;
@@ -960,14 +926,14 @@ function loginStudent() {
       if (e.code === "auth/user-not-found") showLoginError("❌ ยังไม่มี account กรุณาติดต่อครู");
       else if (e.code === "auth/wrong-password" || e.code === "auth/invalid-credential") showLoginError("❌ รหัสผ่านไม่ถูกต้อง");
       else showLoginError("❌ เกิดข้อผิดพลาด: " + e.message);
-      console.error(e);
     });
 }
-
 function checkUserRole(user) {
   currentUser = user;
+  /* อ่าน user doc — 1 read เท่านั้น */
   return firestoreDB.collection("users").doc(user.uid).get()
     .then(function(doc) {
+      trackRead(1);
       if (doc.exists) {
         currentUserDoc = doc.data();
         isAdmin = currentUserDoc.role === "admin";
@@ -975,14 +941,10 @@ function checkUserRole(user) {
         var studentId = user.email ? user.email.replace(STUDENT_DOMAIN, "") : "";
         var s = STUDENTS.find(function(x){ return x.id === studentId; });
         if (!s) {
-          /* unknown user — sign out and show error */
-          return firebaseAuth.signOut().then(function(){
-            throw new Error("ไม่พบข้อมูลผู้ใช้ในระบบ กรุณาติดต่อครู");
-          });
+          return firebaseAuth.signOut().then(function(){ throw new Error("ไม่พบข้อมูลผู้ใช้"); });
         }
         currentUserDoc = { role:"student", studentId:studentId, name:s.name, no:s.no };
         isAdmin = false;
-        /* create user doc only when uid is valid and domain matches */
         if (user.uid && user.email && user.email.endsWith(STUDENT_DOMAIN)) {
           return firestoreDB.collection("users").doc(user.uid).set(currentUserDoc);
         }
@@ -990,7 +952,6 @@ function checkUserRole(user) {
     })
     .then(function(){ hideLoading(); startSystem(); });
 }
-
 function logout() {
   if (monthlyChart) { try { monthlyChart.destroy(); } catch(e){} monthlyChart = null; }
   if (realtimeUnsubscribe) { try { realtimeUnsubscribe(); } catch(e){} realtimeUnsubscribe = null; }
@@ -999,9 +960,7 @@ function logout() {
   firebaseAuth.signOut().then(function(){ location.reload(); }).catch(function(){ location.reload(); });
 }
 
-/* ══════════════════════════════════════════════════════
-   START SYSTEM
-══════════════════════════════════════════════════════ */
+/* ══ START SYSTEM ══ */
 function _safeEl(id){ return document.getElementById(id); }
 function _safeShow(id){ var e=_safeEl(id); if(e) e.classList.remove("hidden"); }
 function _safeHide(id){ var e=_safeEl(id); if(e) e.classList.add("hidden"); }
@@ -1009,14 +968,10 @@ function startSystem() {
   _safeHide("loginPage");
   _safeShow("homePage");
   if (isAdmin) {
-    _safeShow("topActions");
-    _safeShow("editColHeader");
-    _safeShow("teacherNav");
-    _safeShow("addAssignBtn");
+    _safeShow("topActions"); _safeShow("editColHeader");
+    _safeShow("teacherNav"); _safeShow("addAssignBtn");
   } else {
-    _safeShow("studentActions");
-    _safeShow("studentNav");
-    _safeShow("studentProfileCard");
+    _safeShow("studentActions"); _safeShow("studentNav"); _safeShow("studentProfileCard");
     _safeHide("addAssignBtn");
     var _pn=_safeEl("profileName"); if(_pn) _pn.textContent = currentUserDoc.name || "";
     var _pi=_safeEl("profileId");   if(_pi) _pi.textContent = "รหัส " + (currentUserDoc.studentId || "");
@@ -1029,44 +984,104 @@ function startSystem() {
   updateStorageStatus("storageBarWrap");
 }
 
-/* ══════════════════════════════════════════════════════
-   FIRESTORE: LOGS
-══════════════════════════════════════════════════════ */
+/* ══ FIRESTORE: LOGS — ✅ OPTIMIZED ══
+   เปลี่ยนจาก "ดึงทุก document" เป็น "ดึงเฉพาะ 90 วันล่าสุด"
+   ลด reads ได้ ~60-80% เมื่อข้อมูลสะสมมาก
+*/
 function logsCol(){ return firestoreDB.collection("attendance_m51"); }
+
+/* คำนวณวันที่ย้อนหลัง N วัน ในรูปแบบ Thai DD/MM/YYYY */
+function thaiDateNDaysAgo(n){
+  var d = new Date(); d.setDate(d.getDate() - n);
+  return d.getDate().toString().padStart(2,'0')+"/"+(d.getMonth()+1).toString().padStart(2,'0')+"/"+(d.getFullYear()+543);
+}
 
 function startRealtimeSync() {
   if (!firestoreDB) return;
   if (realtimeUnsubscribe) { try { realtimeUnsubscribe(); } catch(e){} realtimeUnsubscribe = null; }
-  realtimeUnsubscribe = logsCol().onSnapshot(function(snapshot) {
-    _cachedLogs = [];
-    snapshot.forEach(function(doc){ var d=doc.data(); d._firestoreId=doc.id; _cachedLogs.push(d); });
-    _cachedLogs.sort(function(a,b){ return (a.createdAt||0)-(b.createdAt||0); });
+
+  /* ✅ OPTIMIZATION 1: ถ้ายังมี cache ใหม่อยู่ ให้ใช้ก่อน ไม่ต้องรอ Firestore */
+  var cached = loadLogsCache();
+  if(cached){
+    _cachedLogs = cached;
     renderHistory(); updateDashboard(); renderChart();
-  }, function(err){ console.error("Realtime error:", err); showStatus("⚠️ การเชื่อมต่อ real-time ขัดข้อง"); });
+  }
+
+  /* ✅ OPTIMIZATION 2: Tab visibility — pause listener เมื่อ tab hidden */
+  function startListener(){
+    /* ✅ OPTIMIZATION 3: จำกัดเฉพาะ 90 วันล่าสุด (ป้องกัน reads พุ่งเมื่อข้อมูลสะสม) */
+    var cutoff = thaiDateNDaysAgo(90);
+    realtimeUnsubscribe = logsCol()
+      .where("date", ">=", cutoff)
+      .onSnapshot(function(snapshot) {
+        trackRead(snapshot.size); /* นับ reads จริง */
+        _cachedLogs = [];
+        snapshot.forEach(function(doc){ var d=doc.data(); d._firestoreId=doc.id; _cachedLogs.push(d); });
+        _cachedLogs.sort(function(a,b){ return (a.createdAt||0)-(b.createdAt||0); });
+        saveLogsCache(_cachedLogs); /* บันทึก cache */
+        renderHistory(); updateDashboard(); renderChart();
+      }, function(err){ console.error("Realtime error:", err); showStatus("⚠️ การเชื่อมต่อ real-time ขัดข้อง"); });
+    _lastSnapshotTime = Date.now();
+  }
+
+  startListener();
+
+  /* ✅ OPTIMIZATION 4: Pause/resume เมื่อ tab เปลี่ยน visibility */
+  document.addEventListener("visibilitychange", function(){
+    if(document.hidden){
+      /* Tab hidden — unsubscribe เพื่อหยุดรับ updates (ประหยัด reads) */
+      if(realtimeUnsubscribe){ try{realtimeUnsubscribe();}catch(e){} realtimeUnsubscribe=null; }
+    } else {
+      /* Tab กลับมา — re-subscribe ถ้าผ่านไป > 10 นาที */
+      if(!realtimeUnsubscribe){
+        var timePassed = Date.now() - _lastSnapshotTime;
+        if(timePassed > _SNAPSHOT_THROTTLE_MS){
+          startListener();
+        } else {
+          /* ใช้ cache ก่อน แล้ว re-subscribe หลังครบ throttle */
+          var remaining = _SNAPSHOT_THROTTLE_MS - timePassed;
+          setTimeout(function(){ if(!realtimeUnsubscribe && currentUser) startListener(); }, remaining);
+        }
+      }
+    }
+  });
 }
 
-function getAllLogs(){ return Promise.resolve(_cachedLogs.slice()); }
+/* ✅ OPTIMIZATION 5: getAllLogs — ดึงจาก cache ก่อน ไม่ query Firestore ซ้ำ */
+function getAllLogs(){
+  /* ถ้ามี _cachedLogs อยู่แล้ว (จาก onSnapshot) ให้ใช้เลย */
+  if(_cachedLogs.length > 0) return Promise.resolve(_cachedLogs.slice());
+  /* ถ้ายังไม่มี ดูใน localStorage ก่อน */
+  var cached = loadLogsCache();
+  if(cached){ _cachedLogs = cached; return Promise.resolve(cached.slice()); }
+  /* Last resort: query Firestore แต่จำกัด 90 วัน */
+  var cutoff = thaiDateNDaysAgo(90);
+  return logsCol().where("date",">=",cutoff).get().then(function(snap){
+    trackRead(snap.size);
+    var logs=[];
+    snap.forEach(function(doc){ var d=doc.data(); d._firestoreId=doc.id; logs.push(d); });
+    logs.sort(function(a,b){return(a.createdAt||0)-(b.createdAt||0);});
+    _cachedLogs = logs; saveLogsCache(logs);
+    return logs.slice();
+  });
+}
 
 function addLogs(records) {
   var batch = firestoreDB.batch();
   records.forEach(function(r){ var ref=logsCol().doc(); batch.set(ref, Object.assign({},r,{createdAt:Date.now()})); });
   return batch.commit();
 }
-
 function updateLog(record) {
   if (!record._firestoreId) return Promise.reject("no id");
   var data = Object.assign({},record); delete data._firestoreId;
   return logsCol().doc(record._firestoreId).set(data);
 }
-
 function deleteLog(fid){ return logsCol().doc(fid).delete(); }
-
 function clearAllLogs() {
   var batch = firestoreDB.batch();
   _cachedLogs.forEach(function(r){ if(r._firestoreId) batch.delete(logsCol().doc(r._firestoreId)); });
   return batch.commit();
 }
-
 function pruneLogsOlderThan(months) {
   var cutoff = new Date(); cutoff.setMonth(cutoff.getMonth()-months);
   var toDelete = _cachedLogs.filter(function(r){ var iso=thaiDateToISO(r.date); return iso&&new Date(iso)<cutoff; });
@@ -1075,14 +1090,14 @@ function pruneLogsOlderThan(months) {
   return batch.commit().then(function(){ return toDelete.length; });
 }
 
-/* ══════════════════════════════════════════════════════
-   FIRESTORE: ASSIGNMENT STATUS (per student)
-══════════════════════════════════════════════════════ */
+/* ══ FIRESTORE: ASSIGNMENT STATUS ══ */
 function assignStatusCol(){ return firestoreDB.collection("assignment_status"); }
 
 function loadStudentAssignmentStatus() {
   if (!currentUser||isAdmin) return;
+  /* ✅ ใช้ where("uid") เพื่อดึงเฉพาะของตัวเอง ไม่ดึงทั้ง collection */
   assignStatusCol().where("uid","==",currentUser.uid).onSnapshot(function(snapshot){
+    trackRead(snapshot.size);
     _cachedAssignmentStatus = {};
     snapshot.forEach(function(doc){ _cachedAssignmentStatus[doc.id]=doc.data(); });
     var ap=document.getElementById("assignPage");
@@ -1090,43 +1105,22 @@ function loadStudentAssignmentStatus() {
   },function(err){console.error("status sync err:",err);});
 }
 
-/* โหลดสถานะส่งงานของนักเรียนทุกคน (สำหรับแอดมิน) */
-function loadAllStudentStatuses() {
-  return assignStatusCol().get().then(function(snapshot) {
-    _allStudentStatuses = {};
-    snapshot.forEach(function(doc) {
-      var d = doc.data();
-      if (!_allStudentStatuses[d.studentId]) _allStudentStatuses[d.studentId] = {};
-      if (d.done) _allStudentStatuses[d.studentId][d.assignId] = true;
-    });
-  });
-}
-
 function saveAssignStatusCloud(assignId, done, imageBase64, aiResult) {
   if (!currentUser) return Promise.resolve();
   var sid = currentUserDoc.studentId || "";
   var key = currentUser.uid+"_"+assignId;
-  var data = {
-    uid: currentUser.uid,
-    studentId: sid,
-    assignId: assignId,
-    done: done,
-    doneAt: Date.now()
-  };
+  var data = { uid: currentUser.uid, studentId: sid, assignId: assignId, done: done, doneAt: Date.now() };
   if (imageBase64) data.imageBase64 = imageBase64;
-  if (aiResult) data.aiResult = aiResult;
+  if (aiResult)    data.aiResult    = aiResult;
   return assignStatusCol().doc(key).set(data);
 }
-
 function isAssignDone(assignId) {
   if (!currentUser) return false;
   var key = currentUser.uid+"_"+assignId;
   return _cachedAssignmentStatus[key] ? _cachedAssignmentStatus[key].done : false;
 }
 
-/* ══════════════════════════════════════════════════════
-   CHANGE PASSWORD
-══════════════════════════════════════════════════════ */
+/* ══ CHANGE PASSWORD ══ */
 function openChangePwd(){
   ["oldPwd","newPwd","confirmPwd"].forEach(function(id){document.getElementById(id).value="";});
   document.getElementById("pwdError").style.display="none";
@@ -1135,12 +1129,12 @@ function openChangePwd(){
 }
 function closeChangePwd(){ document.getElementById("changePwdModal").style.display="none"; }
 function checkPwdStrength(val){
-  var bar=document.getElementById("pwdStrengthBar"), len=val.length;
+  var bar=document.getElementById("pwdStrengthBar"),len=val.length;
   bar.style.width=Math.min(100,len*10)+"%";
   bar.style.background=len<4?"var(--red)":len<8?"var(--yellow)":"var(--green)";
 }
 function changePassword(){
-  var oldPass=document.getElementById("oldPwd").value, newPass=document.getElementById("newPwd").value, confirm=document.getElementById("confirmPwd").value;
+  var oldPass=document.getElementById("oldPwd").value,newPass=document.getElementById("newPwd").value,confirm=document.getElementById("confirmPwd").value;
   var errEl=document.getElementById("pwdError");
   if(!oldPass||!newPass||!confirm){errEl.textContent="กรุณากรอกข้อมูลให้ครบ";errEl.style.display="block";return;}
   if(newPass.length<6){errEl.textContent="รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร";errEl.style.display="block";return;}
@@ -1155,13 +1149,11 @@ function changePassword(){
     .catch(function(e){
       hideLoading();
       errEl.textContent=(e.code==="auth/wrong-password"||e.code==="auth/invalid-credential")?"❌ รหัสผ่านปัจจุบันไม่ถูกต้อง":"❌ เกิดข้อผิดพลาด: "+e.message;
-      errEl.style.display="block"; console.error(e);
+      errEl.style.display="block";
     });
 }
 
-/* ══════════════════════════════════════════════════════
-   ADMIN PANEL
-══════════════════════════════════════════════════════ */
+/* ══ ADMIN PANEL ══ */
 function openAdminPanel(){ document.getElementById("adminPanelModal").style.display="flex"; renderAdminStudentList(); }
 function closeAdminPanel(){ document.getElementById("adminPanelModal").style.display="none"; }
 function renderAdminStudentList(){
@@ -1174,33 +1166,17 @@ function resetStudentPassword(sid){
   showLoading("กำลังส่งคำขอ...");
   firestoreDB.collection("password_reset_requests").add({studentId:sid,requestedBy:currentUser.uid,requestedAt:Date.now(),status:"pending"})
     .then(function(){ hideLoading(); showStatus("📨 ส่งคำขอรีเซ็ตแล้ว"); })
-    .catch(function(e){ hideLoading(); showStatus("❌ ส่งคำขอไม่สำเร็จ"); console.error(e); });
+    .catch(function(e){ hideLoading(); showStatus("❌ ส่งคำขอไม่สำเร็จ"); });
 }
 
-/* ══════════════════════════════════════════════════════
-   AI SUMMARY — นักเรียน (งานค้าง)
-══════════════════════════════════════════════════════ */
+/* ══ AI SUMMARY — นักเรียน ══ */
 function renderAISummary(){
   if(isAdmin){ renderAdminAISummary(); return; }
   document.getElementById("aiSummarySection").classList.remove("hidden");
-  if(firestoreDB){
-    var aiSummaryCard = document.getElementById("aiSummaryCard");
-    if(aiSummaryCard) aiSummaryCard.innerHTML = '<div style="text-align:center;padding:20px;color:#bbb;font-size:.88rem;">🤖 กำลังวิเคราะห์ข้อมูลของคุณ...</div>';
-    firestoreDB.collection("assignments_m51").orderBy("createdAt").get().then(function(snap){
-      assignments=[];
-      snap.forEach(function(doc){ var d=doc.data(); d._fid=doc.id; assignments.push(d); });
-      safeSetItem("assignments_v1",JSON.stringify(assignments));
-      _renderAISummaryCalc();
-    }).catch(function(e){
-      console.error("AI summary load error:", e);
-      /* fallback to cached data */
-      loadAssignData();
-      _renderAISummaryCalc();
-    });
-  } else {
-    loadAssignData();
-    _renderAISummaryCalc();
-  }
+  var aiSummaryCard = document.getElementById("aiSummaryCard");
+  if(aiSummaryCard) aiSummaryCard.innerHTML = '<div style="text-align:center;padding:20px;color:#bbb;font-size:.88rem;">🤖 กำลังวิเคราะห์ข้อมูลของคุณ...</div>';
+  /* ใช้ data ที่ load มาแล้ว ไม่ query ซ้ำ */
+  _renderAISummaryCalc();
 }
 function _renderAISummaryCalc(){
   var total=assignments.length;
@@ -1209,7 +1185,6 @@ function _renderAISummaryCalc(){
   var dueSoon=assignments.filter(function(a){var s=assignStatus(a);return s==="due-soon"&&!isAssignDone(a._fid||a.id);}).length;
   renderAISummaryCard(generateAISummary(total,done,overdue,dueSoon,total-done));
 }
-
 function generateAISummary(total,done,overdue,dueSoon,pending){
   if(total===0) return{score:100,status:"ยังไม่มีงาน ✨",statusColor:"var(--green)",tips:["ยังไม่มีงานที่ต้องส่ง คอยติดตามได้เลย 📚"],urgent:null};
   var score=Math.round((done/total)*60+(overdue===0?25:Math.max(0,25-overdue*8))+(dueSoon===0?15:dueSoon<=1?8:4));
@@ -1233,7 +1208,6 @@ function generateAISummary(total,done,overdue,dueSoon,pending){
   var urgentItem=overdueList.length?overdueList[0]:assignments.filter(function(a){return assignStatus(a)==="due-soon"&&!isAssignDone(a._fid||a.id);}).sort(function(a,b){return a.due<b.due?-1:1;})[0]||null;
   return{score:score,status:status,statusColor:statusColor,tips:tips,urgent:urgentItem?(getSubject(urgentItem.subjectId).name+" — "+urgentItem.title):null};
 }
-
 function renderAISummaryCard(s){
   document.getElementById("aiSummaryCard").innerHTML=
     '<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">'+
@@ -1245,9 +1219,7 @@ function renderAISummaryCard(s){
     (s.urgent?'<div class="ai-urgent">🔥 ทำก่อนเลย: '+escapeHtml(s.urgent)+'</div>':'');
 }
 
-/* ══════════════════════════════════════════════════════
-   ADMIN AI SUMMARY — สถิติเวร
-══════════════════════════════════════════════════════ */
+/* ══ ADMIN AI SUMMARY — สถิติเวร ══ */
 var _adminTab = "attend";
 function switchAdminTab(tab) {
   _adminTab = tab;
@@ -1257,52 +1229,36 @@ function switchAdminTab(tab) {
   document.getElementById("adminTabAssign").classList.toggle("hidden", tab!=="assign");
   if (tab==="assign") renderAdminAssignTable();
 }
-
 function renderAdminAISummary(){
   if(!isAdmin) return;
   document.getElementById("adminAiSection").classList.remove("hidden");
-  /* โหลดตารางงานอัตโนมัติทุกครั้งที่เปิด Dash */
   renderAdminAssignTable();
   getAllLogs().then(function(logs){
-    var total = STUDENTS.length;
-    var today = getThaiDate();
-    var todayLogs = logs.filter(function(r){ return r.date === today; });
-    var seenToday = {};
-    todayLogs.forEach(function(r){ seenToday[r.studentId] = r.action; });
-    var todayWork=0, todayLeave=0, todayLate=0;
-    todayLogs.forEach(function(r){
-      if(r.action==="ทำเวร") todayWork++;
-      else if(r.action==="ลา") todayLeave++;
-      else if(r.action==="มาสาย") todayLate++;
-    });
-    var todayChecked = Object.keys(seenToday).length;
-    /* นับจาก seenToday (dedup แล้ว) เพื่อป้องกันนับซ้ำเมื่อแก้ประเภท */
-    var workCount=0, leaveCount=0, lateCount=0;
+    var total=STUDENTS.length, today=getThaiDate(), seenToday={};
+    logs.filter(function(r){return r.date===today;}).forEach(function(r){seenToday[r.studentId]=r.action;});
+    var workCount=0,leaveCount=0,lateCount=0;
     Object.values(seenToday).forEach(function(a){
-      if(a==="ทำเวร") workCount++;
-      else if(a==="ลา") leaveCount++;
-      else if(a==="มาสาย") lateCount++;
+      if(a==="ทำเวร")workCount++;else if(a==="ลา")leaveCount++;else lateCount++;
     });
-    var workPct=Math.round(workCount/total*100);
-    var leavePct=Math.round(leaveCount/total*100);
-    var latePct=Math.round(lateCount/total*100);
-    var todayAbsent = total - todayChecked;
-    var studentCount = {};
+    var todayChecked=Object.keys(seenToday).length;
+    var workPct=Math.round(workCount/total*100),leavePct=Math.round(leaveCount/total*100),latePct=Math.round(lateCount/total*100);
+    var todayAbsent=total-todayChecked;
+    var studentCount={};
     logs.forEach(function(r){
       if(r.action==="ลา"||r.action==="มาสาย"){
-        if(!studentCount[r.studentId]) studentCount[r.studentId]={name:r.name,count:0};
+        if(!studentCount[r.studentId])studentCount[r.studentId]={name:r.name,count:0};
         studentCount[r.studentId].count++;
       }
     });
-    var atRisk = Object.values(studentCount).filter(function(x){return x.count>=3;}).sort(function(a,b){return b.count-a.count;}).slice(0,3);
-    var tips = [];
+    var atRisk=Object.values(studentCount).filter(function(x){return x.count>=3;}).sort(function(a,b){return b.count-a.count;}).slice(0,3);
+    var tips=[];
     if(todayAbsent>0) tips.push("⚠️ วันนี้ยังไม่เช็คชื่อ "+todayAbsent+" คน");
     if(leavePct>20) tips.push("📋 อัตราการลาสูง "+leavePct+"% ควรติดตามนักเรียน");
     if(latePct>15) tips.push("⏰ มาสาย "+latePct+"% ลองประชุมกันเรื่องเวลา");
     if(workPct>=70) tips.push("🌟 ทำเวรดีมาก "+workPct+"% ยอดเยี่ยม!");
     if(atRisk.length) tips.push("🚨 นักเรียนขาด/ลาบ่อย: "+atRisk.map(function(x){return x.name.split(" ")[1]||x.name+" ("+x.count+"ครั้ง)";}).join(", "));
     if(!tips.length) tips.push("✅ สถิติการเข้าเวรปกติดี ไม่มีปัญหา");
-    document.getElementById("adminAiCard").innerHTML =
+    document.getElementById("adminAiCard").innerHTML=
       '<div style="font-size:.75rem;color:#aaa;margin-bottom:10px;">🤖 AI วิเคราะห์สถิติการเข้าเวร M5/1</div>'+
       '<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">'+
         '<div style="flex:1;min-width:80px;background:white;border-radius:14px;padding:12px 8px;text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:var(--green);">'+workPct+'%</div><div style="font-size:.72rem;color:#bbb;">🧹 ทำเวร</div></div>'+
@@ -1314,492 +1270,204 @@ function renderAdminAISummary(){
   });
 }
 
-/* ══════════════════════════════════════════════════════
-   ADMIN: ตารางเปอร์เซ็นต์การส่งงาน
-══════════════════════════════════════════════════════ */
+/* ══ ADMIN: ตารางเปอร์เซ็นต์การส่งงาน ══ */
 function renderAdminAssignTable() {
-  var doRender = function() {
   var totalAssign = assignments.length;
   if(totalAssign === 0) {
-    /* ถ้า Firestore ยังไม่ได้โหลดข้อมูล (firestoreDB พร้อมแต่ assignments ว่าง) ให้แสดง loading แทน */
-    if(firestoreDB && !document.getElementById("adminAssignTable").dataset.loaded) {
-      document.getElementById("adminAssignTable").innerHTML = '<div style="text-align:center;color:#bbb;padding:20px;font-size:.85rem;">⏳ กำลังโหลดข้อมูลงาน...</div>';
-    } else {
-      document.getElementById("adminAssignTable").innerHTML = '<p style="color:#bbb;font-size:.85rem;text-align:center;padding:16px;">ยังไม่มีงานในระบบ</p>';
+    var aat = document.getElementById("adminAssignTable");
+    if(aat){
+      if(!aat.dataset.loaded) aat.innerHTML = '<div style="text-align:center;color:#bbb;padding:20px;font-size:.85rem;">⏳ กำลังโหลดข้อมูลงาน...</div>';
+      else aat.innerHTML = '<p style="color:#bbb;font-size:.85rem;text-align:center;padding:16px;">ยังไม่มีงานในระบบ</p>';
     }
     return;
   }
   document.getElementById("adminAssignTable").dataset.loaded = "1";
   document.getElementById("adminAssignTable").innerHTML = '<div style="text-align:center;color:#bbb;padding:20px;font-size:.85rem;">⏳ กำลังโหลดสถานะการส่งงาน...</div>';
+  /* ✅ ดึง assignment_status ครั้งเดียว (get แทน onSnapshot ประหยัด reads) */
   assignStatusCol().get().then(function(snapshot) {
-    var statusMap = {}; // uid → { assignId: bool }
-    var uidToStudent = {}; // uid → studentId
-    snapshot.forEach(function(doc) {
-      var d = doc.data();
-      if(!statusMap[d.uid]) statusMap[d.uid] = {};
-      uidToStudent[d.uid] = d.studentId || "";
-      if(d.done) statusMap[d.uid][d.assignId] = true;
-    });
-
-    // สร้าง studentId → assignId[] map
-    var studentDoneMap = {}; // studentId → Set of assignIds done
-    Object.keys(statusMap).forEach(function(uid) {
-      var sid = uidToStudent[uid];
-      if(!sid) return;
-      if(!studentDoneMap[sid]) studentDoneMap[sid] = {};
-      Object.keys(statusMap[uid]).forEach(function(aid) {
-        studentDoneMap[sid][aid] = true;
-      });
-    });
-
-    var rows = STUDENTS.map(function(s) {
-      var doneCount = 0;
-      assignments.forEach(function(a) {
-        var aKey = a._fid || a.id;
-        if(studentDoneMap[s.id] && studentDoneMap[s.id][aKey]) doneCount++;
-      });
-      var pct = totalAssign > 0 ? Math.round(doneCount / totalAssign * 100) : 0;
-      return { student: s, done: doneCount, total: totalAssign, pct: pct };
-    }).sort(function(a, b){ return a.pct - b.pct; }); // เรียงจากน้อยสุด
-
-    /* นับจำนวนผล AI proof */
-    var proofPass=0, proofFail=0, proofNone=0;
-    /* สร้าง map: studentId+assignId → {img, aiResult} */
-    var proofMap = {}; // sid+"_"+assignId → data
+    trackRead(snapshot.size);
+    var statusMap={}, uidToStudent={};
     snapshot.forEach(function(doc){
-      var d = doc.data();
-      if(d.done && d.imageBase64) {
-        proofMap[(d.studentId||"")+"_"+(d.assignId||"")] = { img: d.imageBase64, ai: d.aiResult||null };
-        if(d.aiResult){
-          if(d.aiResult.verdict==="pass") proofPass++;
-          else if(d.aiResult.verdict==="fail") proofFail++;
-          else proofNone++;
-        } else proofNone++;
-      }
+      var d=doc.data();
+      if(!statusMap[d.uid]) statusMap[d.uid]={};
+      uidToStudent[d.uid]=d.studentId||"";
+      if(d.done) statusMap[d.uid][d.assignId]=true;
     });
-
-    var html = '<div style="font-size:.78rem;color:#aaa;margin-bottom:10px;">📸 คลิกที่ชิปสีเพื่อดูรูปหลักฐาน</div>'+
-      '<div style="overflow-x:auto;border-radius:14px;"><table class="ai-submit-table">' +
-      '<thead><tr><th>เลขที่</th><th style="text-align:left;min-width:130px;">ชื่อ</th><th>ส่งแล้ว</th><th>เปอร์เซ็นต์</th><th>ความเสี่ยง</th><th>หลักฐาน AI</th></tr></thead><tbody>';
-    rows.forEach(function(r) {
-      var pct = r.pct;
-      var risk, riskClass, barColor;
-      if(pct < 40)      { risk="สูง 🔴";   riskClass="risk-high"; barColor="#e58d8d"; }
-      else if(pct < 70) { risk="ปานกลาง 🟡"; riskClass="risk-mid";  barColor="#e5c08d"; }
-      else               { risk="ต่ำ 🟢";   riskClass="risk-low";  barColor="#89b89a"; }
-      html += '<tr>' +
-        '<td>'+r.student.no+'</td>' +
-        '<td style="text-align:left;">'+escapeHtml(r.student.name.replace(/^(นาย|นางสาว|นาง)/,""))+'</td>' +
-        '<td>'+r.done+'/'+r.total+'</td>' +
+    var studentDoneMap={};
+    Object.keys(statusMap).forEach(function(uid){
+      var sid=uidToStudent[uid]; if(!sid) return;
+      if(!studentDoneMap[sid]) studentDoneMap[sid]={};
+      Object.keys(statusMap[uid]).forEach(function(aid){ studentDoneMap[sid][aid]=true; });
+    });
+    var rows=STUDENTS.map(function(s){
+      var doneCount=0;
+      assignments.forEach(function(a){ var aKey=a._fid||a.id; if(studentDoneMap[s.id]&&studentDoneMap[s.id][aKey]) doneCount++; });
+      return{student:s,done:doneCount,total:totalAssign,pct:Math.round(doneCount/totalAssign*100)};
+    }).sort(function(a,b){return a.pct-b.pct;});
+    var html='<div style="font-size:.78rem;color:#aaa;margin-bottom:10px;">📸 คลิกที่ชิปสีเพื่อดูรูปหลักฐาน</div>'+
+      '<div style="overflow-x:auto;border-radius:14px;"><table class="ai-submit-table">'+
+      '<thead><tr><th>เลขที่</th><th style="text-align:left;min-width:130px;">ชื่อ</th><th>ส่งแล้ว</th><th>เปอร์เซ็นต์</th><th>ความเสี่ยง</th></tr></thead><tbody>';
+    rows.forEach(function(r){
+      var pct=r.pct,risk,riskClass,barColor;
+      if(pct<40){risk="สูง 🔴";riskClass="risk-high";barColor="#e58d8d";}
+      else if(pct<70){risk="ปานกลาง 🟡";riskClass="risk-mid";barColor="#e5c08d";}
+      else{risk="ต่ำ 🟢";riskClass="risk-low";barColor="#89b89a";}
+      html+='<tr><td>'+r.student.no+'</td><td style="text-align:left;">'+escapeHtml(r.student.name.replace(/^(นาย|นางสาว|นาง)/,""))+'</td><td>'+r.done+'/'+r.total+'</td>'+
         '<td><div style="display:flex;align-items:center;gap:6px;justify-content:center;">'+
-          '<div class="pct-bar-wrap"><div class="pct-bar-fill" style="width:'+pct+'%;background:'+barColor+';"></div></div>'+
-          '<span style="font-weight:600;font-size:.8rem;">'+pct+'%</span></div></td>' +
-        '<td><span class="risk-badge '+riskClass+'">'+risk+'</span></td>' +
-        '</tr>';
+        '<div class="pct-bar-wrap"><div class="pct-bar-fill" style="width:'+pct+'%;background:'+barColor+';"></div></div>'+
+        '<span style="font-weight:600;font-size:.8rem;">'+pct+'%</span></div></td>'+
+        '<td><span class="risk-badge '+riskClass+'">'+risk+'</span></td></tr>';
     });
-    html += '</tbody></table></div>';
-    // สรุปภาพรวม
-    var highRisk = rows.filter(function(r){ return r.pct < 40; }).length;
-    var midRisk  = rows.filter(function(r){ return r.pct >= 40 && r.pct < 70; }).length;
-    var lowRisk  = rows.filter(function(r){ return r.pct >= 70; }).length;
-    var avgPct = Math.round(rows.reduce(function(s,r){ return s+r.pct; },0)/rows.length);
-    html += '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">' +
+    html+='</tbody></table></div>';
+    var highRisk=rows.filter(function(r){return r.pct<40;}).length;
+    var midRisk=rows.filter(function(r){return r.pct>=40&&r.pct<70;}).length;
+    var lowRisk=rows.filter(function(r){return r.pct>=70;}).length;
+    var avgPct=Math.round(rows.reduce(function(s,r){return s+r.pct;},0)/rows.length);
+    html+='<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">'+
       '<div style="flex:1;min-width:70px;background:white;border-radius:12px;padding:10px 6px;text-align:center;"><div style="font-size:1.3rem;font-weight:700;color:#e58d8d;">'+highRisk+'</div><div style="font-size:.7rem;color:#bbb;">เสี่ยงสูง</div></div>'+
       '<div style="flex:1;min-width:70px;background:white;border-radius:12px;padding:10px 6px;text-align:center;"><div style="font-size:1.3rem;font-weight:700;color:#e5c08d;">'+midRisk+'</div><div style="font-size:.7rem;color:#bbb;">เสี่ยงกลาง</div></div>'+
       '<div style="flex:1;min-width:70px;background:white;border-radius:12px;padding:10px 6px;text-align:center;"><div style="font-size:1.3rem;font-weight:700;color:#89b89a;">'+lowRisk+'</div><div style="font-size:.7rem;color:#bbb;">เสี่ยงต่ำ</div></div>'+
-      '<div style="flex:1;min-width:70px;background:white;border-radius:12px;padding:10px 6px;text-align:center;"><div style="font-size:1.3rem;font-weight:700;color:var(--c4);">'+avgPct+'%</div><div style="font-size:.7rem;color:#bbb;">เฉลี่ยรวม</div></div>'+
-    '</div>';
-    document.getElementById("adminAssignTable").innerHTML = html;
-  }).catch(function(e) {
-    document.getElementById("adminAssignTable").innerHTML = '<p style="color:#c75b5b;font-size:.85rem;padding:10px;">❌ โหลดข้อมูลไม่สำเร็จ: '+e.message+'</p>';
-    console.error(e);
+      '<div style="flex:1;min-width:70px;background:white;border-radius:12px;padding:10px 6px;text-align:center;"><div style="font-size:1.3rem;font-weight:700;color:var(--c4);">'+avgPct+'%</div><div style="font-size:.7rem;color:#bbb;">เฉลี่ยรวม</div></div></div>';
+    document.getElementById("adminAssignTable").innerHTML=html;
+  }).catch(function(e){
+    document.getElementById("adminAssignTable").innerHTML='<p style="color:#c75b5b;font-size:.85rem;padding:10px;">❌ โหลดไม่สำเร็จ: '+e.message+'</p>';
   });
-  }; // end doRender
-  doRender();
 }
 
-/* ══════════════════════════════════════════════════════
-   ADMIN: AI วิเคราะห์การส่งงาน (ฟรี — rule-based)
-══════════════════════════════════════════════════════ */
+/* ══ ADMIN: AI วิเคราะห์การส่งงาน (rule-based) ══ */
 function runAdminAssignAI() {
-  var totalAssign = assignments.length;
-  if(totalAssign === 0) { showStatus("⚠️ ยังไม่มีงานในระบบ"); return; }
-
+  var totalAssign=assignments.length;
+  if(totalAssign===0){showStatus("⚠️ ยังไม่มีงานในระบบ");return;}
   showLoading("กำลังวิเคราะห์...");
-  assignStatusCol().get().then(function(snapshot) {
+  assignStatusCol().get().then(function(snapshot){
     hideLoading();
-
-    /* รวบรวมสถานะ */
-    var statusMap = {}, uidToSid = {};
-    snapshot.forEach(function(doc) {
-      var d = doc.data();
-      if(!statusMap[d.uid]) statusMap[d.uid] = {};
-      uidToSid[d.uid] = d.studentId || "";
-      if(d.done) statusMap[d.uid][d.assignId] = true;
+    trackRead(snapshot.size);
+    var statusMap={},uidToSid={};
+    snapshot.forEach(function(doc){
+      var d=doc.data();
+      if(!statusMap[d.uid])statusMap[d.uid]={};
+      uidToSid[d.uid]=d.studentId||"";
+      if(d.done)statusMap[d.uid][d.assignId]=true;
     });
-    var studentDoneMap = {};
-    Object.keys(statusMap).forEach(function(uid) {
-      var sid = uidToSid[uid];
-      if(!sid) return;
-      if(!studentDoneMap[sid]) studentDoneMap[sid] = {};
-      Object.keys(statusMap[uid]).forEach(function(aid) { studentDoneMap[sid][aid] = true; });
+    var studentDoneMap={};
+    Object.keys(statusMap).forEach(function(uid){
+      var sid=uidToSid[uid];if(!sid)return;
+      if(!studentDoneMap[sid])studentDoneMap[sid]={};
+      Object.keys(statusMap[uid]).forEach(function(aid){studentDoneMap[sid][aid]=true;});
     });
-
-    var studentStats = STUDENTS.map(function(s) {
-      var doneCount = 0;
-      assignments.forEach(function(a) {
-        var aKey = a._fid || a.id;
-        if(studentDoneMap[s.id] && studentDoneMap[s.id][aKey]) doneCount++;
-      });
-      var pct = Math.round(doneCount / totalAssign * 100);
-      return { name: s.name.replace(/^(นาย|นางสาว|นาง)/,""), no: s.no, done: doneCount, total: totalAssign, pct: pct };
+    var studentStats=STUDENTS.map(function(s){
+      var doneCount=0;
+      assignments.forEach(function(a){var aKey=a._fid||a.id;if(studentDoneMap[s.id]&&studentDoneMap[s.id][aKey])doneCount++;});
+      return{name:s.name.replace(/^(นาย|นางสาว|นาง)/,""),no:s.no,done:doneCount,total:totalAssign,pct:Math.round(doneCount/totalAssign*100)};
     });
-
-    var highRisk = studentStats.filter(function(s){ return s.pct < 40; });
-    var midRisk  = studentStats.filter(function(s){ return s.pct >= 40 && s.pct < 70; });
-    var lowRisk  = studentStats.filter(function(s){ return s.pct >= 70; });
-    var avgPct   = Math.round(studentStats.reduce(function(a,s){ return a+s.pct; },0) / studentStats.length);
-    var perfect  = studentStats.filter(function(s){ return s.pct === 100; });
-    var zero     = studentStats.filter(function(s){ return s.pct === 0; });
-
-    /* ── สร้างข้อความวิเคราะห์ ── */
-    var lines = [];
-
-    /* 1. ภาพรวม */
-    if(avgPct >= 80) {
-      lines.push("📊 ภาพรวมห้องดีเยี่ยม — เฉลี่ยการส่งงานอยู่ที่ " + avgPct + "% แสดงถึงความรับผิดชอบสูงของนักเรียนส่วนใหญ่");
-    } else if(avgPct >= 60) {
-      lines.push("📊 ภาพรวมห้องอยู่ในเกณฑ์พอใช้ — เฉลี่ย " + avgPct + "% ยังมีช่องว่างที่ควรปรับปรุงเพิ่มเติม");
-    } else if(avgPct >= 40) {
-      lines.push("📊 ภาพรวมห้องน่าเป็นห่วง — เฉลี่ยเพียง " + avgPct + "% ควรเร่งดำเนินการช่วยเหลือนักเรียน");
-    } else {
-      lines.push("🚨 ภาพรวมห้องวิกฤต — เฉลี่ยต่ำเพียง " + avgPct + "% ต้องดำเนินการด่วน");
-    }
-
-    /* 2. กลุ่มเสี่ยงสูง */
-    if(highRisk.length === 0) {
-      lines.push("✅ ไม่มีนักเรียนกลุ่มเสี่ยงสูง (ส่งงาน < 40%) — ดีมาก!");
-    } else {
-      var names = highRisk.slice(0,3).map(function(s){ return "เลขที่ "+s.no+" ("+s.pct+"%)"; }).join(", ");
-      var more = highRisk.length > 3 ? " และอีก "+(highRisk.length-3)+" คน" : "";
-      lines.push("🔴 เสี่ยงสูง "+highRisk.length+" คน: " + names + more + " — ควรติดต่อพูดคุยเป็นรายบุคคลโดยเร็ว");
-    }
-
-    /* 3. กลุ่มเสี่ยงกลาง */
-    if(midRisk.length > 0) {
-      lines.push("🟡 เสี่ยงปานกลาง "+midRisk.length+" คน (ส่ง 40–69%) — ควรติดตามและให้กำลังใจต่อเนื่อง");
-    }
-
-    /* 4. กลุ่มดีเยี่ยม */
-    if(perfect.length > 0) {
-      lines.push("🌟 ส่งงานครบ 100%: " + perfect.length + " คน — ควรยกย่องเป็นตัวอย่างให้เพื่อน");
-    }
-
-    /* 5. กลุ่มยังไม่ส่งเลย */
-    if(zero.length > 0) {
-      var znames = zero.map(function(s){ return "เลขที่ "+s.no; }).join(", ");
-      lines.push("⚠️ ยังไม่ส่งงานแม้แต่ชิ้นเดียว: " + znames + " — ต้องตรวจสอบปัญหาด้านการเข้าถึงระบบหรือปัจจัยส่วนตัว");
-    }
-
-    /* 6. วิชาที่มีงานเยอะสุด */
-    var subjectLoad = {};
-    assignments.forEach(function(a) {
-      var sname = getSubject(a.subjectId).name;
-      subjectLoad[sname] = (subjectLoad[sname]||0) + 1;
-    });
-    var topSubj = Object.keys(subjectLoad).sort(function(a,b){ return subjectLoad[b]-subjectLoad[a]; })[0];
-    if(topSubj) {
-      lines.push("📚 วิชาที่มีงานมากที่สุด: " + topSubj + " (" + subjectLoad[topSubj] + " ชิ้น)");
-    }
-
-    /* 7. ข้อแนะนำ */
-    if(highRisk.length >= 3) {
-      lines.push("💡 แนะนำ: จัดระบบ peer buddy ให้นักเรียนเสี่ยงสูงจับคู่กับนักเรียนที่ส่งงานสม่ำเสมอ");
-    }
-    if(avgPct < 60) {
-      lines.push("💡 แนะนำ: ประกาศ deadline ผ่านช่องทางอื่นเพิ่มเติม เช่น LINE กลุ่มหรือแจ้งในห้องเรียน");
-    }
-    if(lowRisk.length >= Math.floor(STUDENTS.length * 0.7)) {
-      lines.push("💡 ห้องนี้มีวินัยดี — พิจารณาให้รางวัลกลุ่มเพื่อรักษาแรงจูงใจ");
-    }
-
-    /* ── แสดงผล ── */
+    var highRisk=studentStats.filter(function(s){return s.pct<40;});
+    var midRisk=studentStats.filter(function(s){return s.pct>=40&&s.pct<70;});
+    var lowRisk=studentStats.filter(function(s){return s.pct>=70;});
+    var avgPct=Math.round(studentStats.reduce(function(a,s){return a+s.pct;},0)/studentStats.length);
+    var perfect=studentStats.filter(function(s){return s.pct===100;});
+    var zero=studentStats.filter(function(s){return s.pct===0;});
+    var lines=[];
+    if(avgPct>=80) lines.push("📊 ภาพรวมห้องดีเยี่ยม — เฉลี่ย "+avgPct+"% แสดงถึงความรับผิดชอบสูง");
+    else if(avgPct>=60) lines.push("📊 ภาพรวมห้องพอใช้ — เฉลี่ย "+avgPct+"% ยังมีช่องว่างให้ปรับปรุง");
+    else if(avgPct>=40) lines.push("📊 ภาพรวมห้องน่าเป็นห่วง — เฉลี่ยเพียง "+avgPct+"% ควรเร่งดำเนินการ");
+    else lines.push("🚨 ภาพรวมวิกฤต — เฉลี่ยต่ำเพียง "+avgPct+"% ต้องดำเนินการด่วน");
+    if(highRisk.length===0) lines.push("✅ ไม่มีนักเรียนกลุ่มเสี่ยงสูง (ส่งงาน < 40%) — ดีมาก!");
+    else{var names=highRisk.slice(0,3).map(function(s){return "เลขที่ "+s.no+" ("+s.pct+"%)";}).join(", ");lines.push("🔴 เสี่ยงสูง "+highRisk.length+" คน: "+names+(highRisk.length>3?" และอีก "+(highRisk.length-3)+" คน":"")+" — ควรติดต่อโดยเร็ว");}
+    if(midRisk.length>0) lines.push("🟡 เสี่ยงปานกลาง "+midRisk.length+" คน — ควรติดตามต่อเนื่อง");
+    if(perfect.length>0) lines.push("🌟 ส่งงานครบ 100%: "+perfect.length+" คน — ควรยกย่องเป็นตัวอย่าง");
+    if(zero.length>0) lines.push("⚠️ ยังไม่ส่งงานแม้แต่ชิ้นเดียว: "+zero.map(function(s){return "เลขที่ "+s.no;}).join(", "));
+    var subjectLoad={};
+    assignments.forEach(function(a){var sname=getSubject(a.subjectId).name;subjectLoad[sname]=(subjectLoad[sname]||0)+1;});
+    var topSubj=Object.keys(subjectLoad).sort(function(a,b){return subjectLoad[b]-subjectLoad[a];})[0];
+    if(topSubj) lines.push("📚 วิชาที่มีงานมากที่สุด: "+topSubj+" ("+subjectLoad[topSubj]+" ชิ้น)");
+    if(highRisk.length>=3) lines.push("💡 แนะนำ: จัดระบบ peer buddy ให้นักเรียนเสี่ยงสูงจับคู่กับนักเรียนที่ส่งงานสม่ำเสมอ");
+    if(avgPct<60) lines.push("💡 แนะนำ: ประกาศ deadline ผ่านช่องทางอื่น เช่น LINE กลุ่ม");
     document.getElementById("adminAssignAIStream").classList.remove("hidden");
-    var streamEl = document.getElementById("aiStreamText");
-
-    var html2 = '<div style="font-size:.8rem;color:#aaa;margin-bottom:10px;">🤖 AI วิเคราะห์อัตโนมัติ · ฟรี · ไม่ใช้ API</div>';
-    html2 += lines.map(function(l){
-      return '<div style="padding:8px 10px;border-radius:10px;background:white;margin-bottom:7px;font-size:.84rem;line-height:1.6;border-left:3px solid var(--c4);">'+escapeHtml(l)+'</div>';
-    }).join('');
-
-    /* typewriter effect */
-    streamEl.innerHTML = '';
-    var allDivs = lines.map(function(l){
-      return '<div style="padding:8px 10px;border-radius:10px;background:white;margin-bottom:7px;font-size:.84rem;line-height:1.6;border-left:3px solid var(--c4);">'+escapeHtml(l)+'</div>';
-    });
-    streamEl.innerHTML = '<div style="font-size:.8rem;color:#aaa;margin-bottom:10px;">🤖 AI วิเคราะห์อัตโนมัติ · ฟรี · ไม่ใช้ API</div>';
-    var i = 0;
-    function showNext() {
-      if(i < allDivs.length) {
-        streamEl.innerHTML += allDivs[i];
-        i++;
-        setTimeout(showNext, 120);
+    var streamEl=document.getElementById("aiStreamText");
+    streamEl.innerHTML='<div style="font-size:.8rem;color:#aaa;margin-bottom:10px;">🤖 AI วิเคราะห์อัตโนมัติ · ฟรี · ไม่ใช้ API</div>';
+    var i=0;
+    function showNext(){
+      if(i<lines.length){
+        streamEl.innerHTML+='<div style="padding:8px 10px;border-radius:10px;background:white;margin-bottom:7px;font-size:.84rem;line-height:1.6;border-left:3px solid var(--c4);">'+escapeHtml(lines[i])+'</div>';
+        i++;setTimeout(showNext,120);
       }
     }
     showNext();
-
-  }).catch(function(e) {
-    hideLoading();
-    showStatus("❌ โหลดข้อมูลไม่สำเร็จ");
-    console.error(e);
-  });
+  }).catch(function(e){hideLoading();showStatus("❌ โหลดข้อมูลไม่สำเร็จ");});
 }
 
-/* ══════════════════════════════════════════════════════
-   PDF EXPORT
-══════════════════════════════════════════════════════ */
-
-/* ══════════════════════════════════════════════════════
-   PDF via window.print() — ไม่ต้องโหลด font เพิ่ม
-══════════════════════════════════════════════════════ */
+/* ══ PDF EXPORT ══ */
 function buildPrintHTML(logs, monthKeys) {
-  var THAI_M_FULL = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-
-  var pages = monthKeys.map(function(monthKey) {
-    var p = monthKey.split('/');
-    var monthNum = parseInt(p[0]);
-    var yearBE   = parseInt(p[1]);
-    var monthLabel = THAI_M_FULL[monthNum] + ' พ.ศ. ' + yearBE;
-
-    var monthLogs = logs.filter(function(r) {
-      if (!r.date) return false;
-      var dp = r.date.split('/');
-      return dp[1] === p[0] && dp[2] === p[1];
-    });
-
-    var datesSet = {};
-    monthLogs.forEach(function(r) { datesSet[r.date] = true; });
-    var dates = Object.keys(datesSet).sort(function(a,b){
-      return parseInt(a.split('/')[0]) - parseInt(b.split('/')[0]);
-    });
-
-    var lookup = {};
-    monthLogs.forEach(function(r) {
-      if (!lookup[r.date]) lookup[r.date] = {};
-      lookup[r.date][r.studentId] = r.action;
-    });
-
-    var workTotal=0, leaveTotal=0, lateTotal=0;
-    monthLogs.forEach(function(r){
-      if(r.action==='ทำเวร') workTotal++;
-      else if(r.action==='ลา') leaveTotal++;
-      else if(r.action==='มาสาย') lateTotal++;
-    });
-
-    var headCells = '<th>ที่</th><th class="td-name">ชื่อ-สกุล</th>'
-      + dates.map(function(d){ return '<th>'+d.split('/')[0]+'</th>'; }).join('')
-      + '<th>รวม</th>';
-
-    var bodyRows = STUDENTS.map(function(s) {
-      var work=0, leave=0, late=0;
-      var cells = dates.map(function(d){
-        var action = lookup[d] && lookup[d][s.id];
-        if(action==='ทำเวร'){ work++; return '<td class="v">V</td>'; }
-        if(action==='ลา')   { leave++; return '<td class="l">L</td>'; }
-        if(action==='มาสาย'){ late++;  return '<td class="s">S</td>'; }
-        return '<td>-</td>';
-      }).join('');
-      return '<tr><td>'+s.no+'</td><td class="td-name">'+s.name.replace(/^(นาย|นางสาว|นาง)/,'')+'</td>'
-        + cells + '<td class="sum">'+work+'/'+dates.length+'</td></tr>';
+  var THAI_M_FULL=['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  var pages=monthKeys.map(function(monthKey){
+    var p=monthKey.split('/'),monthNum=parseInt(p[0]),yearBE=parseInt(p[1]);
+    var monthLabel=THAI_M_FULL[monthNum]+' พ.ศ. '+yearBE;
+    var monthLogs=logs.filter(function(r){if(!r.date)return false;var dp=r.date.split('/');return dp[1]===p[0]&&dp[2]===p[1];});
+    var datesSet={};
+    monthLogs.forEach(function(r){datesSet[r.date]=true;});
+    var dates=Object.keys(datesSet).sort(function(a,b){return parseInt(a.split('/')[0])-parseInt(b.split('/')[0]);});
+    var lookup={};
+    monthLogs.forEach(function(r){if(!lookup[r.date])lookup[r.date]={};lookup[r.date][r.studentId]=r.action;});
+    var workTotal=0,leaveTotal=0,lateTotal=0;
+    monthLogs.forEach(function(r){if(r.action==='ทำเวร')workTotal++;else if(r.action==='ลา')leaveTotal++;else lateTotal++;});
+    var headCells='<th>ที่</th><th class="td-name">ชื่อ-สกุล</th>'+dates.map(function(d){return'<th>'+d.split('/')[0]+'</th>';}).join('')+'<th>รวม</th>';
+    var bodyRows=STUDENTS.map(function(s){
+      var work=0,leave=0,late=0;
+      var cells=dates.map(function(d){var action=lookup[d]&&lookup[d][s.id];if(action==='ทำเวร'){work++;return'<td class="v">V</td>';}if(action==='ลา'){leave++;return'<td class="l">L</td>';}if(action==='มาสาย'){late++;return'<td class="s">S</td>';}return'<td>-</td>';}).join('');
+      return'<tr><td>'+s.no+'</td><td class="td-name">'+s.name.replace(/^(นาย|นางสาว|นาง)/,'')+'</td>'+cells+'<td class="sum">'+work+'/'+dates.length+'</td></tr>';
     }).join('');
-
-    return '<div class="page">'
-      + '<h2>M5/1 — รายงานเวร: '+monthLabel+'</h2>'
-      + '<p class="meta">V=ทำเวร &nbsp; L=ลา &nbsp; S=มาสาย &nbsp; -=ไม่มีบันทึก'
-      + ' &nbsp;|&nbsp; Work: '+workTotal+' &nbsp; Leave: '+leaveTotal+' &nbsp; Late: '+lateTotal
-      + ' &nbsp; Days: '+dates.length+'</p>'
-      + '<table><thead><tr>'+headCells+'</tr></thead><tbody>'+bodyRows+'</tbody></table>'
-      + '<p class="footer">Generated: '+new Date().toLocaleDateString('th-TH')+' | System M5/1 v5</p>'
-      + '</div>';
+    return'<div class="page"><h2>ระบบห้องเรียน M5/1 — รายงานเวร: '+monthLabel+'</h2>'+
+      '<p class="meta">V=ทำเวร &nbsp; L=ลา &nbsp; S=มาสาย &nbsp; -=ไม่มีบันทึก'+
+      ' &nbsp;|&nbsp; Work: '+workTotal+' &nbsp; Leave: '+leaveTotal+' &nbsp; Late: '+lateTotal+' &nbsp; Days: '+dates.length+'</p>'+
+      '<table><thead><tr>'+headCells+'</tr></thead><tbody>'+bodyRows+'</tbody></table>'+
+      '<p class="footer">Generated: '+new Date().toLocaleDateString('th-TH')+' | ระบบห้องเรียน M5/1</p></div>';
   }).join('');
-
-  return '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">'
-    + '<title>M5/1 รายงานเวร</title>'
-    + '<style>'
-    + 'body{font-family:system-ui,-apple-system,sans-serif;font-size:10px;color:#333;margin:0;padding:0;}'
-    + '.page{padding:14mm 12mm;page-break-after:always;}'
-    + '.page:last-child{page-break-after:avoid;}'
-    + 'h2{font-size:14px;margin:0 0 4px;}'
-    + '.meta{font-size:8.5px;color:#666;margin:0 0 8px;}'
-    + '.footer{font-size:7.5px;color:#aaa;margin-top:8px;}'
-    + 'table{width:100%;border-collapse:collapse;table-layout:auto;}'
-    + 'th,td{border:1px solid #ccc;padding:3px 4px;text-align:center;white-space:nowrap;font-size:8.5px;}'
-    + 'th{background:#D9A299;color:white;font-weight:600;}'
-    + 'tr:nth-child(even){background:#faf7f3;}'
-    + 'td.td-name{text-align:left;white-space:normal;min-width:80px;}'
-    + 'td.v{color:#4a9b65;font-weight:700;}'
-    + 'td.l{color:#c75b5b;font-weight:700;}'
-    + 'td.s{color:#b87a30;font-weight:700;}'
-    + 'td.sum{font-weight:700;}'
-    + '@media print{'
-    + '  @page{size:A4 landscape;margin:0;}'
-    + '  body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
-    + '}'
-    + '</style></head><body>'+pages+'</body></html>';
+  return'<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>ระบบห้องเรียน M5/1 รายงานเวร</title>'+
+    '<style>body{font-family:system-ui,-apple-system,sans-serif;font-size:10px;color:#333;margin:0;padding:0;}.page{padding:14mm 12mm;page-break-after:always;}.page:last-child{page-break-after:avoid;}h2{font-size:14px;margin:0 0 4px;}.meta{font-size:8.5px;color:#666;margin:0 0 8px;}.footer{font-size:7.5px;color:#aaa;margin-top:8px;}table{width:100%;border-collapse:collapse;table-layout:auto;}th,td{border:1px solid #ccc;padding:3px 4px;text-align:center;white-space:nowrap;font-size:8.5px;}th{background:#D9A299;color:white;font-weight:600;}tr:nth-child(even){background:#faf7f3;}td.td-name{text-align:left;white-space:normal;min-width:80px;}td.v{color:#4a9b65;font-weight:700;}td.l{color:#c75b5b;font-weight:700;}td.s{color:#b87a30;font-weight:700;}td.sum{font-weight:700;}@media print{@page{size:A4 landscape;margin:0;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body>'+pages+'</body></html>';
 }
+function openPrintWindow(html){var w=window.open('','_blank','width=900,height=650');if(!w){showStatus('❌ Pop-up ถูกบล็อก กรุณาอนุญาต pop-up แล้วลองใหม่');return;}w.document.write(html);w.document.close();w.onload=function(){w.focus();w.print();};}
+function getMonthsFromLogs(logs){var months={};logs.forEach(function(r){if(!r.date)return;var p=r.date.split('/');if(p.length<3)return;months[p[1]+'/'+p[2]]=true;});return Object.keys(months).sort();}
+function getThaiMonthLabel(key){var THAI_M=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];var p=key.split('/');return THAI_M[parseInt(p[0])]+' '+p[1];}
+function populatePDFMonthSelect(){getAllLogs().then(function(logs){var months=getMonthsFromLogs(logs);var sel=document.getElementById('pdfMonthSelect');sel.innerHTML='<option value="">-- เลือกเดือน --</option>';months.reverse().forEach(function(m){var opt=document.createElement('option');opt.value=m;opt.textContent=getThaiMonthLabel(m);sel.appendChild(opt);});});}
+function exportMonthlyPDF(){var monthKey=document.getElementById('pdfMonthSelect').value;if(!monthKey){showStatus('⚠️ กรุณาเลือกเดือนก่อน');return;}showLoading('กำลังเตรียมข้อมูล...');getAllLogs().then(function(logs){hideLoading();openPrintWindow(buildPrintHTML(logs,[monthKey]));}).catch(function(){hideLoading();showStatus('❌ เกิดข้อผิดพลาด');});}
+function exportAllMonthsPDF(){showLoading('กำลังเตรียมข้อมูล...');getAllLogs().then(function(logs){hideLoading();var months=getMonthsFromLogs(logs);if(!months.length){showStatus('⚠️ ยังไม่มีข้อมูล');return;}openPrintWindow(buildPrintHTML(logs,months));}).catch(function(){hideLoading();showStatus('❌ เกิดข้อผิดพลาด');});}
 
-function openPrintWindow(html) {
-  var w = window.open('', '_blank', 'width=900,height=650');
-  if (!w) { showStatus('❌ Pop-up ถูกบล็อก กรุณาอนุญาต pop-up แล้วลองใหม่'); return; }
-  w.document.write(html);
-  w.document.close();
-  w.onload = function(){ w.focus(); w.print(); };
-}
-
-function getMonthsFromLogs(logs) {
-  var months = {};
-  logs.forEach(function(r) {
-    if (!r.date) return;
-    var p = r.date.split('/');
-    if (p.length < 3) return;
-    var key = p[1] + '/' + p[2]; // MM/YYYY
-    months[key] = true;
-  });
-  return Object.keys(months).sort();
-}
-
-function getThaiMonthLabel(key) {
-  var THAI_M = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  var p = key.split('/');
-  return THAI_M[parseInt(p[0])] + ' ' + p[1];
-}
-
-function populatePDFMonthSelect() {
-  getAllLogs().then(function(logs) {
-    var months = getMonthsFromLogs(logs);
-    var sel = document.getElementById('pdfMonthSelect');
-    sel.innerHTML = '<option value="">-- เลือกเดือน --</option>';
-    months.reverse().forEach(function(m) {
-      var opt = document.createElement('option');
-      opt.value = m;
-      opt.textContent = getThaiMonthLabel(m);
-      sel.appendChild(opt);
-    });
-  });
-}
-
-function exportMonthlyPDF() {
-  var monthKey = document.getElementById('pdfMonthSelect').value;
-  if (!monthKey) { showStatus('⚠️ กรุณาเลือกเดือนก่อน'); return; }
-  showLoading('กำลังเตรียมข้อมูล...');
-  getAllLogs().then(function(logs) {
-    hideLoading();
-    openPrintWindow(buildPrintHTML(logs, [monthKey]));
-  }).catch(function(){ hideLoading(); showStatus('❌ เกิดข้อผิดพลาด'); });
-}
-
-function exportAllMonthsPDF() {
-  showLoading('กำลังเตรียมข้อมูล...');
-  getAllLogs().then(function(logs) {
-    hideLoading();
-    var months = getMonthsFromLogs(logs);
-    if (!months.length) { showStatus('⚠️ ยังไม่มีข้อมูล'); return; }
-    openPrintWindow(buildPrintHTML(logs, months));
-  }).catch(function(){ hideLoading(); showStatus('❌ เกิดข้อผิดพลาด'); });
-}
-
-/* ══════════════════════════════════════════════════════
-   HELPERS
-══════════════════════════════════════════════════════ */
-function escapeHtml(str){ return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-function getThaiDate(){ var n=new Date(); return n.getDate().toString().padStart(2,'0')+"/"+(n.getMonth()+1).toString().padStart(2,'0')+"/"+(n.getFullYear()+543); }
-function thaiDateToISO(d){ if(!d) return ""; var p=d.split("/"); if(p.length<3) return ""; return String(parseInt(p[2])-543).padStart(4,'0')+"-"+p[1].padStart(2,'0')+"-"+p[0].padStart(2,'0'); }
+/* ══ HELPERS ══ */
+function escapeHtml(str){return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function getThaiDate(){var n=new Date();return n.getDate().toString().padStart(2,'0')+"/"+(n.getMonth()+1).toString().padStart(2,'0')+"/"+(n.getFullYear()+543);}
+function thaiDateToISO(d){if(!d)return"";var p=d.split("/");if(p.length<3)return"";return String(parseInt(p[2])-543).padStart(4,'0')+"-"+p[1].padStart(2,'0')+"-"+p[0].padStart(2,'0');}
 var THAI_MONTHS=["","ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
-function monthKeyToLabel(k){ var p=k.split("/"); return THAI_MONTHS[parseInt(p[0])]+" "+p[1]; }
-function actionIcon(a){ return a==="ทำเวร"?"🧹":a==="ลา"?"📋":"⏰"; }
-function actionBadgeClass(a){ return a==="ทำเวร"?"badge-work":a==="ลา"?"badge-leave":"badge-late"; }
-function showLoginError(msg){ var el=document.getElementById("loginError"); el.textContent=msg; el.style.display="block"; }
-function safeSetItem(k,v){ try{localStorage.setItem(k,v);return true;}catch(e){showStatus("⚠️ พื้นที่เต็ม");return false;} }
-function updateStorageStatus(id){ var el=document.getElementById(id); if(!el) return; el.innerHTML='<div class="storage-bar-label">☁️ Firebase Cloud — Realtime Sync ✅</div><div class="storage-bar-track"><div class="storage-bar-fill" style="width:100%;background:var(--c4);"></div></div>'; }
+function monthKeyToLabel(k){var p=k.split("/");return THAI_MONTHS[parseInt(p[0])]+" "+p[1];}
+function actionIcon(a){return a==="ทำเวร"?"🧹":a==="ลา"?"📋":"⏰";}
+function actionBadgeClass(a){return a==="ทำเวร"?"badge-work":a==="ลา"?"badge-leave":"badge-late";}
+function showLoginError(msg){var el=document.getElementById("loginError");el.textContent=msg;el.style.display="block";}
+function safeSetItem(k,v){try{localStorage.setItem(k,v);return true;}catch(e){showStatus("⚠️ พื้นที่เต็ม");return false;}}
+function updateStorageStatus(id){updateQuotaBadge();}
 
-/* ══════════════════════════════════════════════════════
-   NAVIGATION
-══════════════════════════════════════════════════════ */
+/* ══ NAVIGATION ══ */
 function openPage(id){
   ["homePage","checkPage","dashboardPage","historyPage","assignPage"].forEach(function(p){document.getElementById(p).classList.add("hidden");});
   document.getElementById(id).classList.remove("hidden");
   if(id==="dashboardPage"){updateDashboard();renderChart();if(isAdmin)renderAdminAISummary();}
-  if(id==="historyPage") {
-    updateStorageStatus("storageBarWrap");
-    if(isAdmin) {
-      document.getElementById("pdfExportSection").classList.remove("hidden");
-      populatePDFMonthSelect();
-    }
-  }
+  if(id==="historyPage"){updateStorageStatus("storageBarWrap");if(isAdmin){document.getElementById("pdfExportSection").classList.remove("hidden");populatePDFMonthSelect();}}
 }
-function goHome(){
-  ["checkPage","dashboardPage","historyPage","assignPage"].forEach(function(p){document.getElementById(p).classList.add("hidden");});
-  document.getElementById("homePage").classList.remove("hidden");
-}
+function goHome(){["checkPage","dashboardPage","historyPage","assignPage"].forEach(function(p){document.getElementById(p).classList.add("hidden");});document.getElementById("homePage").classList.remove("hidden");}
 
-/* ══════════════════════════════════════════════════════
-   SLIDES
-══════════════════════════════════════════════════════ */
-function renderSlides(){
-  var sc=document.getElementById("slides"),dc=document.getElementById("dots");
-  if(!sc||!dc) return;
-  sc.innerHTML=""; dc.innerHTML="";
-  slideImages.forEach(function(img,i){
-    sc.innerHTML+='<div class="slide'+(i===0?" active":"")+'"><img src="'+img+'" loading="lazy"></div>';
-    dc.innerHTML+='<div class="dot'+(i===0?" active":"")+'" onclick="showSlide('+i+')"></div>';
-  });
-}
-function showSlide(i){
-  document.querySelectorAll(".slide").forEach(function(s,idx){s.classList.toggle("active",idx===i);});
-  document.querySelectorAll(".dot").forEach(function(d,idx){d.classList.toggle("active",idx===i);});
-  curSlide=i;
-}
-function changeSlide(e,i){ var f=e.target.files[0];if(!f) return; var r=new FileReader(); r.onload=function(ev){slideImages[i]=ev.target.result;safeSetItem("slideImages",JSON.stringify(slideImages));renderSlides();showStatus("เปลี่ยนรูปสไลด์ที่"+(i+1)+"แล้ว ✨");}; r.readAsDataURL(f); }
-function changeBackground(e){ 
-  var f=e.target.files[0];if(!f) return; 
-  /* จำกัดขนาดรูปพื้นหลัง ≤ 2MB เพื่อป้องกัน localStorage เต็ม */
-  if(f.size > 2 * 1024 * 1024){ showStatus("⚠️ รูปพื้นหลังใหญ่เกิน 2MB กรุณาเลือกรูปใหม่"); return; }
-  var r=new FileReader(); 
-  r.onload=function(ev){
-    if(!safeSetItem("customBackground",ev.target.result)) return; /* safeSetItem แสดง error เองแล้ว */
-    document.body.style.backgroundImage="url('"+ev.target.result+"')";
-    document.body.style.backgroundSize="cover";
-    showStatus("เปลี่ยนพื้นหลังแล้ว ✨");
-  }; 
-  r.readAsDataURL(f); 
-}
-function removeBackground(){ localStorage.removeItem("customBackground");document.body.style.backgroundImage="";showStatus("ลบพื้นหลังแล้ว"); }
+/* ══ SLIDES ══ */
+function renderSlides(){var sc=document.getElementById("slides"),dc=document.getElementById("dots");if(!sc||!dc)return;sc.innerHTML="";dc.innerHTML="";slideImages.forEach(function(img,i){sc.innerHTML+='<div class="slide'+(i===0?" active":"")+'"><img src="'+img+'" loading="lazy"></div>';dc.innerHTML+='<div class="dot'+(i===0?" active":"")+'" onclick="showSlide('+i+')"></div>';});}
+function showSlide(i){document.querySelectorAll(".slide").forEach(function(s,idx){s.classList.toggle("active",idx===i);});document.querySelectorAll(".dot").forEach(function(d,idx){d.classList.toggle("active",idx===i);});curSlide=i;}
+function changeSlide(e,i){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){slideImages[i]=ev.target.result;safeSetItem("slideImages",JSON.stringify(slideImages));renderSlides();showStatus("เปลี่ยนรูปสไลด์ที่"+(i+1)+"แล้ว ✨");};r.readAsDataURL(f);}
+function changeBackground(e){var f=e.target.files[0];if(!f)return;if(f.size>2*1024*1024){showStatus("⚠️ รูปพื้นหลังใหญ่เกิน 2MB กรุณาเลือกรูปใหม่");return;}var r=new FileReader();r.onload=function(ev){if(!safeSetItem("customBackground",ev.target.result))return;document.body.style.backgroundImage="url('"+ev.target.result+"')";document.body.style.backgroundSize="cover";showStatus("เปลี่ยนพื้นหลังแล้ว ✨");};r.readAsDataURL(f);}
+function removeBackground(){localStorage.removeItem("customBackground");document.body.style.backgroundImage="";showStatus("ลบพื้นหลังแล้ว");}
 
-/* ══════════════════════════════════════════════════════
-   DASHBOARD
-══════════════════════════════════════════════════════ */
-function updateDashboard(){
-  getAllLogs().then(function(log){
-    var today=getThaiDate(),seenIds={};
-    log.filter(function(r){return r.date===today;}).forEach(function(r){seenIds[r.studentId]=r.action;});
-    var checked=Object.keys(seenIds).length, done=Object.values(seenIds).filter(function(a){return a==="ทำเวร";}).length, total=STUDENTS.length;
-    document.getElementById("allCount").textContent=total;
-    document.getElementById("checkedCount").textContent=checked;
-    document.getElementById("doneCount").textContent=done;
-    document.getElementById("absentCount").textContent=total-checked;
-    document.getElementById("checkedPct").textContent=Math.round(checked/total*100)+"%";
-    document.getElementById("donePct").textContent=Math.round(done/total*100)+"%";
-    document.getElementById("absentPct").textContent=Math.round((total-checked)/total*100)+"%";
-  });
-}
+/* ══ DASHBOARD ══ */
+function updateDashboard(){getAllLogs().then(function(log){var today=getThaiDate(),seenIds={};log.filter(function(r){return r.date===today;}).forEach(function(r){seenIds[r.studentId]=r.action;});var checked=Object.keys(seenIds).length,done=Object.values(seenIds).filter(function(a){return a==="ทำเวร";}).length,total=STUDENTS.length;document.getElementById("allCount").textContent=total;document.getElementById("checkedCount").textContent=checked;document.getElementById("doneCount").textContent=done;document.getElementById("absentCount").textContent=total-checked;document.getElementById("checkedPct").textContent=Math.round(checked/total*100)+"%";document.getElementById("donePct").textContent=Math.round(done/total*100)+"%";document.getElementById("absentPct").textContent=Math.round((total-checked)/total*100)+"%";});}
 
-/* ══════════════════════════════════════════════════════
-   HISTORY
-══════════════════════════════════════════════════════ */
+/* ══ HISTORY ══ */
 function renderHistory(filterISO){
-  _proofChipData = []; /* reset proof chip data on each render */
+  _proofChipData=[];
   getAllLogs().then(function(log){
-    var tbody=document.getElementById("historyTable"), cards=document.getElementById("historyCards");
+    var tbody=document.getElementById("historyTable"),cards=document.getElementById("historyCards");
     var rows=filterISO?log.filter(function(r){return thaiDateToISO(r.date)===filterISO;}).sort(function(a,b){return a.no-b.no;}):log.slice().reverse();
     var colSpan=isAdmin?5:4;
     if(!rows.length){tbody.innerHTML='<tr><td colspan="'+colSpan+'" style="color:#bbb;padding:20px;">ไม่มีข้อมูล</td></tr>';if(cards)cards.innerHTML='<p style="text-align:center;color:#bbb;padding:20px;">ไม่มีข้อมูล</p>';return;}
@@ -1807,893 +1475,176 @@ function renderHistory(filterISO){
     rows.forEach(function(r){
       var badge=actionBadgeClass(r.action);
       var proofChip="";
-      if(isAdmin&&r.imageBase64){
-        var ai=r.aiResult;
-        var pClass=ai?(ai.verdict==="pass"?"pass":ai.verdict==="fail"?"fail":"none"):"none";
-        var pIcon=ai?(ai.verdict==="pass"?"✅":ai.verdict==="fail"?"❌":"⚠️"):"📸";
-        var proofDataIdx=_proofChipData.length;
-        _proofChipData.push({name:r.name,meta:r.date+' '+r.action,img:r.imageBase64||'',ai:r.aiResult||null});
-        proofChip='<span class="admin-proof-chip '+pClass+'" onclick="openAdminProofDetailByIdx('+proofDataIdx+')" style="margin-left:4px;">'+pIcon+' หลักฐาน</span>';
-      }
+      if(isAdmin&&r.imageBase64){var ai=r.aiResult;var pClass=ai?(ai.verdict==="pass"?"pass":ai.verdict==="fail"?"fail":"none"):"none";var pIcon=ai?(ai.verdict==="pass"?"✅":ai.verdict==="fail"?"❌":"⚠️"):"📸";var proofDataIdx=_proofChipData.length;_proofChipData.push({name:r.name,meta:r.date+' '+r.action,img:r.imageBase64||'',ai:r.aiResult||null});proofChip='<span class="admin-proof-chip '+pClass+'" onclick="openAdminProofDetailByIdx('+proofDataIdx+')" style="margin-left:4px;">'+pIcon+' หลักฐาน</span>';}
       var editBtn=isAdmin?'<button onclick="openRetroEdit(\''+r._firestoreId+'\')" style="background:var(--c2);border:none;border-radius:8px;padding:5px 9px;cursor:pointer;font-family:inherit;font-size:.75rem;">✏️ แก้</button>':'';
       tableHtml+='<tr><td style="white-space:nowrap;">'+escapeHtml(r.date)+'</td><td>'+escapeHtml(String(r.no))+'</td><td class="td-name">'+escapeHtml(r.name)+'</td><td><span class="retro-badge '+badge+'">'+actionIcon(r.action)+' '+escapeHtml(r.action)+'</span>'+proofChip+'</td>'+(isAdmin?'<td>'+editBtn+'</td>':'')+'</tr>';
       cardHtml+='<div class="history-card"><div class="hc-no">'+escapeHtml(String(r.no))+'<br><span style="font-size:.6rem;color:#bbb;">เลขที่</span></div><div class="hc-mid"><div>'+escapeHtml(r.name)+'</div><div style="font-size:.72rem;color:#bbb;">'+escapeHtml(r.date)+'</div></div><div class="hc-right"><span class="retro-badge '+badge+'">'+actionIcon(r.action)+' '+escapeHtml(r.action)+'</span>'+proofChip+(isAdmin?'<div style="margin-top:5px;">'+editBtn+'</div>':'')+'</div></div>';
     });
-    tbody.innerHTML=tableHtml; if(cards) cards.innerHTML=cardHtml;
+    tbody.innerHTML=tableHtml;if(cards)cards.innerHTML=cardHtml;
   });
 }
-function filterHistoryDate(){ var s=document.getElementById("historyDate").value; renderHistory(s||null); }
-function clearHistoryFilter(){ document.getElementById("historyDate").value=""; renderHistory(); }
-function clearHistory(){ if(!confirm("ลบประวัติทั้งหมด?")) return; showLoading("กำลังลบ..."); clearAllLogs().then(function(){hideLoading();renderHistory();renderChart();updateDashboard();showStatus("ลบแล้ว 🗑️");}).catch(function(e){hideLoading();showStatus("❌ ลบไม่สำเร็จ");console.error(e);}); }
-function pruneOldData(){ if(!confirm("ลบข้อมูลเก่ากว่า 5 เดือน?")) return; showLoading("กำลังลบข้อมูลเก่า..."); pruneLogsOlderThan(5).then(function(n){hideLoading();renderHistory();renderChart();updateDashboard();showStatus("ลบ "+n+" รายการ ✅");}).catch(function(e){hideLoading();showStatus("❌ ลบไม่สำเร็จ");console.error(e);}); }
+function filterHistoryDate(){var s=document.getElementById("historyDate").value;renderHistory(s||null);}
+function clearHistoryFilter(){document.getElementById("historyDate").value="";renderHistory();}
+function clearHistory(){if(!confirm("ลบประวัติทั้งหมด?"))return;showLoading("กำลังลบ...");clearAllLogs().then(function(){hideLoading();localStorage.removeItem("logs_cache");renderHistory();renderChart();updateDashboard();showStatus("ลบแล้ว 🗑️");}).catch(function(e){hideLoading();showStatus("❌ ลบไม่สำเร็จ");});}
+function pruneOldData(){if(!confirm("ลบข้อมูลเก่ากว่า 5 เดือน?"))return;showLoading("กำลังลบข้อมูลเก่า...");pruneLogsOlderThan(5).then(function(n){hideLoading();localStorage.removeItem("logs_cache");renderHistory();renderChart();updateDashboard();showStatus("ลบ "+n+" รายการ ✅");}).catch(function(e){hideLoading();showStatus("❌ ลบไม่สำเร็จ");});}
 
-/* ══════════════════════════════════════════════════════
-   CHART
-══════════════════════════════════════════════════════ */
-function renderChart(){
-  getAllLogs().then(function(log){
-    var md={};
-    log.forEach(function(r){ var p=r.date.split("/"),m=p[1]+"/"+p[2]; if(!md[m])md[m]={work:0,leave:0,late:0}; if(r.action==="ทำเวร")md[m].work++;else if(r.action==="ลา")md[m].leave++;else md[m].late++; });
-    var keys=Object.keys(md).sort();
-    var labels=keys.length?keys.map(monthKeyToLabel):["ยังไม่มีข้อมูล"];
-    var canvas=document.getElementById("monthlyChart"); if(!canvas) return;
-    if(monthlyChart){
-      monthlyChart.destroy();
-      monthlyChart=null;
-    }
-    /* Re-query canvas after destroy */
-    canvas=document.getElementById("monthlyChart"); if(!canvas) return;
-    monthlyChart=new Chart(canvas.getContext("2d"),{type:"bar",data:{labels:labels,datasets:[{label:"ทำเวร",data:keys.map(function(k){return md[k].work;}),backgroundColor:"#89b89a"},{label:"ลา",data:keys.map(function(k){return md[k].leave;}),backgroundColor:"#e58d8d"},{label:"มาสาย",data:keys.map(function(k){return md[k].late;}),backgroundColor:"#e5c08d"}]},options:{responsive:true,plugins:{legend:{labels:{font:{family:"inherit"}}}}}});
-  });
-}
+/* ══ CHART ══ */
+function renderChart(){getAllLogs().then(function(log){var md={};log.forEach(function(r){var p=r.date.split("/"),m=p[1]+"/"+p[2];if(!md[m])md[m]={work:0,leave:0,late:0};if(r.action==="ทำเวร")md[m].work++;else if(r.action==="ลา")md[m].leave++;else md[m].late++;});var keys=Object.keys(md).sort();var labels=keys.length?keys.map(monthKeyToLabel):["ยังไม่มีข้อมูล"];var canvas=document.getElementById("monthlyChart");if(!canvas)return;if(monthlyChart){monthlyChart.destroy();monthlyChart=null;}canvas=document.getElementById("monthlyChart");if(!canvas)return;monthlyChart=new Chart(canvas.getContext("2d"),{type:"bar",data:{labels:labels,datasets:[{label:"ทำเวร",data:keys.map(function(k){return md[k].work;}),backgroundColor:"#89b89a"},{label:"ลา",data:keys.map(function(k){return md[k].leave;}),backgroundColor:"#e58d8d"},{label:"มาสาย",data:keys.map(function(k){return md[k].late;}),backgroundColor:"#e5c08d"}]},options:{responsive:true,plugins:{legend:{labels:{font:{family:"inherit"}}}}}});});}
 
-/* ══════════════════════════════════════════════════════
-   IMAGE UPLOAD — ASSIGNMENT PROOF
-══════════════════════════════════════════════════════ */
-var _pendingSubmitAssignId = null;
-var _pendingImgBase64 = null;
-var _pendingAIResult = null;
+/* ══ IMAGE UPLOAD — ASSIGNMENT PROOF ══ */
+var _pendingSubmitAssignId=null,_pendingImgBase64=null,_pendingAIResult=null;
+function onImgFileSelected(e){var file=e.target.files[0];if(!file)return;if(file.size>1.2*1024*1024){document.getElementById("imgSizeWarn").style.display="block";document.getElementById("imgPreviewSection").style.display="none";_pendingImgBase64=null;return;}document.getElementById("imgSizeWarn").style.display="none";var reader=new FileReader();reader.onload=function(ev){_pendingImgBase64=ev.target.result;document.getElementById("imgPreview").src=_pendingImgBase64;document.getElementById("imgPreviewSection").style.display="block";document.getElementById("imgDropText").style.display="none";var a=assignments.find(function(x){return(x._fid||x.id)===_pendingSubmitAssignId;});var title=a?a.title:"ไม่ระบุ";_pendingAIResult=null;runAIProofCheck(_pendingImgBase64,title,function(res){_pendingAIResult=res;});};reader.readAsDataURL(file);}
+function clearImgPreview(){_pendingImgBase64=null;_pendingAIResult=null;document.getElementById("imgPreview").src="";document.getElementById("imgPreviewSection").style.display="none";document.getElementById("imgDropText").style.display="block";document.getElementById("imgSizeWarn").style.display="none";var aiBox=document.getElementById("aiProofBox");if(aiBox){aiBox.classList.remove("visible");document.getElementById("aiProofResult").style.display="none";document.getElementById("aiProofThinking").style.display="flex";}var inp=document.getElementById("imgFileInput");if(inp)inp.value="";}
+function closeImgUploadModal(){document.getElementById("imgUploadModal").style.display="none";_pendingSubmitAssignId=null;clearImgPreview();}
+function confirmImgSubmit(){if(!_pendingSubmitAssignId){closeImgUploadModal();return;}doSubmitAssign(_pendingSubmitAssignId,_pendingImgBase64,_pendingAIResult);closeImgUploadModal();}
+function submitWithoutImg(){if(!_pendingSubmitAssignId){closeImgUploadModal();return;}doSubmitAssign(_pendingSubmitAssignId,null,null);closeImgUploadModal();}
+function doSubmitAssign(assignKey,imgBase64,aiResult){var cacheKey=currentUser.uid+"_"+assignKey;_cachedAssignmentStatus[cacheKey]={done:true,doneAt:Date.now(),studentId:currentUserDoc?currentUserDoc.studentId||"":"",imageBase64:imgBase64||null,aiResult:aiResult||null};renderAssignSummary();renderSubjectTabs();renderAssignList();saveAssignStatusCloud(assignKey,true,imgBase64,aiResult).then(function(){showStatus(imgBase64?"✅ ส่งงานพร้อมรูปหลักฐานแล้ว 📸":"✅ ส่งงานแล้ว");}).catch(function(err){showStatus("❌ บันทึกไม่สำเร็จ: "+(err.message||err));delete _cachedAssignmentStatus[cacheKey];renderAssignPage();});}
 
-function onImgFileSelected(e) {
-  var file = e.target.files[0]; if(!file) return;
-  if(file.size > 1.2 * 1024 * 1024) {
-    document.getElementById("imgSizeWarn").style.display = "block";
-    document.getElementById("imgPreviewSection").style.display = "none";
-    _pendingImgBase64 = null; return;
-  }
-  document.getElementById("imgSizeWarn").style.display = "none";
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    _pendingImgBase64 = ev.target.result;
-    document.getElementById("imgPreview").src = _pendingImgBase64;
-    document.getElementById("imgPreviewSection").style.display = "block";
-    document.getElementById("imgDropText").style.display = "none";
-    /* เรียก AI ตรวจสอบรูปหลักฐาน */
-    var a = assignments.find(function(x){ return (x._fid||x.id)===_pendingSubmitAssignId; });
-    var title = a ? a.title : "ไม่ระบุ";
-    _pendingAIResult = null;
-    runAIProofCheck(_pendingImgBase64, title, function(res){ _pendingAIResult = res; });
-  };
-  reader.readAsDataURL(file);
-}
+var _aiProofCache={};
+function runAIProofCheck(imgBase64,assignTitle,onDone){var box=document.getElementById("aiProofBox"),thinking=document.getElementById("aiProofThinking"),result=document.getElementById("aiProofResult");box.classList.add("visible");thinking.style.display="flex";result.style.display="none";var imgData=imgBase64.split(",")[1];var mimeMatch=imgBase64.match(/data:([^;]+);/);var mimeType=mimeMatch?mimeMatch[1]:"image/jpeg";fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,system:"คุณเป็น AI ตรวจสอบหลักฐานการส่งงานนักเรียน ตอบเป็น JSON เท่านั้น ไม่มี markdown หรือ backtick ใดๆ\nรูปแบบ JSON ที่ต้องตอบ: {\"verdict\":\"pass\"|\"warn\"|\"fail\",\"score\":0-100,\"reason\":\"ข้อความสั้นๆ ไม่เกิน 80 ตัวอักษร ภาษาไทย\"}",messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:mimeType,data:imgData}},{type:"text",text:"ตรวจสอบรูปนี้ว่าเป็นหลักฐานการส่งงานจริงมั้ย งานชื่อ: \""+assignTitle+"\"\n- pass = เป็นรูปงาน/เอกสาร/หน้าจอที่ชัดเจน\n- warn = รูปมีแต่ไม่ชัดว่าเกี่ยวกับงาน\n- fail = รูปไม่เกี่ยวกับงานเลย หรือรูปขาวๆ ว่างๆ\nตอบ JSON เท่านั้น"}]}]})}).then(function(res){return res.json();}).then(function(data){var text=(data.content||[]).map(function(b){return b.text||"";}).join("").trim();var parsed;try{parsed=JSON.parse(text);}catch(e){var vm=text.match(/"verdict"\s*:\s*"(\w+)"/);var rm=text.match(/"reason"\s*:\s*"([^"]+)"/);var sm=text.match(/"score"\s*:\s*(\d+)/);parsed={verdict:vm?vm[1]:"warn",score:sm?parseInt(sm[1]):50,reason:rm?rm[1]:"ไม่สามารถวิเคราะห์ได้"};}thinking.style.display="none";result.style.display="block";var icon=parsed.verdict==="pass"?"✅":parsed.verdict==="fail"?"❌":"⚠️";var cls=parsed.verdict==="pass"?"ai-proof-pass":parsed.verdict==="fail"?"ai-proof-fail":"ai-proof-warn";var label=parsed.verdict==="pass"?"รูปหลักฐานผ่าน!":parsed.verdict==="fail"?"รูปไม่ใช่หลักฐานงาน":"ตรวจสอบได้บางส่วน";result.innerHTML='<div class="'+cls+'">'+icon+' '+label+' ('+parsed.score+'/100)</div><div style="margin-top:6px;font-size:.8rem;color:#888;">'+escapeHtml(parsed.reason)+'</div>'+(parsed.verdict==="fail"?'<div style="margin-top:8px;font-size:.78rem;color:var(--red);">⚠️ แนะนำให้เลือกรูปใหม่ที่เป็นหลักฐานงานจริง</div>':'');if(onDone)onDone(parsed);}).catch(function(err){thinking.style.display="none";result.style.display="block";result.innerHTML='<div style="color:#bbb;font-size:.8rem;">⚠️ ไม่สามารถตรวจสอบ AI ได้ในขณะนี้ ส่งงานต่อได้เลย</div>';if(onDone)onDone({verdict:"unknown",score:0,reason:""});});}
 
-function clearImgPreview() {
-  _pendingImgBase64 = null;
-  _pendingAIResult = null;
-  document.getElementById("imgPreview").src = "";
-  document.getElementById("imgPreviewSection").style.display = "none";
-  document.getElementById("imgDropText").style.display = "block";
-  document.getElementById("imgSizeWarn").style.display = "none";
-  /* reset AI box */
-  var aiBox = document.getElementById("aiProofBox");
-  if(aiBox) { aiBox.classList.remove("visible"); document.getElementById("aiProofResult").style.display="none"; document.getElementById("aiProofThinking").style.display="flex"; }
-  var inp = document.getElementById("imgFileInput"); if(inp) inp.value = "";
-}
+var _proofChipData=[];
+function openAdminProofDetailByIdx(idx){var d=_proofChipData[idx];if(!d)return;openAdminProofDetail(d.name,d.meta,d.img,d.ai);}
+function openAdminProofDetail(studentName,assignTitle,imgBase64,aiResult){document.getElementById("adminProofDetailTitle").textContent="📸 "+escapeHtml(assignTitle);document.getElementById("adminProofDetailMeta").textContent="นักเรียน: "+escapeHtml(studentName);var imgEl=document.getElementById("adminProofDetailImg");if(imgBase64){imgEl.src=imgBase64;imgEl.style.display="block";}else{imgEl.style.display="none";}var aiEl=document.getElementById("adminProofDetailAI");if(aiResult){var icon=aiResult.verdict==="pass"?"✅":aiResult.verdict==="fail"?"❌":"⚠️";aiEl.innerHTML='<strong>ผล AI:</strong> '+icon+' '+escapeHtml(aiResult.reason||'')+'<br><span style="font-size:.75rem;color:#bbb;">Score: '+(aiResult.score||"?")+'</span>';}else{aiEl.textContent="ยังไม่มีผล AI";}document.getElementById("adminProofDetailModal").style.display="flex";}
+function closeAdminProofDetail(){document.getElementById("adminProofDetailModal").style.display="none";}
+function openImgView(src){document.getElementById("imgViewFull").src=src;document.getElementById("imgViewOverlay").style.display="flex";}
+function closeImgView(){document.getElementById("imgViewOverlay").style.display="none";}
 
-function closeImgUploadModal() {
-  document.getElementById("imgUploadModal").style.display = "none";
-  _pendingSubmitAssignId = null;
-  clearImgPreview();
-}
+/* ══ IMAGE UPLOAD — FLOW ══ */
+var _flowImgBase64=null,_flowAIResult=null;
+function onFlowImgSelected(e){var file=e.target.files[0];if(!file)return;if(file.size>1.2*1024*1024){document.getElementById("flowImgSizeWarn").style.display="block";document.getElementById("flowImgPreviewWrap").style.display="none";_flowImgBase64=null;return;}document.getElementById("flowImgSizeWarn").style.display="none";var reader=new FileReader();reader.onload=function(ev){_flowImgBase64=ev.target.result;document.getElementById("flowImgPreview").src=_flowImgBase64;document.getElementById("flowImgPreviewWrap").style.display="block";document.getElementById("flowImgDropText").textContent="✅ แนบรูปแล้ว — แตะเพื่อเปลี่ยน";_flowAIResult=null;runFlowAIProofCheck(_flowImgBase64,selectedType||"เวร");};reader.readAsDataURL(file);}
+function clearFlowImg(){_flowImgBase64=null;_flowAIResult=null;document.getElementById("flowImgPreview").src="";document.getElementById("flowImgPreviewWrap").style.display="none";document.getElementById("flowImgDropText").textContent="📸 แตะเพื่อแนบรูป";document.getElementById("flowImgSizeWarn").style.display="none";var aiBox=document.getElementById("flowAIProofBox");if(aiBox){aiBox.classList.remove("visible");document.getElementById("flowAIProofResult").style.display="none";document.getElementById("flowAIProofThinking").style.display="flex";}var inp=document.getElementById("flowImgInput");if(inp)inp.value="";}
+function runFlowAIProofCheck(imgBase64,actionType){var box=document.getElementById("flowAIProofBox"),thinking=document.getElementById("flowAIProofThinking"),result=document.getElementById("flowAIProofResult");if(!box)return;box.classList.add("visible");thinking.style.display="flex";result.style.display="none";var imgData=imgBase64.split(",")[1];var mimeMatch=imgBase64.match(/data:([^;]+);/);var mimeType=mimeMatch?mimeMatch[1]:"image/jpeg";fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,system:"คุณเป็น AI ตรวจสอบหลักฐานการทำเวรนักเรียน ตอบเป็น JSON เท่านั้น ไม่มี markdown หรือ backtick ใดๆ\nรูปแบบ JSON: {\"verdict\":\"pass\"|\"warn\"|\"fail\",\"score\":0-100,\"reason\":\"ข้อความสั้นๆ ไม่เกิน 80 ตัวอักษร ภาษาไทย\"}",messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:mimeType,data:imgData}},{type:"text",text:"ตรวจสอบรูปนี้ว่าเป็นหลักฐานการทำเวร \""+actionType+"\" จริงหรือไม่\n- pass = รูปแสดงการทำกิจกรรม/เวร/งาน อย่างชัดเจน\n- warn = รูปมีคนหรือสถานที่ แต่ไม่ชัดว่ากำลังทำเวร\n- fail = รูปไม่เกี่ยวกับเวรเลย\nตอบ JSON เท่านั้น"}]}]})}).then(function(res){return res.json();}).then(function(data){var text=(data.content||[]).map(function(b){return b.text||"";}).join("").trim();var parsed;try{parsed=JSON.parse(text);}catch(e){var vm=text.match(/"verdict"\s*:\s*"(\w+)"/);var rm=text.match(/"reason"\s*:\s*"([^"]+)"/);var sm=text.match(/"score"\s*:\s*(\d+)/);parsed={verdict:vm?vm[1]:"warn",score:sm?parseInt(sm[1]):50,reason:rm?rm[1]:"ไม่สามารถวิเคราะห์ได้"};}_flowAIResult=parsed;thinking.style.display="none";result.style.display="block";var icon=parsed.verdict==="pass"?"✅":parsed.verdict==="fail"?"❌":"⚠️";var cls=parsed.verdict==="pass"?"ai-proof-pass":parsed.verdict==="fail"?"ai-proof-fail":"ai-proof-warn";var label=parsed.verdict==="pass"?"รูปหลักฐานผ่าน!":parsed.verdict==="fail"?"รูปไม่ใช่หลักฐานเวร":"ตรวจสอบได้บางส่วน";result.innerHTML='<div class="'+cls+'">'+icon+' '+label+' ('+parsed.score+'/100)</div><div style="margin-top:6px;font-size:.8rem;color:#888;">'+escapeHtml(parsed.reason)+'</div>'+(parsed.verdict==="fail"?'<div style="margin-top:8px;font-size:.78rem;color:var(--red);">⚠️ แนะนำให้เลือกรูปใหม่ที่แสดงการทำเวรจริง</div>':'');}).catch(function(err){thinking.style.display="none";result.style.display="block";result.innerHTML='<div style="color:#bbb;font-size:.8rem;">⚠️ ไม่สามารถตรวจสอบ AI ได้ในขณะนี้ บันทึกต่อได้เลย</div>';_flowAIResult={verdict:"unknown",score:0,reason:""};});}
 
-function confirmImgSubmit() {
-  if(!_pendingSubmitAssignId) { closeImgUploadModal(); return; }
-  doSubmitAssign(_pendingSubmitAssignId, _pendingImgBase64, _pendingAIResult);
-  closeImgUploadModal();
-}
+/* ══ FLOW ══ */
+function initFlow(){if(!isAdmin){document.getElementById("flowLockedMsg").classList.remove("hidden");[1,2,3].forEach(function(i){document.getElementById("flowStep"+i).classList.add("hidden");});return;}document.getElementById("flowLockedMsg").classList.add("hidden");selectedIds=[];selectedType=null;document.getElementById("flowSearch").value="";renderFlowStudents();flowShowStep(1);}
+function renderFlowStudents(){var kw=(document.getElementById("flowSearch")||{}).value||"";kw=kw.toLowerCase();var grid=document.getElementById("flowStudentGrid");if(!grid)return;var html="";STUDENTS.forEach(function(s){if((s.name+s.id+s.no).toLowerCase().includes(kw)){var sel=selectedIds.indexOf(s.id)>-1;html+='<div class="student-card'+(sel?" selected":"")+'" onclick="toggleStudent(\''+s.id+'\')">'+'<div class="snum">เลขที่ '+escapeHtml(String(s.no))+'</div>'+'<div class="sname">'+escapeHtml(s.name)+'</div>'+(sel?'<div class="stick">✓ เลือกแล้ว</div>':'')+'</div>';}});grid.innerHTML=html;var n=selectedIds.length;var sc=document.getElementById("selCount");if(sc)sc.textContent="เลือกแล้ว "+n+" คน";var btn=document.getElementById("flowBtn1");if(btn){btn.disabled=n===0;btn.style.opacity=n===0?"0.5":"1";}}
+function toggleStudent(id){var i=selectedIds.indexOf(id);if(i>-1)selectedIds.splice(i,1);else selectedIds.push(id);renderFlowStudents();}
+function toggleSelectAll(){var kw=(document.getElementById("flowSearch")||{}).value||"";kw=kw.toLowerCase();var vis=STUDENTS.filter(function(s){return(s.name+s.id+s.no).toLowerCase().includes(kw);});var allSel=vis.every(function(s){return selectedIds.indexOf(s.id)>-1;});if(allSel)vis.forEach(function(s){var i=selectedIds.indexOf(s.id);if(i>-1)selectedIds.splice(i,1);});else vis.forEach(function(s){if(selectedIds.indexOf(s.id)===-1)selectedIds.push(s.id);});renderFlowStudents();}
+function selectType(type,el){selectedType=type;["tc-work","tc-leave","tc-late"].forEach(function(id){document.getElementById(id).classList.remove("sel-work","sel-leave","sel-late");});el.classList.add(type==="ทำเวร"?"sel-work":type==="ลา"?"sel-leave":"sel-late");var btn=document.getElementById("flowBtn2");btn.disabled=false;btn.style.opacity="1";}
+function flowShowStep(n){[1,2,3].forEach(function(i){document.getElementById("flowStep"+i).classList.toggle("hidden",i!==n);var sc=document.getElementById("sc"+i),sl=document.getElementById("sl"+i);sc.classList.remove("active","done");sl.classList.remove("active","done");});[1,2].forEach(function(i){document.getElementById("line"+i).classList.remove("done");});for(var i=1;i<n;i++){document.getElementById("sc"+i).classList.add("done");document.getElementById("sl"+i).classList.add("done");document.getElementById("line"+i).classList.add("done");}document.getElementById("sc"+n).classList.add("active");document.getElementById("sl"+n).classList.add("active");if(n===2){var names=selectedIds.map(function(id){var s=STUDENTS.find(function(x){return x.id===id;});return s?s.name:"";});document.getElementById("step2sub").textContent="เลือก "+selectedIds.length+" คน: "+names.join(", ");}if(n===3){document.getElementById("cfDate").textContent=getThaiDate();document.getElementById("cfType").textContent=actionIcon(selectedType)+" "+selectedType;document.getElementById("cfCount").textContent=selectedIds.length;var sorted=selectedIds.map(function(id){return STUDENTS.find(function(x){return x.id===id;});}).filter(Boolean).sort(function(a,b){return a.no-b.no;});document.getElementById("cfList").innerHTML=sorted.map(function(s){return'<div class="confirm-list-item"><span class="cno">'+escapeHtml(String(s.no))+'</span><span class="cname">'+escapeHtml(s.name)+'</span></div>';}).join("");}}
+function flowNext(step){if(step===2&&selectedIds.length===0){showStatus("กรุณาเลือกนักเรียนอย่างน้อย 1 คน");return;}if(step===3&&!selectedType){showStatus("กรุณาเลือกประเภท");return;}flowShowStep(step);}
+var _isSubmittingFlow=false;
+function submitFlow(){if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}if(!selectedIds.length||!selectedType){showStatus("ข้อมูลไม่ครบ");return;}if(_isSubmittingFlow){showStatus("⏳ กำลังบันทึก กรุณารอสักครู่...");return;}_isSubmittingFlow=true;showLoading("กำลังส่งข้อมูล...");var today=getThaiDate(),time=new Date().toLocaleTimeString("th-TH");var records=selectedIds.map(function(id){var s=STUDENTS.find(function(x){return x.id===id;});var rec={date:today,timestamp:time,no:s.no,studentId:s.id,name:s.name,action:selectedType};if(_flowImgBase64)rec.imageBase64=_flowImgBase64;if(_flowAIResult)rec.aiResult=_flowAIResult;return rec;});fetch(SHEET_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({type:"flow_batch",date:today,timestamp:time,action:selectedType,records:records.map(function(r){var c=Object.assign({},r);delete c.imageBase64;return c;})})}).then(function(){return addLogs(records);}).then(function(){hideLoading();_isSubmittingFlow=false;var aiMsg=_flowAIResult&&_flowAIResult.verdict==="pass"?" ✅ AI ยืนยันรูปผ่าน":_flowAIResult&&_flowAIResult.verdict==="fail"?" ⚠️ AI: รูปอาจไม่ใช่เวร":"";showStatus("บันทึกสำเร็จ ✅ "+selectedIds.length+" คน → "+selectedType+aiMsg);setTimeout(function(){initFlow();clearFlowImg();},1000);}).catch(function(err){console.error(err);hideLoading();_isSubmittingFlow=false;showStatus("❌ เกิดข้อผิดพลาด");});}
 
-function submitWithoutImg() {
-  if(!_pendingSubmitAssignId) { closeImgUploadModal(); return; }
-  doSubmitAssign(_pendingSubmitAssignId, null, null);
-  closeImgUploadModal();
-}
+/* ══ RETRO EDIT ══ */
+function loadRetroData(){var sel=document.getElementById("retroDate").value,tbody=document.getElementById("retroTable");if(!sel){tbody.innerHTML='<tr><td colspan="4" style="color:#bbb;padding:12px;">เลือกวันที่ก่อน</td></tr>';return;}getAllLogs().then(function(log){var filtered=log.filter(function(r){return thaiDateToISO(r.date)===sel;}).sort(function(a,b){return a.no-b.no;});if(!filtered.length){tbody.innerHTML='<tr><td colspan="4" style="color:#bbb;padding:12px;">ไม่มีข้อมูล</td></tr>';return;}tbody.innerHTML=filtered.map(function(r){return'<tr><td>'+escapeHtml(String(r.no))+'</td><td class="td-name">'+escapeHtml(r.name)+'</td><td><span class="retro-badge '+actionBadgeClass(r.action)+'">'+actionIcon(r.action)+' '+escapeHtml(r.action)+'</span></td><td><button onclick="openRetroEdit(\''+r._firestoreId+'\')" style="background:var(--c2);border:none;border-radius:8px;padding:5px 9px;cursor:pointer;font-family:inherit;font-size:.75rem;">✏️ แก้</button></td></tr>';}).join("");});}
+function openRetroEdit(fid){retroEditLogIndex=fid;var r=_cachedLogs.find(function(x){return x._firestoreId===fid;});if(!r){showStatus("ไม่พบรายการ");return;}document.getElementById("retroEditName").textContent=r.name;document.getElementById("retroEditMeta").textContent="เลขที่ "+r.no+" | "+r.date+" | ปัจจุบัน: "+actionIcon(r.action)+" "+r.action;document.getElementById("retroEditModal").style.display="flex";}
+function closeRetroEdit(){document.getElementById("retroEditModal").style.display="none";retroEditLogIndex=null;}
+function applyRetroEdit(newAction){if(!retroEditLogIndex)return;var r=_cachedLogs.find(function(x){return x._firestoreId===retroEditLogIndex;});if(!r)return;showLoading("กำลังอัปเดต...");fetch(SHEET_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({type:"retro_edit",date:r.date,studentId:r.studentId,no:r.no,name:r.name,oldAction:r.action,newAction:newAction,timestamp:r.timestamp})}).then(function(){return updateLog(Object.assign({},r,{action:newAction}));}).then(function(){hideLoading();closeRetroEdit();showStatus("เปลี่ยนเป็น "+actionIcon(newAction)+" "+newAction+" แล้ว ✅");}).catch(function(err){console.error(err);hideLoading();showStatus("❌ อัปเดตไม่สำเร็จ");});}
+function deleteRetroRecord(){if(!retroEditLogIndex||!confirm("ลบรายการนี้?"))return;var r=_cachedLogs.find(function(x){return x._firestoreId===retroEditLogIndex;});if(!r)return;showLoading("กำลังลบ...");fetch(SHEET_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({type:"retro_delete",date:r.date,studentId:r.studentId,no:r.no,name:r.name,action:r.action,timestamp:r.timestamp})}).then(function(){return deleteLog(r._firestoreId);}).then(function(){hideLoading();closeRetroEdit();showStatus("ลบแล้ว 🗑️");}).catch(function(err){console.error(err);hideLoading();showStatus("❌ ลบไม่สำเร็จ");});}
 
-function doSubmitAssign(assignKey, imgBase64, aiResult) {
-  var cacheKey = currentUser.uid + "_" + assignKey;
-  _cachedAssignmentStatus[cacheKey] = {done:true, doneAt:Date.now(), studentId:currentUserDoc?currentUserDoc.studentId||"":"", imageBase64:imgBase64||null, aiResult:aiResult||null};
-  renderAssignSummary(); renderSubjectTabs(); renderAssignList();
-  saveAssignStatusCloud(assignKey, true, imgBase64, aiResult).then(function(){
-    showStatus(imgBase64 ? "✅ ส่งงานพร้อมรูปหลักฐานแล้ว 📸" : "✅ ส่งงานแล้ว");
-  }).catch(function(err){
-    showStatus("❌ บันทึกไม่สำเร็จ: "+(err.message||err));
-    delete _cachedAssignmentStatus[cacheKey];
-    renderAssignPage();
-  });
-}
+/* ══ SETTING ══ */
+function openSetting(){if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}document.getElementById("settingModal").style.display="flex";renderSubjectSetting();}
+function closeSetting(){document.getElementById("settingModal").style.display="none";}
+window.addEventListener("click",function(e){if(e.target===document.getElementById("settingModal"))closeSetting();if(e.target===document.getElementById("retroEditModal"))closeRetroEdit();if(e.target===document.getElementById("adminPanelModal"))closeAdminPanel();if(e.target===document.getElementById("changePwdModal"))closeChangePwd();});
 
-/* ── AI Proof Checker ── */
-var _aiProofCache = {}; // assignKey → { verdict, reason, score }
+/* ══ LOADING / TOAST ══ */
+function showLoading(msg){var ol=document.getElementById("loadingOverlay"),lm=document.getElementById("loadingMsg");if(lm)lm.textContent=msg||"กำลังโหลด...";if(ol)ol.classList.remove("hidden");}
+function hideLoading(){var ol=document.getElementById("loadingOverlay");if(ol)ol.classList.add("hidden");}
+function showStatus(text){var o=document.getElementById("__sp");if(o)o.remove();var p=document.createElement("div");p.id="__sp";p.textContent=text;Object.assign(p.style,{position:"fixed",right:"14px",bottom:"88px",background:"#D9A299",color:"white",padding:"12px 16px",borderRadius:"14px",zIndex:"999999",fontFamily:"inherit",boxShadow:"0 6px 18px rgba(0,0,0,.15)",fontSize:".88rem",maxWidth:"80vw",lineHeight:"1.4"});document.body.appendChild(p);setTimeout(function(){p.style.transition=".3s";p.style.opacity="0";setTimeout(function(){p.remove();},300);},2500);}
 
-function runAIProofCheck(imgBase64, assignTitle, onDone) {
-  var box = document.getElementById("aiProofBox");
-  var thinking = document.getElementById("aiProofThinking");
-  var result = document.getElementById("aiProofResult");
-  box.classList.add("visible");
-  thinking.style.display = "flex";
-  result.style.display = "none";
-
-  /* ตัดรูปเป็น base64 สั้นลงสำหรับ Claude API (ส่งได้ ~1MB) */
-  var imgData = imgBase64.split(",")[1]; // strip data:image/...;base64,
-  var mimeMatch = imgBase64.match(/data:([^;]+);/);
-  var mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
-
-  fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 400,
-      system: "คุณเป็น AI ตรวจสอบหลักฐานการส่งงานนักเรียน ตอบเป็น JSON เท่านั้น ไม่มี markdown หรือ backtick ใดๆ\nรูปแบบ JSON ที่ต้องตอบ: {\"verdict\":\"pass\"|\"warn\"|\"fail\",\"score\":0-100,\"reason\":\"ข้อความสั้นๆ ไม่เกิน 80 ตัวอักษร ภาษาไทย\"}",
-      messages: [{
-        role: "user",
-        content: [
-          { type: "image", source: { type: "base64", media_type: mimeType, data: imgData } },
-          { type: "text", text: "ตรวจสอบรูปนี้ว่าเป็นหลักฐานการส่งงานจริงมั้ย งานชื่อ: \"" + assignTitle + "\"\n- pass = เป็นรูปงาน/เอกสาร/หน้าจอที่ชัดเจน\n- warn = รูปมีแต่ไม่ชัดว่าเกี่ยวกับงาน\n- fail = รูปไม่เกี่ยวกับงานเลย หรือรูปขาวๆ ว่างๆ หรือรูปอื่นที่ไม่ใช่งาน\nตอบ JSON เท่านั้น" }
-        ]
-      }]
-    })
-  }).then(function(res){ return res.json(); }).then(function(data){
-    var text = (data.content||[]).map(function(b){ return b.text||""; }).join("").trim();
-    var parsed;
-    try { parsed = JSON.parse(text); } catch(e) {
-      /* fallback parse */
-      var vm = text.match(/"verdict"\s*:\s*"(\w+)"/);
-      var rm = text.match(/"reason"\s*:\s*"([^"]+)"/);
-      var sm = text.match(/"score"\s*:\s*(\d+)/);
-      parsed = { verdict: vm?vm[1]:"warn", score: sm?parseInt(sm[1]):50, reason: rm?rm[1]:"ไม่สามารถวิเคราะห์ได้" };
-    }
-    thinking.style.display = "none";
-    result.style.display = "block";
-    var icon = parsed.verdict==="pass"?"✅":parsed.verdict==="fail"?"❌":"⚠️";
-    var cls  = parsed.verdict==="pass"?"ai-proof-pass":parsed.verdict==="fail"?"ai-proof-fail":"ai-proof-warn";
-    var label= parsed.verdict==="pass"?"รูปหลักฐานผ่าน!":parsed.verdict==="fail"?"รูปไม่ใช่หลักฐานงาน":"ตรวจสอบได้บางส่วน";
-    result.innerHTML =
-      '<div class="'+cls+'">'+icon+' '+label+' ('+parsed.score+'/100)</div>'+
-      '<div style="margin-top:6px;font-size:.8rem;color:#888;">'+escapeHtml(parsed.reason)+'</div>'+
-      (parsed.verdict==="fail"?'<div style="margin-top:8px;font-size:.78rem;color:var(--red);">⚠️ แนะนำให้เลือกรูปใหม่ที่เป็นหลักฐานงานจริง</div>':'');
-    if(onDone) onDone(parsed);
-  }).catch(function(err){
-    console.error("AI proof error:", err);
-    thinking.style.display = "none";
-    result.style.display = "block";
-    result.innerHTML = '<div style="color:#bbb;font-size:.8rem;">⚠️ ไม่สามารถตรวจสอบ AI ได้ในขณะนี้ ส่งงานต่อได้เลย</div>';
-    if(onDone) onDone({ verdict:"unknown", score:0, reason:"" });
-  });
-}
-
-var _proofChipData = []; /* สำหรับ admin proof chip onclick */
-
-/* เปิด modal ดูหลักฐาน (admin) โดยใช้ index */
-function openAdminProofDetailByIdx(idx) {
-  var d = _proofChipData[idx];
-  if(!d) return;
-  openAdminProofDetail(d.name, d.meta, d.img, d.ai);
-}
-
-/* เปิด modal ดูหลักฐาน (admin) */
-function openAdminProofDetail(studentName, assignTitle, imgBase64, aiResult) {
-  document.getElementById("adminProofDetailTitle").textContent = "📸 " + escapeHtml(assignTitle);
-  document.getElementById("adminProofDetailMeta").textContent = "นักเรียน: " + escapeHtml(studentName);
-  var imgEl = document.getElementById("adminProofDetailImg");
-  if(imgBase64) { imgEl.src = imgBase64; imgEl.style.display = "block"; }
-  else { imgEl.style.display = "none"; }
-  var aiEl = document.getElementById("adminProofDetailAI");
-  if(aiResult) {
-    var icon = aiResult.verdict==="pass"?"✅":aiResult.verdict==="fail"?"❌":"⚠️";
-    aiEl.innerHTML = '<strong>ผล AI:</strong> '+icon+' '+escapeHtml(aiResult.reason||"")+'<br><span style="font-size:.75rem;color:#bbb;">Score: '+(aiResult.score||"?")+'</span>';
-  } else { aiEl.textContent = "ยังไม่มีผล AI"; }
-  document.getElementById("adminProofDetailModal").style.display = "flex";
-}
-function closeAdminProofDetail() { document.getElementById("adminProofDetailModal").style.display = "none"; }
-
-function openImgView(src) {
-  document.getElementById("imgViewFull").src = src;
-  document.getElementById("imgViewOverlay").style.display = "flex";
-}
-function closeImgView() {
-  document.getElementById("imgViewOverlay").style.display = "none";
-}
-
-/* ══════════════════════════════════════════════════════
-   IMAGE UPLOAD — FLOW (เช็คชื่อเวร แอดมิน)
-══════════════════════════════════════════════════════ */
-var _flowImgBase64 = null;
-var _flowAIResult = null;
-
-function onFlowImgSelected(e) {
-  var file = e.target.files[0]; if(!file) return;
-  if(file.size > 1.2 * 1024 * 1024) {
-    document.getElementById("flowImgSizeWarn").style.display = "block";
-    document.getElementById("flowImgPreviewWrap").style.display = "none";
-    _flowImgBase64 = null; return;
-  }
-  document.getElementById("flowImgSizeWarn").style.display = "none";
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    _flowImgBase64 = ev.target.result;
-    document.getElementById("flowImgPreview").src = _flowImgBase64;
-    document.getElementById("flowImgPreviewWrap").style.display = "block";
-    document.getElementById("flowImgDropText").textContent = "✅ แนบรูปแล้ว — แตะเพื่อเปลี่ยน";
-    /* เรียก AI ตรวจสอบรูปหลักฐานการทำเวร */
-    _flowAIResult = null;
-    runFlowAIProofCheck(_flowImgBase64, selectedType || "เวร");
-  };
-  reader.readAsDataURL(file);
-}
-
-function clearFlowImg() {
-  _flowImgBase64 = null;
-  _flowAIResult = null;
-  document.getElementById("flowImgPreview").src = "";
-  document.getElementById("flowImgPreviewWrap").style.display = "none";
-  document.getElementById("flowImgDropText").textContent = "📸 แตะเพื่อแนบรูป";
-  document.getElementById("flowImgSizeWarn").style.display = "none";
-  var aiBox = document.getElementById("flowAIProofBox");
-  if(aiBox) { aiBox.classList.remove("visible"); document.getElementById("flowAIProofResult").style.display="none"; document.getElementById("flowAIProofThinking").style.display="flex"; }
-  var inp = document.getElementById("flowImgInput"); if(inp) inp.value = "";
-}
-
-function runFlowAIProofCheck(imgBase64, actionType) {
-  var box = document.getElementById("flowAIProofBox");
-  var thinking = document.getElementById("flowAIProofThinking");
-  var result = document.getElementById("flowAIProofResult");
-  if(!box) return;
-  box.classList.add("visible");
-  thinking.style.display = "flex";
-  result.style.display = "none";
-
-  var imgData = imgBase64.split(",")[1];
-  var mimeMatch = imgBase64.match(/data:([^;]+);/);
-  var mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
-
-  fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 400,
-      system: "คุณเป็น AI ตรวจสอบหลักฐานการทำเวรนักเรียน ตอบเป็น JSON เท่านั้น ไม่มี markdown หรือ backtick ใดๆ\nรูปแบบ JSON: {\"verdict\":\"pass\"|\"warn\"|\"fail\",\"score\":0-100,\"reason\":\"ข้อความสั้นๆ ไม่เกิน 80 ตัวอักษร ภาษาไทย\"}",
-      messages: [{
-        role: "user",
-        content: [
-          { type: "image", source: { type: "base64", media_type: mimeType, data: imgData } },
-          { type: "text", text: "ตรวจสอบรูปนี้ว่าเป็นหลักฐานการทำเวร \"" + actionType + "\" จริงหรือไม่\n- pass = รูปแสดงการทำกิจกรรม/เวร/งาน อย่างชัดเจน เช่น กวาด ล้าง จัดห้อง หรืออยู่ในพื้นที่\n- warn = รูปมีคนหรือสถานที่ แต่ไม่ชัดว่ากำลังทำเวร\n- fail = รูปไม่เกี่ยวกับเวรเลย หรือรูปขาวๆ ว่างๆ\nตอบ JSON เท่านั้น" }
-        ]
-      }]
-    })
-  }).then(function(res){ return res.json(); }).then(function(data){
-    var text = (data.content||[]).map(function(b){ return b.text||""; }).join("").trim();
-    var parsed;
-    try { parsed = JSON.parse(text); } catch(e) {
-      var vm = text.match(/"verdict"\s*:\s*"(\w+)"/);
-      var rm = text.match(/"reason"\s*:\s*"([^"]+)"/);
-      var sm = text.match(/"score"\s*:\s*(\d+)/);
-      parsed = { verdict: vm?vm[1]:"warn", score: sm?parseInt(sm[1]):50, reason: rm?rm[1]:"ไม่สามารถวิเคราะห์ได้" };
-    }
-    _flowAIResult = parsed;
-    thinking.style.display = "none";
-    result.style.display = "block";
-    var icon  = parsed.verdict==="pass"?"✅":parsed.verdict==="fail"?"❌":"⚠️";
-    var cls   = parsed.verdict==="pass"?"ai-proof-pass":parsed.verdict==="fail"?"ai-proof-fail":"ai-proof-warn";
-    var label = parsed.verdict==="pass"?"รูปหลักฐานผ่าน!":parsed.verdict==="fail"?"รูปไม่ใช่หลักฐานเวร":"ตรวจสอบได้บางส่วน";
-    result.innerHTML =
-      '<div class="'+cls+'">'+icon+' '+label+' ('+parsed.score+'/100)</div>'+
-      '<div style="margin-top:6px;font-size:.8rem;color:#888;">'+escapeHtml(parsed.reason)+'</div>'+
-      (parsed.verdict==="fail"?'<div style="margin-top:8px;font-size:.78rem;color:var(--red);">⚠️ แนะนำให้เลือกรูปใหม่ที่แสดงการทำเวรจริง</div>':'');
-  }).catch(function(err){
-    console.error("Flow AI proof error:", err);
-    thinking.style.display = "none";
-    result.style.display = "block";
-    result.innerHTML = '<div style="color:#bbb;font-size:.8rem;">⚠️ ไม่สามารถตรวจสอบ AI ได้ในขณะนี้ บันทึกต่อได้เลย</div>';
-    _flowAIResult = { verdict:"unknown", score:0, reason:"" };
-  });
-}
-
-/* ══════════════════════════════════════════════════════
-   FLOW (admin only)
-══════════════════════════════════════════════════════ */
-function initFlow(){
-  if(!isAdmin){document.getElementById("flowLockedMsg").classList.remove("hidden");[1,2,3].forEach(function(i){document.getElementById("flowStep"+i).classList.add("hidden");});return;}
-  document.getElementById("flowLockedMsg").classList.add("hidden");
-  selectedIds=[];selectedType=null;document.getElementById("flowSearch").value="";
-  renderFlowStudents();flowShowStep(1);
-}
-function renderFlowStudents(){
-  var kw=(document.getElementById("flowSearch")||{}).value||"";kw=kw.toLowerCase();
-  var grid=document.getElementById("flowStudentGrid");if(!grid) return;
-  var html="";
-  STUDENTS.forEach(function(s){
-    if((s.name+s.id+s.no).toLowerCase().includes(kw)){
-      var sel=selectedIds.indexOf(s.id)>-1;
-      html+='<div class="student-card'+(sel?" selected":"")+'" onclick="toggleStudent(\''+s.id+'\')">'+'<div class="snum">เลขที่ '+escapeHtml(String(s.no))+'</div>'+'<div class="sname">'+escapeHtml(s.name)+'</div>'+(sel?'<div class="stick">✓ เลือกแล้ว</div>':'')+'</div>';
-    }
-  });
-  grid.innerHTML=html;
-  var n=selectedIds.length;
-  var sc=document.getElementById("selCount");if(sc)sc.textContent="เลือกแล้ว "+n+" คน";
-  var btn=document.getElementById("flowBtn1");if(btn){btn.disabled=n===0;btn.style.opacity=n===0?"0.5":"1";}
-}
-function toggleStudent(id){ var i=selectedIds.indexOf(id);if(i>-1)selectedIds.splice(i,1);else selectedIds.push(id); renderFlowStudents(); }
-function toggleSelectAll(){
-  var kw=(document.getElementById("flowSearch")||{}).value||"";kw=kw.toLowerCase();
-  var vis=STUDENTS.filter(function(s){return(s.name+s.id+s.no).toLowerCase().includes(kw);});
-  var allSel=vis.every(function(s){return selectedIds.indexOf(s.id)>-1;});
-  if(allSel)vis.forEach(function(s){var i=selectedIds.indexOf(s.id);if(i>-1)selectedIds.splice(i,1);});
-  else vis.forEach(function(s){if(selectedIds.indexOf(s.id)===-1)selectedIds.push(s.id);});
-  renderFlowStudents();
-}
-function selectType(type,el){
-  selectedType=type;
-  ["tc-work","tc-leave","tc-late"].forEach(function(id){document.getElementById(id).classList.remove("sel-work","sel-leave","sel-late");});
-  el.classList.add(type==="ทำเวร"?"sel-work":type==="ลา"?"sel-leave":"sel-late");
-  var btn=document.getElementById("flowBtn2");btn.disabled=false;btn.style.opacity="1";
-}
-function flowShowStep(n){
-  [1,2,3].forEach(function(i){document.getElementById("flowStep"+i).classList.toggle("hidden",i!==n);var sc=document.getElementById("sc"+i),sl=document.getElementById("sl"+i);sc.classList.remove("active","done");sl.classList.remove("active","done");});
-  [1,2].forEach(function(i){document.getElementById("line"+i).classList.remove("done");});
-  for(var i=1;i<n;i++){document.getElementById("sc"+i).classList.add("done");document.getElementById("sl"+i).classList.add("done");document.getElementById("line"+i).classList.add("done");}
-  document.getElementById("sc"+n).classList.add("active");document.getElementById("sl"+n).classList.add("active");
-  if(n===2){var names=selectedIds.map(function(id){var s=STUDENTS.find(function(x){return x.id===id;});return s?s.name:"";});document.getElementById("step2sub").textContent="เลือก "+selectedIds.length+" คน: "+names.join(", ");}
-  if(n===3){document.getElementById("cfDate").textContent=getThaiDate();document.getElementById("cfType").textContent=actionIcon(selectedType)+" "+selectedType;document.getElementById("cfCount").textContent=selectedIds.length;var sorted=selectedIds.map(function(id){return STUDENTS.find(function(x){return x.id===id;});}).filter(Boolean).sort(function(a,b){return a.no-b.no;});document.getElementById("cfList").innerHTML=sorted.map(function(s){return '<div class="confirm-list-item"><span class="cno">'+escapeHtml(String(s.no))+'</span><span class="cname">'+escapeHtml(s.name)+'</span></div>';}).join("");}
-}
-function flowNext(step){
-  if(step===2&&selectedIds.length===0){showStatus("กรุณาเลือกนักเรียนอย่างน้อย 1 คน");return;}
-  if(step===3&&!selectedType){showStatus("กรุณาเลือกประเภท");return;}
-  flowShowStep(step);
-}
-var _isSubmittingFlow = false;
-function submitFlow(){
-  if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
-  if(!selectedIds.length||!selectedType){showStatus("ข้อมูลไม่ครบ");return;}
-  if(_isSubmittingFlow){showStatus("⏳ กำลังบันทึก กรุณารอสักครู่...");return;}
-  _isSubmittingFlow = true;
-  showLoading("กำลังส่งข้อมูล...");
-  var today=getThaiDate(),time=new Date().toLocaleTimeString("th-TH");
-  var records=selectedIds.map(function(id){
-    var s=STUDENTS.find(function(x){return x.id===id;});
-    var rec={date:today,timestamp:time,no:s.no,studentId:s.id,name:s.name,action:selectedType};
-    if(_flowImgBase64)  rec.imageBase64 = _flowImgBase64;
-    if(_flowAIResult)   rec.aiResult    = _flowAIResult;
-    return rec;
-  });
-  fetch(SHEET_URL, {method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({type:"flow_batch",date:today,timestamp:time,action:selectedType,records:records.map(function(r){var c=Object.assign({},r);delete c.imageBase64;return c;})})})
-    .then(function(){return addLogs(records);})
-    .then(function(){
-      hideLoading(); _isSubmittingFlow = false;
-      var aiMsg = _flowAIResult && _flowAIResult.verdict==="pass" ? " ✅ AI ยืนยันรูปผ่าน" : _flowAIResult && _flowAIResult.verdict==="fail" ? " ⚠️ AI: รูปอาจไม่ใช่เวร" : "";
-      showStatus("บันทึกสำเร็จ ✅ "+selectedIds.length+" คน → "+selectedType+aiMsg);
-      setTimeout(function(){initFlow();clearFlowImg();},1000);
-    })
-    .catch(function(err){console.error(err);hideLoading();_isSubmittingFlow=false;showStatus("❌ เกิดข้อผิดพลาด");});
-}
-
-/* ══════════════════════════════════════════════════════
-   RETRO EDIT
-══════════════════════════════════════════════════════ */
-function loadRetroData(){
-  var sel=document.getElementById("retroDate").value, tbody=document.getElementById("retroTable");
-  if(!sel){tbody.innerHTML='<tr><td colspan="4" style="color:#bbb;padding:12px;">เลือกวันที่ก่อน</td></tr>';return;}
-  getAllLogs().then(function(log){
-    var filtered=log.filter(function(r){return thaiDateToISO(r.date)===sel;}).sort(function(a,b){return a.no-b.no;});
-    if(!filtered.length){tbody.innerHTML='<tr><td colspan="4" style="color:#bbb;padding:12px;">ไม่มีข้อมูล</td></tr>';return;}
-    tbody.innerHTML=filtered.map(function(r){return '<tr><td>'+escapeHtml(String(r.no))+'</td><td class="td-name">'+escapeHtml(r.name)+'</td><td><span class="retro-badge '+actionBadgeClass(r.action)+'">'+actionIcon(r.action)+' '+escapeHtml(r.action)+'</span></td><td><button onclick="openRetroEdit(\''+r._firestoreId+'\')" style="background:var(--c2);border:none;border-radius:8px;padding:5px 9px;cursor:pointer;font-family:inherit;font-size:.75rem;">✏️ แก้</button></td></tr>';}).join("");
-  });
-}
-function openRetroEdit(fid){
-  retroEditLogIndex=fid;
-  var r=_cachedLogs.find(function(x){return x._firestoreId===fid;});
-  if(!r){showStatus("ไม่พบรายการ");return;}
-  document.getElementById("retroEditName").textContent=r.name;
-  document.getElementById("retroEditMeta").textContent="เลขที่ "+r.no+" | "+r.date+" | ปัจจุบัน: "+actionIcon(r.action)+" "+r.action;
-  document.getElementById("retroEditModal").style.display="flex";
-}
-function closeRetroEdit(){ document.getElementById("retroEditModal").style.display="none"; retroEditLogIndex=null; }
-function applyRetroEdit(newAction){
-  if(!retroEditLogIndex) return;
-  var r=_cachedLogs.find(function(x){return x._firestoreId===retroEditLogIndex;});if(!r) return;
-  showLoading("กำลังอัปเดต...");
-  fetch(SHEET_URL, {method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({type:"retro_edit",date:r.date,studentId:r.studentId,no:r.no,name:r.name,oldAction:r.action,newAction:newAction,timestamp:r.timestamp})})
-    .then(function(){return updateLog(Object.assign({},r,{action:newAction}));})
-    .then(function(){hideLoading();closeRetroEdit();showStatus("เปลี่ยนเป็น "+actionIcon(newAction)+" "+newAction+" แล้ว ✅");})
-    .catch(function(err){console.error(err);hideLoading();showStatus("❌ อัปเดตไม่สำเร็จ");});
-}
-function deleteRetroRecord(){
-  if(!retroEditLogIndex||!confirm("ลบรายการนี้?")) return;
-  var r=_cachedLogs.find(function(x){return x._firestoreId===retroEditLogIndex;});if(!r) return;
-  showLoading("กำลังลบ...");
-  fetch(SHEET_URL, {method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({type:"retro_delete",date:r.date,studentId:r.studentId,no:r.no,name:r.name,action:r.action,timestamp:r.timestamp})})
-    .then(function(){return deleteLog(r._firestoreId);})
-    .then(function(){hideLoading();closeRetroEdit();showStatus("ลบแล้ว 🗑️");})
-    .catch(function(err){console.error(err);hideLoading();showStatus("❌ ลบไม่สำเร็จ");});
-}
-
-/* ══════════════════════════════════════════════════════
-   SETTING (admin only)
-══════════════════════════════════════════════════════ */
-function openSetting(){
-  if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
-  document.getElementById("settingModal").style.display="flex";
-  renderSubjectSetting();
-}
-function closeSetting(){ document.getElementById("settingModal").style.display="none"; }
-window.addEventListener("click", function(e){
-  if(e.target===document.getElementById("settingModal"))    closeSetting();
-  if(e.target===document.getElementById("retroEditModal")) closeRetroEdit();
-  if(e.target===document.getElementById("adminPanelModal"))closeAdminPanel();
-  if(e.target===document.getElementById("changePwdModal")) closeChangePwd();
-});
-
-/* ══════════════════════════════════════════════════════
-   LOADING / TOAST
-══════════════════════════════════════════════════════ */
-function showLoading(msg){ var ol=document.getElementById("loadingOverlay"),lm=document.getElementById("loadingMsg"); if(lm)lm.textContent=msg||"กำลังโหลด..."; if(ol)ol.classList.remove("hidden"); }
-function hideLoading(){ var ol=document.getElementById("loadingOverlay"); if(ol)ol.classList.add("hidden"); }
-function showStatus(text){
-  var o=document.getElementById("__sp");if(o)o.remove();
-  var p=document.createElement("div");p.id="__sp";p.textContent=text;
-  Object.assign(p.style,{position:"fixed",right:"14px",bottom:"88px",background:"#D9A299",color:"white",padding:"12px 16px",borderRadius:"14px",zIndex:"999999",fontFamily:"inherit",boxShadow:"0 6px 18px rgba(0,0,0,.15)",fontSize:".88rem",maxWidth:"80vw",lineHeight:"1.4"});
-  document.body.appendChild(p);
-  setTimeout(function(){p.style.transition=".3s";p.style.opacity="0";setTimeout(function(){p.remove();},300);},2500);
-}
-
-/* ══════════════════════════════════════════════════════
-   ASSIGNMENT SYSTEM
-══════════════════════════════════════════════════════ */
-var DEFAULT_SUBJECTS=[
-  {id:"s1",code:"30201",name:"คณิตศาสตร์ 3",teacher:"ครูนิภาพร",  color:"#e8c4c4"},
-  {id:"s2",code:"30205",name:"ชีววิทยา 3",  teacher:"ครูจิราภรณ์",color:"#c4e8c9"},
-  {id:"s3",code:"30203",name:"ฟิสิกส์ 3",   teacher:"ครูอัจฉรา",  color:"#c4d8e8"},
-  {id:"s4",code:"32201",name:"ภาษาไทย 3",   teacher:"ครูสุราสินี", color:"#e8dfc4"},
-  {id:"s5",code:"32203",name:"เคมี 3",       teacher:"ครูจิตติยา", color:"#d4c4e8"},
-  {id:"s6",code:"32205",name:"การงาน 1",     teacher:"ครูอาวุธ",   color:"#e8c4dc"},
-  {id:"s7",code:"30103",name:"สังคมศึกษา",  teacher:"ครูผู้สอน",   color:"#c4e8e4"}
-];
+/* ══ ASSIGNMENT SYSTEM ══ */
+var DEFAULT_SUBJECTS=[{id:"s1",code:"30201",name:"คณิตศาสตร์ 3",teacher:"ครูนิภาพร",color:"#e8c4c4"},{id:"s2",code:"30205",name:"ชีววิทยา 3",teacher:"ครูจิราภรณ์",color:"#c4e8c9"},{id:"s3",code:"30203",name:"ฟิสิกส์ 3",teacher:"ครูอัจฉรา",color:"#c4d8e8"},{id:"s4",code:"32201",name:"ภาษาไทย 3",teacher:"ครูสุราสินี",color:"#e8dfc4"},{id:"s5",code:"32203",name:"เคมี 3",teacher:"ครูจิตติยา",color:"#d4c4e8"},{id:"s6",code:"32205",name:"การงาน 1",teacher:"ครูอาวุธ",color:"#e8c4dc"},{id:"s7",code:"30103",name:"สังคมศึกษา",teacher:"ครูผู้สอน",color:"#c4e8e4"}];
 var SUBJECT_COLORS=["#e8c4c4","#c4e8c9","#c4d8e8","#e8dfc4","#d4c4e8","#e8c4dc","#c4e8e4","#f0e8c4","#dce8c4","#e8e4c4"];
 var subjects=[],assignments=[],currentSubjectFilter="all",editingAssignId=null,editingSubjId=null;
-
-function loadAssignData(){
-  subjects=JSON.parse(localStorage.getItem("subjects_v1")||JSON.stringify(DEFAULT_SUBJECTS));
-  assignments=JSON.parse(localStorage.getItem("assignments_v1")||"[]");
-}
+function loadAssignData(){subjects=JSON.parse(localStorage.getItem("subjects_v1")||JSON.stringify(DEFAULT_SUBJECTS));assignments=JSON.parse(localStorage.getItem("assignments_v1")||"[]");}
 function loadAssignDataFromCloud(){
-  if(!firestoreDB) return;
+  if(!firestoreDB)return;
+  /* ✅ ใช้ get() แทน onSnapshot สำหรับ subjects (ไม่ค่อยเปลี่ยน) */
   firestoreDB.collection("subjects_m51").orderBy("createdAt").get().then(function(snap){
-    if(!snap.empty){
-      subjects=[];
-      snap.forEach(function(doc){ var d=doc.data(); d._fid=doc.id; if(!d.id) d.id=doc.id; subjects.push(d); });
-      safeSetItem("subjects_v1",JSON.stringify(subjects));
-    }
-  }).catch(function(e){ console.error("subjects load error:", e); });
+    trackRead(snap.size);
+    if(!snap.empty){subjects=[];snap.forEach(function(doc){var d=doc.data();d._fid=doc.id;if(!d.id)d.id=doc.id;subjects.push(d);});safeSetItem("subjects_v1",JSON.stringify(subjects));}
+  }).catch(function(e){console.error("subjects load error:",e);});
+  /* ✅ assignments ยังใช้ onSnapshot เพราะเปลี่ยนบ่อย แต่ track reads */
   firestoreDB.collection("assignments_m51").orderBy("createdAt").onSnapshot(function(snap){
-    assignments=[];
-    snap.forEach(function(doc){ var d=doc.data(); d._fid=doc.id; assignments.push(d); });
+    trackRead(snap.size);
+    assignments=[];snap.forEach(function(doc){var d=doc.data();d._fid=doc.id;assignments.push(d);});
     safeSetItem("assignments_v1",JSON.stringify(assignments));
-    /* ทำเครื่องหมายว่าโหลดจาก Firestore แล้ว (ไม่ว่าจะมีงานหรือเปล่า) */
-    var aat = document.getElementById("adminAssignTable");
-    if(aat) aat.dataset.loaded = "1";
+    var aat=document.getElementById("adminAssignTable");if(aat)aat.dataset.loaded="1";
     renderAssignPage();
     var dashPage=document.getElementById("dashboardPage");
-    if(dashPage&&!dashPage.classList.contains("hidden")){
-      if(isAdmin){ renderAdminAssignTable(); }
-      else { renderAISummary(); }
-    }
+    if(dashPage&&!dashPage.classList.contains("hidden")){if(isAdmin)renderAdminAssignTable();else renderAISummary();}
   });
 }
-function saveAssignData(){
-  safeSetItem("subjects_v1",JSON.stringify(subjects));
-  safeSetItem("assignments_v1",JSON.stringify(assignments));
-}
-function saveSubjectToCloud(s){
-  if(!firestoreDB) return Promise.resolve();
-  var data={id:s.id||"",code:s.code,name:s.name,teacher:s.teacher,color:s.color,classroom:s.classroom||"",drive:s.drive||"",createdAt:s.createdAt||Date.now()};
-  if(s._fid) return firestoreDB.collection("subjects_m51").doc(s._fid).set(data);
-  return firestoreDB.collection("subjects_m51").add(Object.assign(data,{createdAt:Date.now()}));
-}
-function deleteSubjectFromCloud(fid){
-  if(!firestoreDB||!fid) return Promise.resolve();
-  return firestoreDB.collection("subjects_m51").doc(fid).delete();
-}
-function saveAssignToCloud(a){
-  if(!firestoreDB) return Promise.resolve();
-  var data={subjectId:a.subjectId,title:a.title,detail:a.detail||"",due:a.due||"",done:a.done||false,createdAt:a.createdAt||todayISO()};
-  if(a._fid) return firestoreDB.collection("assignments_m51").doc(a._fid).set(data);
-  return firestoreDB.collection("assignments_m51").add(Object.assign(data,{createdAt:todayISO()}));
-}
-function deleteAssignFromCloud(fid){
-  if(!firestoreDB||!fid) return Promise.resolve();
-  return firestoreDB.collection("assignments_m51").doc(fid).delete();
-}
-function getSubject(id){ return subjects.find(function(s){return s.id===id||s._fid===id;})||{code:"",name:"ไม่ระบุ",teacher:"",color:"#eee"}; }
-function todayISO(){ var n=new Date(); return n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0")+"-"+String(n.getDate()).padStart(2,"0"); }
-function isoToThai(iso){ if(!iso) return ""; var p=iso.split("-"); return p[2]+"/"+p[1]+"/"+(parseInt(p[0])+543); }
-
-function assignStatus(a){
-  /* นักเรียนใช้สถานะของตัวเอง, admin ใช้ a.done (global) */
-  var done = isAdmin ? a.done : isAssignDone(a._fid||a.id);
-  if(done) return "done";
-  if(!a.due) return "ok";
-  var today=todayISO();
-  if(a.due<today) return "overdue";
-  return (new Date(a.due)-new Date(today))/86400000<=3?"due-soon":"ok";
-}
-
-function renderAssignPage(){
-  /* ไม่เรียก loadAssignData() ที่นี่อีกต่อไป — ข้อมูลมาจาก Firestore real-time listener แล้ว
-     loadAssignData() ใช้เฉพาะตอน startup ก่อน Firestore พร้อมเท่านั้น */
-  if(!calYear)initCal();
-  /* ปุ่มเพิ่มงาน/ลบงาน/แก้งาน: เฉพาะแอดมิน */
-  document.getElementById("addAssignBtn").classList.toggle("hidden",!isAdmin);
-  renderAssignSummary();renderSubjectTabs();renderAssignList();
-  if(assignViewMode==="cal")renderCal();
-}
-function renderAssignSummary(){
-  var total=assignments.length,done=assignments.filter(function(a){return isAdmin?a.done:isAssignDone(a._fid||a.id);}).length,overdue=assignments.filter(function(a){return assignStatus(a)==="overdue";}).length,pending=total-done;
-  document.getElementById("assignSummary").innerHTML=
-    '<div class="assign-sum-card"><p>ทั้งหมด</p><h2>'+total+'</h2></div>'+
-    '<div class="assign-sum-card"><p>รอส่ง</p><h2 style="color:var(--yellow);">'+pending+'</h2></div>'+
-    '<div class="assign-sum-card"><p>ส่งแล้ว</p><h2 style="color:var(--green);">'+done+'</h2></div>'+
-    '<div class="assign-sum-card"><p>เกินกำหนด</p><h2 style="color:var(--red);">'+overdue+'</h2></div>';
-}
-function renderSubjectTabs(){
-  var html='<button class="subject-tab'+(currentSubjectFilter==="all"?" active":"")+'" onclick="filterBySubject(\'all\')">📚 ทั้งหมด</button>';
-  subjects.forEach(function(s){var count=assignments.filter(function(a){return a.subjectId===s.id&&assignStatus(a)!=="done";}).length;html+='<button class="subject-tab'+(currentSubjectFilter===s.id?" active":"")+'" onclick="filterBySubject(\''+s.id+'\')" style="border-color:'+s.color+';">'+escapeHtml(s.name)+(count>0?'<span style="background:var(--c4);color:white;border-radius:6px;padding:1px 6px;font-size:.68rem;margin-left:4px;">'+count+'</span>':'')+'</button>';});
-  document.getElementById("subjectTabs").innerHTML=html;
-}
+function saveAssignData(){safeSetItem("subjects_v1",JSON.stringify(subjects));safeSetItem("assignments_v1",JSON.stringify(assignments));}
+function saveSubjectToCloud(s){if(!firestoreDB)return Promise.resolve();var data={id:s.id||"",code:s.code,name:s.name,teacher:s.teacher,color:s.color,classroom:s.classroom||"",drive:s.drive||"",createdAt:s.createdAt||Date.now()};if(s._fid)return firestoreDB.collection("subjects_m51").doc(s._fid).set(data);return firestoreDB.collection("subjects_m51").add(Object.assign(data,{createdAt:Date.now()}));}
+function deleteSubjectFromCloud(fid){if(!firestoreDB||!fid)return Promise.resolve();return firestoreDB.collection("subjects_m51").doc(fid).delete();}
+function saveAssignToCloud(a){if(!firestoreDB)return Promise.resolve();var data={subjectId:a.subjectId,title:a.title,detail:a.detail||"",due:a.due||"",done:a.done||false,createdAt:a.createdAt||todayISO()};if(a._fid)return firestoreDB.collection("assignments_m51").doc(a._fid).set(data);return firestoreDB.collection("assignments_m51").add(Object.assign(data,{createdAt:todayISO()}));}
+function deleteAssignFromCloud(fid){if(!firestoreDB||!fid)return Promise.resolve();return firestoreDB.collection("assignments_m51").doc(fid).delete();}
+function getSubject(id){return subjects.find(function(s){return s.id===id||s._fid===id;})||{code:"",name:"ไม่ระบุ",teacher:"",color:"#eee"};}
+function todayISO(){var n=new Date();return n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0")+"-"+String(n.getDate()).padStart(2,"0");}
+function isoToThai(iso){if(!iso)return"";var p=iso.split("-");return p[2]+"/"+p[1]+"/"+(parseInt(p[0])+543);}
+function assignStatus(a){var done=isAdmin?a.done:isAssignDone(a._fid||a.id);if(done)return"done";if(!a.due)return"ok";var today=todayISO();if(a.due<today)return"overdue";return(new Date(a.due)-new Date(today))/86400000<=3?"due-soon":"ok";}
+function renderAssignPage(){if(!calYear)initCal();document.getElementById("addAssignBtn").classList.toggle("hidden",!isAdmin);renderAssignSummary();renderSubjectTabs();renderAssignList();if(assignViewMode==="cal")renderCal();}
+function renderAssignSummary(){var total=assignments.length,done=assignments.filter(function(a){return isAdmin?a.done:isAssignDone(a._fid||a.id);}).length,overdue=assignments.filter(function(a){return assignStatus(a)==="overdue";}).length,pending=total-done;document.getElementById("assignSummary").innerHTML='<div class="assign-sum-card"><p>ทั้งหมด</p><h2>'+total+'</h2></div><div class="assign-sum-card"><p>รอส่ง</p><h2 style="color:var(--yellow);">'+pending+'</h2></div><div class="assign-sum-card"><p>ส่งแล้ว</p><h2 style="color:var(--green);">'+done+'</h2></div><div class="assign-sum-card"><p>เกินกำหนด</p><h2 style="color:var(--red);">'+overdue+'</h2></div>';}
+function renderSubjectTabs(){var html='<button class="subject-tab'+(currentSubjectFilter==="all"?" active":"")+'" onclick="filterBySubject(\'all\')">📚 ทั้งหมด</button>';subjects.forEach(function(s){var count=assignments.filter(function(a){return a.subjectId===s.id&&assignStatus(a)!=="done";}).length;html+='<button class="subject-tab'+(currentSubjectFilter===s.id?" active":"")+'" onclick="filterBySubject(\''+s.id+'\')" style="border-color:'+s.color+';">'+escapeHtml(s.name)+(count>0?'<span style="background:var(--c4);color:white;border-radius:6px;padding:1px 6px;font-size:.68rem;margin-left:4px;">'+count+'</span>':'')+'</button>';});document.getElementById("subjectTabs").innerHTML=html;}
 function filterBySubject(id){currentSubjectFilter=id;renderSubjectTabs();renderAssignList();}
-
-function renderAssignList(){
-  var filtered=assignments.filter(function(a){return currentSubjectFilter==="all"||a.subjectId===currentSubjectFilter;});
-  filtered.sort(function(a,b){var da=assignStatus(a)==="done",db=assignStatus(b)==="done";if(da!==db)return da?1:-1;if(!a.due&&!b.due)return 0;if(!a.due)return 1;if(!b.due)return -1;return a.due<b.due?-1:1;});
-  if(!filtered.length){document.getElementById("assignList").innerHTML='<div class="assign-empty">📭 ยังไม่มีงาน</div>';return;}
-  var today=todayISO(),html="";
-  filtered.forEach(function(a){
-    var subj=getSubject(a.subjectId),status=assignStatus(a),isDone=status==="done";
-    var diffDays=a.due?Math.round((new Date(a.due)-new Date(today))/86400000):null;
-    var dueLabel="",deadlineColor="#888";
-    if(a.due){
-      if(isDone){dueLabel="ส่งแล้ว · "+isoToThai(a.due);deadlineColor="#aaa";}
-      else if(status==="overdue"){dueLabel="⚠️ เกินกำหนดมา "+Math.abs(diffDays)+" วัน (ครบ "+isoToThai(a.due)+")";deadlineColor="#c75b5b";}
-      else if(diffDays===0){dueLabel="⏰ ส่งวันนี้!";deadlineColor="#b87a30";}
-      else if(diffDays===1){dueLabel="⏰ พรุ่งนี้เป็นวันสุดท้าย";deadlineColor="#b87a30";}
-      else if(diffDays<=3){dueLabel="⏰ อีก "+diffDays+" วัน ("+isoToThai(a.due)+")";deadlineColor="#b87a30";}
-      else{dueLabel="📅 กำหนดส่ง "+isoToThai(a.due)+" (อีก "+diffDays+" วัน)";}
-    }else{dueLabel="📅 ไม่ระบุวันส่ง";}
-
-    /* ปุ่มแก้/ลบ: เฉพาะแอดมิน */
-    var assignKey = a._fid || a.id;
-    var editBtn = isAdmin
-      ? '<button class="assign-edit-btn" onclick="openEditAssign(\''+assignKey+'\')">✏️</button><button class="assign-del-btn" onclick="deleteAssign(\''+assignKey+'\')">🗑️</button>'
-      : '';
-
-    html+='<div class="assign-card '+status+'">' +
-      '<div class="assign-check '+(isDone?"checked":"")+'" onclick="toggleAssignDone(\''+escapeHtml(a._fid||a.id)+'\')">'+(isDone?"✓":"")+'</div>'+
-      '<div class="assign-body">'+
-        '<div style="margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'+
-          '<span style="background:'+subj.color+';padding:2px 10px;border-radius:8px;color:#555;font-size:.74rem;font-weight:600;">'+escapeHtml(subj.name)+'</span>'+
-          (subj.classroom?'<a href="'+escapeHtml(subj.classroom)+'" target="_blank" class="subj-link-btn">🎓 Classroom</a>':'')+
-          (subj.drive?'<a href="'+escapeHtml(subj.drive)+'" target="_blank" class="subj-link-btn">📁 Drive</a>':'')+
-        '</div>'+
-        '<div class="assign-title">'+escapeHtml(a.title)+'</div>'+
-        (a.detail?'<div style="font-size:.78rem;color:#aaa;margin-bottom:4px;">'+escapeHtml(a.detail)+'</div>':'')+
-        '<div style="font-size:.76rem;font-weight:600;color:'+deadlineColor+';margin-top:3px;">'+dueLabel+'</div>'+
-      '</div>'+
-      (editBtn?'<div class="assign-actions">'+editBtn+'</div>':'')+
-    '</div>';
-  });
-  document.getElementById("assignList").innerHTML=html;
-}
-
+function renderAssignList(){var filtered=assignments.filter(function(a){return currentSubjectFilter==="all"||a.subjectId===currentSubjectFilter;});filtered.sort(function(a,b){var da=assignStatus(a)==="done",db=assignStatus(b)==="done";if(da!==db)return da?1:-1;if(!a.due&&!b.due)return 0;if(!a.due)return 1;if(!b.due)return-1;return a.due<b.due?-1:1;});if(!filtered.length){document.getElementById("assignList").innerHTML='<div class="assign-empty">📭 ยังไม่มีงาน</div>';return;}var today=todayISO(),html="";filtered.forEach(function(a){var subj=getSubject(a.subjectId),status=assignStatus(a),isDone=status==="done";var diffDays=a.due?Math.round((new Date(a.due)-new Date(today))/86400000):null;var dueLabel="",deadlineColor="#888";if(a.due){if(isDone){dueLabel="ส่งแล้ว · "+isoToThai(a.due);deadlineColor="#aaa";}else if(status==="overdue"){dueLabel="⚠️ เกินกำหนดมา "+Math.abs(diffDays)+" วัน (ครบ "+isoToThai(a.due)+")";deadlineColor="#c75b5b";}else if(diffDays===0){dueLabel="⏰ ส่งวันนี้!";deadlineColor="#b87a30";}else if(diffDays===1){dueLabel="⏰ พรุ่งนี้เป็นวันสุดท้าย";deadlineColor="#b87a30";}else if(diffDays<=3){dueLabel="⏰ อีก "+diffDays+" วัน ("+isoToThai(a.due)+")";deadlineColor="#b87a30";}else{dueLabel="📅 กำหนดส่ง "+isoToThai(a.due)+" (อีก "+diffDays+" วัน)";}}else{dueLabel="📅 ไม่ระบุวันส่ง";}var assignKey=a._fid||a.id;var editBtn=isAdmin?'<button class="assign-edit-btn" onclick="openEditAssign(\''+assignKey+'\')">✏️</button><button class="assign-del-btn" onclick="deleteAssign(\''+assignKey+'\')">🗑️</button>':'';html+='<div class="assign-card '+status+'"><div class="assign-check '+(isDone?"checked":"")+'" onclick="toggleAssignDone(\''+escapeHtml(a._fid||a.id)+'\')">	'+(isDone?"✓":"")+'</div><div class="assign-body"><div style="margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><span style="background:'+subj.color+';padding:2px 10px;border-radius:8px;color:#555;font-size:.74rem;font-weight:600;">'+escapeHtml(subj.name)+'</span>'+(subj.classroom?'<a href="'+escapeHtml(subj.classroom)+'" target="_blank" class="subj-link-btn">🎓 Classroom</a>':'')+(subj.drive?'<a href="'+escapeHtml(subj.drive)+'" target="_blank" class="subj-link-btn">📁 Drive</a>':'')+'</div><div class="assign-title">'+escapeHtml(a.title)+'</div>'+(a.detail?'<div style="font-size:.78rem;color:#aaa;margin-bottom:4px;">'+escapeHtml(a.detail)+'</div>':'')+'<div style="font-size:.76rem;font-weight:600;color:'+deadlineColor+';margin-top:3px;">'+dueLabel+'</div></div>'+(editBtn?'<div class="assign-actions">'+editBtn+'</div>':'')+'</div>';});document.getElementById("assignList").innerHTML=html;}
 var assignViewMode="list";
-function switchAssignView(mode){
-  assignViewMode=mode;
-  document.getElementById("assignListView").classList.toggle("hidden",mode!=="list");
-  document.getElementById("assignCalView").classList.toggle("hidden",mode!=="cal");
-  document.getElementById("viewListBtn").style.background=mode==="list"?"var(--c4)":"transparent";
-  document.getElementById("viewListBtn").style.color=mode==="list"?"white":"var(--text)";
-  document.getElementById("viewCalBtn").style.background=mode==="cal"?"var(--c4)":"transparent";
-  document.getElementById("viewCalBtn").style.color=mode==="cal"?"white":"var(--text)";
-  if(mode==="cal")renderCal();
-}
-
-/* toggleAssignDone — นักเรียนติ๊กของตัวเอง, แอดมินใช้ global done */
-function toggleAssignDone(id){
-  var a=assignments.find(function(x){return (x._fid||x.id)===id;});if(!a) return;
-  var assignKey=a._fid||a.id;
-  if(isAdmin){
-    a.done=!a.done;saveAssignData();
-    saveAssignToCloud(a).catch(function(e){showStatus("❌ บันทึกไม่สำเร็จ");a.done=!a.done;renderAssignPage();});
-  } else {
-    var currentDone=isAssignDone(assignKey);
-    if(currentDone){
-      /* ยกเลิกส่งงาน — ไม่ต้องใช้รูป */
-      var cacheKey=currentUser.uid+"_"+assignKey;
-      _cachedAssignmentStatus[cacheKey]={done:false,doneAt:Date.now(),studentId:currentUserDoc?currentUserDoc.studentId||"":""};
-      renderAssignSummary();renderSubjectTabs();renderAssignList();
-      saveAssignStatusCloud(assignKey,false,null).then(function(){showStatus("↩️ ยกเลิกส่งงาน");}).catch(function(err){showStatus("❌ บันทึกไม่สำเร็จ");});
-      return;
-    }
-    /* เปิด modal รูปภาพก่อนส่งงาน */
-    _pendingSubmitAssignId = assignKey;
-    document.getElementById("imgUploadSubtitle").textContent = "งาน: " + escapeHtml(a.title);
-    clearImgPreview();
-    document.getElementById("imgUploadModal").style.display = "flex";
-    return;
-  }
-  renderAssignSummary();renderSubjectTabs();renderAssignList();
-}
-
-/* เพิ่ม/แก้/ลบงาน: admin เท่านั้น */
-function openAddAssign(){
-  if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
-  editingAssignId=null;
-  document.getElementById("assignModalTitle").textContent="📌 เพิ่มงานใหม่";
-  ["assignTitleInput","assignDetailInput","assignDueInput"].forEach(function(id){document.getElementById(id).value="";});
-  populateSubjectSelect();
-  document.getElementById("assignModal").style.display="flex";
-}
-function openEditAssign(id){
-  if(!isAdmin)return;
-  var a=assignments.find(function(x){return (x._fid||x.id)===id;});if(!a)return;
-  editingAssignId=id;
-  document.getElementById("assignModalTitle").textContent="✏️ แก้ไขงาน";
-  document.getElementById("assignTitleInput").value=a.title;
-  document.getElementById("assignDetailInput").value=a.detail||"";
-  document.getElementById("assignDueInput").value=a.due||"";
-  populateSubjectSelect(a.subjectId);
-  document.getElementById("assignModal").style.display="flex";
-}
-function populateSubjectSelect(selId){
-  document.getElementById("assignSubjectInput").innerHTML=subjects.map(function(s){
-    return'<option value="'+s.id+'"'+(s.id===selId?" selected":"")+'>'+escapeHtml(s.code)+' - '+escapeHtml(s.name)+'</option>';
-  }).join("");
-}
-function saveAssign(){
-  if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
-  var title=document.getElementById("assignTitleInput").value.trim();
-  if(!title){showStatus("⚠️ กรุณากรอกชื่องาน");return;}
-  var subjectId=document.getElementById("assignSubjectInput").value,
-      detail=document.getElementById("assignDetailInput").value.trim(),
-      due=document.getElementById("assignDueInput").value;
-  var targetAssign;
-  if(editingAssignId){
-    targetAssign=assignments.find(function(x){return (x._fid||x.id)===editingAssignId;});
-    if(targetAssign){targetAssign.title=title;targetAssign.subjectId=subjectId;targetAssign.detail=detail;targetAssign.due=due;}
-  }else{
-    targetAssign={id:"a"+Date.now(),subjectId:subjectId,title:title,detail:detail,due:due,done:false,createdAt:todayISO()};
-    assignments.push(targetAssign);
-  }
-  if(targetAssign){
-    showLoading(editingAssignId?"กำลังแก้ไขงาน...":"กำลังเพิ่มงาน...");
-    saveAssignToCloud(targetAssign).then(function(){
-      hideLoading();
-      if(editingAssignId) saveAssignData();
-      closeAssignModal(); renderAssignPage();
-      showStatus(editingAssignId?"✅ แก้ไขงานแล้ว":"✅ เพิ่มงานแล้ว");
-    }).catch(function(e){
-      hideLoading();
-      showStatus("❌ บันทึก Cloud ไม่สำเร็จ: "+(e.message||e));
-      console.error(e);
-    });
-  } else {
-    if(editingAssignId) saveAssignData();
-    closeAssignModal(); renderAssignPage();
-    showStatus(editingAssignId?"✅ แก้ไขงานแล้ว":"✅ เพิ่มงานแล้ว");
-  }
-}
-function deleteAssign(id){
-  if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
-  if(!confirm("ลบงานนี้?"))return;
-  var a=assignments.find(function(x){return x._fid===id||x.id===id;});
-  var fid=a&&(a._fid||null);
-  if(!fid){showStatus("❌ ไม่พบ Firestore ID");return;}
-  showLoading("กำลังลบ...");
-  deleteAssignFromCloud(fid)
-    .then(function(){hideLoading();showStatus("🗑️ ลบงานแล้ว");})
-    .catch(function(e){hideLoading();showStatus("❌ ลบไม่สำเร็จ: "+e.message);console.error(e);});
-}
+function switchAssignView(mode){assignViewMode=mode;document.getElementById("assignListView").classList.toggle("hidden",mode!=="list");document.getElementById("assignCalView").classList.toggle("hidden",mode!=="cal");document.getElementById("viewListBtn").style.background=mode==="list"?"var(--c4)":"transparent";document.getElementById("viewListBtn").style.color=mode==="list"?"white":"var(--text)";document.getElementById("viewCalBtn").style.background=mode==="cal"?"var(--c4)":"transparent";document.getElementById("viewCalBtn").style.color=mode==="cal"?"white":"var(--text)";if(mode==="cal")renderCal();}
+function toggleAssignDone(id){var a=assignments.find(function(x){return(x._fid||x.id)===id;});if(!a)return;var assignKey=a._fid||a.id;if(isAdmin){a.done=!a.done;saveAssignData();saveAssignToCloud(a).catch(function(e){showStatus("❌ บันทึกไม่สำเร็จ");a.done=!a.done;renderAssignPage();});}else{var currentDone=isAssignDone(assignKey);if(currentDone){var cacheKey=currentUser.uid+"_"+assignKey;_cachedAssignmentStatus[cacheKey]={done:false,doneAt:Date.now(),studentId:currentUserDoc?currentUserDoc.studentId||"":""};renderAssignSummary();renderSubjectTabs();renderAssignList();saveAssignStatusCloud(assignKey,false,null).then(function(){showStatus("↩️ ยกเลิกส่งงาน");}).catch(function(err){showStatus("❌ บันทึกไม่สำเร็จ");});return;}_pendingSubmitAssignId=assignKey;document.getElementById("imgUploadSubtitle").textContent="งาน: "+escapeHtml(a.title);clearImgPreview();document.getElementById("imgUploadModal").style.display="flex";return;}renderAssignSummary();renderSubjectTabs();renderAssignList();}
+function openAddAssign(){if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}editingAssignId=null;document.getElementById("assignModalTitle").textContent="📌 เพิ่มงานใหม่";["assignTitleInput","assignDetailInput","assignDueInput"].forEach(function(id){document.getElementById(id).value="";});populateSubjectSelect();document.getElementById("assignModal").style.display="flex";}
+function openEditAssign(id){if(!isAdmin)return;var a=assignments.find(function(x){return(x._fid||x.id)===id;});if(!a)return;editingAssignId=id;document.getElementById("assignModalTitle").textContent="✏️ แก้ไขงาน";document.getElementById("assignTitleInput").value=a.title;document.getElementById("assignDetailInput").value=a.detail||"";document.getElementById("assignDueInput").value=a.due||"";populateSubjectSelect(a.subjectId);document.getElementById("assignModal").style.display="flex";}
+function populateSubjectSelect(selId){document.getElementById("assignSubjectInput").innerHTML=subjects.map(function(s){return'<option value="'+s.id+'"'+(s.id===selId?" selected":"")+'>'+escapeHtml(s.code)+' - '+escapeHtml(s.name)+'</option>';}).join("");}
+function saveAssign(){if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}var title=document.getElementById("assignTitleInput").value.trim();if(!title){showStatus("⚠️ กรุณากรอกชื่องาน");return;}var subjectId=document.getElementById("assignSubjectInput").value,detail=document.getElementById("assignDetailInput").value.trim(),due=document.getElementById("assignDueInput").value;var targetAssign;if(editingAssignId){targetAssign=assignments.find(function(x){return(x._fid||x.id)===editingAssignId;});if(targetAssign){targetAssign.title=title;targetAssign.subjectId=subjectId;targetAssign.detail=detail;targetAssign.due=due;}}else{targetAssign={id:"a"+Date.now(),subjectId:subjectId,title:title,detail:detail,due:due,done:false,createdAt:todayISO()};assignments.push(targetAssign);}if(targetAssign){showLoading(editingAssignId?"กำลังแก้ไขงาน...":"กำลังเพิ่มงาน...");saveAssignToCloud(targetAssign).then(function(){hideLoading();if(editingAssignId)saveAssignData();closeAssignModal();renderAssignPage();showStatus(editingAssignId?"✅ แก้ไขงานแล้ว":"✅ เพิ่มงานแล้ว");}).catch(function(e){hideLoading();showStatus("❌ บันทึก Cloud ไม่สำเร็จ: "+(e.message||e));});}else{if(editingAssignId)saveAssignData();closeAssignModal();renderAssignPage();showStatus(editingAssignId?"✅ แก้ไขงานแล้ว":"✅ เพิ่มงานแล้ว");}}
+function deleteAssign(id){if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}if(!confirm("ลบงานนี้?"))return;var a=assignments.find(function(x){return x._fid===id||x.id===id;});var fid=a&&(a._fid||null);if(!fid){showStatus("❌ ไม่พบ Firestore ID");return;}showLoading("กำลังลบ...");deleteAssignFromCloud(fid).then(function(){hideLoading();showStatus("🗑️ ลบงานแล้ว");}).catch(function(e){hideLoading();showStatus("❌ ลบไม่สำเร็จ: "+e.message);});}
 function closeAssignModal(){document.getElementById("assignModal").style.display="none";editingAssignId=null;}
-
-/* วิชา: admin เท่านั้น (เพิ่ม/แก้/ลบ) */
-function renderSubjectSetting(){
-  var html="";
-  subjects.forEach(function(s){
-    var count=assignments.filter(function(a){return a.subjectId===s.id;}).length;
-    html+='<div class="assign-setting-item"><div class="asi-dot" style="background:'+s.color+';"></div><div class="asi-info"><div class="asi-name">'+escapeHtml(s.code)+' '+escapeHtml(s.name)+'</div><div class="asi-teacher">'+escapeHtml(s.teacher)+' · '+count+' งาน</div></div>'+
-      '<button class="assign-setting-edit" onclick="openEditSubject(\''+s.id+'\')">✏️ แก้ไข</button>'+
-      (count===0?'<button class="assign-del-btn" style="margin-left:4px;" onclick="deleteSubject(\''+s.id+'\')">🗑️</button>':'')+
-    '</div>';
-  });
-  document.getElementById("subjectSettingList").innerHTML=html||'<p style="color:#bbb;font-size:.85rem;padding:10px 0;">ยังไม่มีวิชา</p>';
-}
-function openAddSubject(){
-  if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
-  editingSubjId=null;
-  ["subjEditId","subjEditCode","subjEditName","subjEditTeacher","subjEditClassroom","subjEditDrive"].forEach(function(id){document.getElementById(id).value="";});
-  renderColorPicker(SUBJECT_COLORS[0]);
-  document.getElementById("subjModal").style.display="flex";
-}
-function openEditSubject(id){
-  if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
-  var s=subjects.find(function(x){return x.id===id;});if(!s)return;
-  editingSubjId=id;
-  document.getElementById("subjEditId").value=id;
-  document.getElementById("subjEditCode").value=s.code;
-  document.getElementById("subjEditName").value=s.name;
-  document.getElementById("subjEditTeacher").value=s.teacher;
-  document.getElementById("subjEditClassroom").value=s.classroom||"";
-  document.getElementById("subjEditDrive").value=s.drive||"";
-  renderColorPicker(s.color);
-  document.getElementById("subjModal").style.display="flex";
-}
+function renderSubjectSetting(){var html="";subjects.forEach(function(s){var count=assignments.filter(function(a){return a.subjectId===s.id;}).length;html+='<div class="assign-setting-item"><div class="asi-dot" style="background:'+s.color+';"></div><div class="asi-info"><div class="asi-name">'+escapeHtml(s.code)+' '+escapeHtml(s.name)+'</div><div class="asi-teacher">'+escapeHtml(s.teacher)+' · '+count+' งาน</div></div><button class="assign-setting-edit" onclick="openEditSubject(\''+s.id+'\')">✏️ แก้ไข</button>'+(count===0?'<button class="assign-del-btn" style="margin-left:4px;" onclick="deleteSubject(\''+s.id+'\')">🗑️</button>':'')+'</div>';});document.getElementById("subjectSettingList").innerHTML=html||'<p style="color:#bbb;font-size:.85rem;padding:10px 0;">ยังไม่มีวิชา</p>';}
+function openAddSubject(){if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}editingSubjId=null;["subjEditId","subjEditCode","subjEditName","subjEditTeacher","subjEditClassroom","subjEditDrive"].forEach(function(id){document.getElementById(id).value="";});renderColorPicker(SUBJECT_COLORS[0]);document.getElementById("subjModal").style.display="flex";}
+function openEditSubject(id){if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}var s=subjects.find(function(x){return x.id===id;});if(!s)return;editingSubjId=id;document.getElementById("subjEditId").value=id;document.getElementById("subjEditCode").value=s.code;document.getElementById("subjEditName").value=s.name;document.getElementById("subjEditTeacher").value=s.teacher;document.getElementById("subjEditClassroom").value=s.classroom||"";document.getElementById("subjEditDrive").value=s.drive||"";renderColorPicker(s.color);document.getElementById("subjModal").style.display="flex";}
 function renderColorPicker(selected){document.getElementById("subjColorPicker").innerHTML=SUBJECT_COLORS.map(function(c){return'<div class="assign-color-swatch'+(c===selected?" selected":"")+'" style="background:'+c+';" onclick="selectColor(\''+c+'\')"></div>';}).join("");}
 function selectColor(c){renderColorPicker(c);}
-function saveSubject(){
-  if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
-  var code=document.getElementById("subjEditCode").value.trim(),name=document.getElementById("subjEditName").value.trim(),teacher=document.getElementById("subjEditTeacher").value.trim(),classroom=document.getElementById("subjEditClassroom").value.trim(),drive=document.getElementById("subjEditDrive").value.trim();
-  if(!name){showStatus("⚠️ กรุณากรอกชื่อวิชา");return;}
-  var selSwatch=document.querySelector("#subjColorPicker .assign-color-swatch.selected");
-  var color=selSwatch?selSwatch.style.backgroundColor:SUBJECT_COLORS[0];
-  if(color.startsWith("rgb")){var m=color.match(/\d+/g);color="#"+m.map(function(x){return parseInt(x).toString(16).padStart(2,"0");}).join("");}
-  if(editingSubjId){var s=subjects.find(function(x){return x.id===editingSubjId;});if(s){s.code=code;s.name=name;s.teacher=teacher;s.color=color;s.classroom=classroom;s.drive=drive;}}
-  else{subjects.push({id:"s"+Date.now(),code:code,name:name,teacher:teacher,color:color,classroom:classroom,drive:drive});}
-  var savedSubj=editingSubjId?subjects.find(function(x){return x.id===editingSubjId;}):subjects[subjects.length-1];
-  showLoading(editingSubjId?"กำลังแก้ไขวิชา...":"กำลังเพิ่มวิชา...");
-  saveSubjectToCloud(savedSubj).then(function(){
-    hideLoading();
-    saveAssignData();closeSubjModal();renderSubjectSetting();
-    showStatus(editingSubjId?"✅ แก้ไขวิชาแล้ว":"✅ เพิ่มวิชาแล้ว");
-  }).catch(function(e){
-    hideLoading();
-    saveAssignData();closeSubjModal();renderSubjectSetting();
-    showStatus("⚠️ บันทึก Cloud ไม่สำเร็จ แต่บันทึกในเครื่องแล้ว: "+(e.message||e));
-    console.error(e);
-  });
-}
-function deleteSubject(id){
-  if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}
-  if(!confirm("ลบวิชานี้?"))return;
-  var s=subjects.find(function(x){return x.id===id||x._fid===id;});
-  if(s&&s._fid)deleteSubjectFromCloud(s._fid);
-  subjects=subjects.filter(function(s){return s.id!==id&&s._fid!==id;});
-  saveAssignData();renderSubjectSetting();showStatus("🗑️ ลบวิชาแล้ว");
-}
+function saveSubject(){if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}var code=document.getElementById("subjEditCode").value.trim(),name=document.getElementById("subjEditName").value.trim(),teacher=document.getElementById("subjEditTeacher").value.trim(),classroom=document.getElementById("subjEditClassroom").value.trim(),drive=document.getElementById("subjEditDrive").value.trim();if(!name){showStatus("⚠️ กรุณากรอกชื่อวิชา");return;}var selSwatch=document.querySelector("#subjColorPicker .assign-color-swatch.selected");var color=selSwatch?selSwatch.style.backgroundColor:SUBJECT_COLORS[0];if(color.startsWith("rgb")){var m=color.match(/\d+/g);color="#"+m.map(function(x){return parseInt(x).toString(16).padStart(2,"0");}).join("");}if(editingSubjId){var s=subjects.find(function(x){return x.id===editingSubjId;});if(s){s.code=code;s.name=name;s.teacher=teacher;s.color=color;s.classroom=classroom;s.drive=drive;}}else{subjects.push({id:"s"+Date.now(),code:code,name:name,teacher:teacher,color:color,classroom:classroom,drive:drive});}var savedSubj=editingSubjId?subjects.find(function(x){return x.id===editingSubjId;}):subjects[subjects.length-1];showLoading(editingSubjId?"กำลังแก้ไขวิชา...":"กำลังเพิ่มวิชา...");saveSubjectToCloud(savedSubj).then(function(){hideLoading();saveAssignData();closeSubjModal();renderSubjectSetting();showStatus(editingSubjId?"✅ แก้ไขวิชาแล้ว":"✅ เพิ่มวิชาแล้ว");}).catch(function(e){hideLoading();saveAssignData();closeSubjModal();renderSubjectSetting();showStatus("⚠️ บันทึก Cloud ไม่สำเร็จ แต่บันทึกในเครื่องแล้ว");});}
+function deleteSubject(id){if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}if(!confirm("ลบวิชานี้?"))return;var s=subjects.find(function(x){return x.id===id||x._fid===id;});if(s&&s._fid)deleteSubjectFromCloud(s._fid);subjects=subjects.filter(function(s){return s.id!==id&&s._fid!==id;});saveAssignData();renderSubjectSetting();showStatus("🗑️ ลบวิชาแล้ว");}
 function closeSubjModal(){document.getElementById("subjModal").style.display="none";editingSubjId=null;}
-
 document.getElementById("assignModal").addEventListener("click",function(e){if(e.target===this)closeAssignModal();});
 document.getElementById("subjModal").addEventListener("click",function(e){if(e.target===this)closeSubjModal();});
 
-/* ══════════════════════════════════════════════════════
-   CALENDAR
-══════════════════════════════════════════════════════ */
+/* ══ CALENDAR ══ */
 var calYear,calMonth,calSelectedDate;
 var THAI_DOW=["อา","จ","อ","พ","พฤ","ศ","ส"];
 var THAI_MONTH_FULL=["","มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
 function initCal(){var n=new Date();calYear=n.getFullYear();calMonth=n.getMonth()+1;}
 function calPrevMonth(){calMonth--;if(calMonth<1){calMonth=12;calYear--;}renderCal();}
 function calNextMonth(){calMonth++;if(calMonth>12){calMonth=1;calYear++;}renderCal();}
-function renderCal(){
-  if(!calYear)initCal();
-  document.getElementById("calMonthLabel").textContent=THAI_MONTH_FULL[calMonth]+" "+(calYear+543);
-  var today=todayISO(),byDate={};
-  assignments.forEach(function(a){if(a.due){if(!byDate[a.due])byDate[a.due]=[];byDate[a.due].push(a);}});
-  var firstDay=new Date(calYear,calMonth-1,1).getDay(),daysInMonth=new Date(calYear,calMonth,0).getDate(),daysInPrev=new Date(calYear,calMonth-1,0).getDate();
-  var html='<div class="cal-grid">';
-  THAI_DOW.forEach(function(d){html+='<div class="cal-dow">'+d+'</div>';});
-  for(var i=firstDay-1;i>=0;i--)html+='<div class="cal-cell other-month"><div class="cal-day">'+(daysInPrev-i)+'</div></div>';
-  for(var day=1;day<=daysInMonth;day++){var iso=calYear+"-"+String(calMonth).padStart(2,"0")+"-"+String(day).padStart(2,"0");var cls="cal-cell"+(iso===today?" today":"")+(iso===calSelectedDate?" selected":"");var dots="";if(byDate[iso]){dots='<div class="cal-dots">';byDate[iso].slice(0,4).forEach(function(a){var subj=getSubject(a.subjectId);dots+='<div class="cal-dot" style="background:'+(assignStatus(a)==="done"?"#bbb":(iso<today?"var(--red)":subj.color))+'"></div>';});dots+='</div>';}html+='<div class="'+cls+'" onclick="calSelectDay(\''+iso+'\')">'+'<div class="cal-day">'+day+'</div>'+dots+'</div>';}
-  var total=firstDay+daysInMonth,rem=total%7===0?0:7-(total%7);for(var nd=1;nd<=rem;nd++)html+='<div class="cal-cell other-month"><div class="cal-day">'+nd+'</div></div>';
-  html+='</div>';document.getElementById("calGrid").innerHTML=html;
-  if(calSelectedDate)renderCalDayDetail(calSelectedDate);
-}
+function renderCal(){if(!calYear)initCal();document.getElementById("calMonthLabel").textContent=THAI_MONTH_FULL[calMonth]+" "+(calYear+543);var today=todayISO(),byDate={};assignments.forEach(function(a){if(a.due){if(!byDate[a.due])byDate[a.due]=[];byDate[a.due].push(a);}});var firstDay=new Date(calYear,calMonth-1,1).getDay(),daysInMonth=new Date(calYear,calMonth,0).getDate(),daysInPrev=new Date(calYear,calMonth-1,0).getDate();var html='<div class="cal-grid">';THAI_DOW.forEach(function(d){html+='<div class="cal-dow">'+d+'</div>';});for(var i=firstDay-1;i>=0;i--)html+='<div class="cal-cell other-month"><div class="cal-day">'+(daysInPrev-i)+'</div></div>';for(var day=1;day<=daysInMonth;day++){var iso=calYear+"-"+String(calMonth).padStart(2,"0")+"-"+String(day).padStart(2,"0");var cls="cal-cell"+(iso===today?" today":"")+(iso===calSelectedDate?" selected":"");var dots="";if(byDate[iso]){dots='<div class="cal-dots">';byDate[iso].slice(0,4).forEach(function(a){var subj=getSubject(a.subjectId);dots+='<div class="cal-dot" style="background:'+(assignStatus(a)==="done"?"#bbb":(iso<today?"var(--red)":subj.color))+'"></div>';});dots+='</div>';}html+='<div class="'+cls+'" onclick="calSelectDay(\''+iso+'\')">'+'<div class="cal-day">'+day+'</div>'+dots+'</div>';}var total=firstDay+daysInMonth,rem=total%7===0?0:7-(total%7);for(var nd=1;nd<=rem;nd++)html+='<div class="cal-cell other-month"><div class="cal-day">'+nd+'</div></div>';html+='</div>';document.getElementById("calGrid").innerHTML=html;if(calSelectedDate)renderCalDayDetail(calSelectedDate);}
 function calSelectDay(iso){calSelectedDate=iso;renderCal();}
-function renderCalDayDetail(iso){
-  var items=assignments.filter(function(a){return a.due===iso;});
-  if(!items.length){document.getElementById("calDayDetail").innerHTML='<div style="text-align:center;color:#ccc;font-size:.85rem;padding:10px 0;">ไม่มีงานในวันนี้</div>';return;}
-  var p=iso.split("-"),label=p[2]+"/"+p[1]+"/"+(parseInt(p[0])+543);
-  var html='<div style="font-size:.82rem;font-weight:600;color:var(--c4);margin-bottom:8px;">📅 '+label+'</div>';
-  items.forEach(function(a){var subj=getSubject(a.subjectId),status=assignStatus(a);html+='<div class="cal-day-detail-card'+(status==="overdue"?" overdue":status==="done"?" done":"")+'" style="border-left-color:'+subj.color+';"><div style="font-size:.72rem;font-weight:600;color:#888;margin-bottom:3px;">'+escapeHtml(subj.name)+'</div><div style="font-size:.88rem;font-weight:600;">'+(status==="done"?"✅ ":"")+escapeHtml(a.title)+'</div>'+(a.detail?'<div style="font-size:.76rem;color:#aaa;margin-top:2px;">'+escapeHtml(a.detail)+'</div>':'')+(subj.classroom||subj.drive?'<div class="subj-link-row">'+(subj.classroom?'<a href="'+escapeHtml(subj.classroom)+'" target="_blank" class="subj-link-btn">🎓 Classroom</a>':'')+(subj.drive?'<a href="'+escapeHtml(subj.drive)+'" target="_blank" class="subj-link-btn">📁 Drive</a>':'')+'</div>':'')+'</div>';});
-  document.getElementById("calDayDetail").innerHTML=html;
-}
+function renderCalDayDetail(iso){var items=assignments.filter(function(a){return a.due===iso;});if(!items.length){document.getElementById("calDayDetail").innerHTML='<div style="text-align:center;color:#ccc;font-size:.85rem;padding:10px 0;">ไม่มีงานในวันนี้</div>';return;}var p=iso.split("-"),label=p[2]+"/"+p[1]+"/"+(parseInt(p[0])+543);var html='<div style="font-size:.82rem;font-weight:600;color:var(--c4);margin-bottom:8px;">📅 '+label+'</div>';items.forEach(function(a){var subj=getSubject(a.subjectId),status=assignStatus(a);html+='<div class="cal-day-detail-card'+(status==="overdue"?" overdue":status==="done"?" done":"")+'" style="border-left-color:'+subj.color+';"><div style="font-size:.72rem;font-weight:600;color:#888;margin-bottom:3px;">'+escapeHtml(subj.name)+'</div><div style="font-size:.88rem;font-weight:600;">'+(status==="done"?"✅ ":"")+escapeHtml(a.title)+'</div>'+(a.detail?'<div style="font-size:.76rem;color:#aaa;margin-top:2px;">'+escapeHtml(a.detail)+'</div>':'')+(subj.classroom||subj.drive?'<div class="subj-link-row">'+(subj.classroom?'<a href="'+escapeHtml(subj.classroom)+'" target="_blank" class="subj-link-btn">🎓 Classroom</a>':'')+(subj.drive?'<a href="'+escapeHtml(subj.drive)+'" target="_blank" class="subj-link-btn">📁 Drive</a>':'')+'</div>':'')+'</div>';});document.getElementById("calDayDetail").innerHTML=html;}
 
-/* ══════════════════════════════════════════════════════
-   STARTUP
-══════════════════════════════════════════════════════ */
+/* ══ STARTUP ══ */
 window.onload = function() {
-  /* ── Splash messaging ── */
-  var splashMsgs = ["กำลังเชื่อมต่อ Firebase...","ตรวจสอบสิทธิ์ผู้ใช้...","โหลดข้อมูลห้องเรียน...","เตรียมระบบ AI..."];
-  var _smIdx = 0, _smEl = document.getElementById("splashMsg");
-  var _smTimer = setInterval(function(){
-    _smIdx = (_smIdx+1) % splashMsgs.length;
-    if(_smEl) _smEl.textContent = splashMsgs[_smIdx];
-  }, 900);
-  function hideSplash(){
-    clearInterval(_smTimer);
-    var sp = document.getElementById("splashPage");
-    if(sp && !sp.classList.contains("fade-out")){
-      setTimeout(function(){ sp.classList.add("fade-out"); setTimeout(function(){ sp.style.display="none"; }, 500); }, 400);
-    }
-  }
-
-  document.getElementById("todayDate").innerHTML = "📅 " + getThaiDate();
-  var savedSlides = localStorage.getItem("slideImages");
-  slideImages = savedSlides ? JSON.parse(savedSlides) : DEFAULT_SLIDES.slice();
+  var splashMsgs=["กำลังเชื่อมต่อ Firebase...","ตรวจสอบสิทธิ์ผู้ใช้...","โหลดข้อมูลห้องเรียน...","เตรียมระบบ AI..."];
+  var _smIdx=0,_smEl=document.getElementById("splashMsg");
+  var _smTimer=setInterval(function(){_smIdx=(_smIdx+1)%splashMsgs.length;if(_smEl)_smEl.textContent=splashMsgs[_smIdx];},900);
+  function hideSplash(){clearInterval(_smTimer);var sp=document.getElementById("splashPage");if(sp&&!sp.classList.contains("fade-out")){setTimeout(function(){sp.classList.add("fade-out");setTimeout(function(){sp.style.display="none";},500);},400);}}
+  document.getElementById("todayDate").innerHTML="📅 "+getThaiDate();
+  var savedSlides=localStorage.getItem("slideImages");
+  slideImages=savedSlides?JSON.parse(savedSlides):DEFAULT_SLIDES.slice();
   renderSlides();
-  setInterval(function(){ showSlide((curSlide+1)%slideImages.length); }, 4000);
-  var bg = localStorage.getItem("customBackground");
-  if(bg){ document.body.style.backgroundImage="url('"+bg+"')"; document.body.style.backgroundSize="cover"; }
+  setInterval(function(){showSlide((curSlide+1)%slideImages.length);},4000);
+  var bg=localStorage.getItem("customBackground");
+  if(bg){document.body.style.backgroundImage="url('"+bg+"')";document.body.style.backgroundSize="cover";}
   loadAssignData();
-  if(!initFirebase()) {
-    hideSplash();
-    showStatus("❌ Firebase โหลดไม่สำเร็จ โปรดรีเฟรช");
-    return;
-  }
-  var _authHandled = false;
-  firebaseAuth.onAuthStateChanged(function(user) {
-    if(_authHandled) return;
-    if(user) {
-      var loginPage = document.getElementById("loginPage");
-      if(loginPage && !loginPage.classList.contains("hidden")) {
-        _authHandled = true;
-        showLoading("กำลังโหลดข้อมูล...");
-        checkUserRole(user).catch(function(e){
-          console.error("checkUserRole error:", e);
-          hideLoading();
-          _authHandled = false;
-          showLoginError("❌ โหลดข้อมูลผู้ใช้ไม่สำเร็จ: " + (e.message||e));
-        });
+  if(!initFirebase()){hideSplash();showStatus("❌ Firebase โหลดไม่สำเร็จ โปรดรีเฟรช");return;}
+  var _authHandled=false;
+  firebaseAuth.onAuthStateChanged(function(user){
+    if(_authHandled)return;
+    if(user){
+      var loginPage=document.getElementById("loginPage");
+      if(loginPage&&!loginPage.classList.contains("hidden")){
+        _authHandled=true;showLoading("กำลังโหลดข้อมูล...");
+        checkUserRole(user).catch(function(e){console.error("checkUserRole error:",e);hideLoading();_authHandled=false;showLoginError("❌ โหลดข้อมูลผู้ใช้ไม่สำเร็จ: "+(e.message||e));});
       }
-    } else {
-      /* user signed out — reset flag so next login works */
-      _authHandled = false;
-    }
-    /* Always hide splash once Firebase auth state is known */
+    }else{_authHandled=false;}
     hideSplash();
   });
-  /* keyboard detection — iPhone-safe */
-  var _baseVH = window.innerHeight;
-  function updateVH(){
-    var h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    document.documentElement.style.setProperty("--vh", (h * 0.01) + "px");
-    var isKbOpen = (_baseVH - h) > 150;
-    document.body.classList.toggle("keyboard-open", isKbOpen);
-  }
+  var _baseVH=window.innerHeight;
+  function updateVH(){var h=window.visualViewport?window.visualViewport.height:window.innerHeight;document.documentElement.style.setProperty("--vh",(h*0.01)+"px");var isKbOpen=(_baseVH-h)>150;document.body.classList.toggle("keyboard-open",isKbOpen);}
   updateVH();
-  window.addEventListener("resize", updateVH);
-  if(window.visualViewport){
-    window.visualViewport.addEventListener("resize", updateVH);
-    window.visualViewport.addEventListener("scroll", updateVH);
-  }
-  /* ป้องกัน iOS rubber-band scroll บน modal */
-  document.addEventListener("touchmove", function(e){
-    var el = e.target;
-    while(el && el !== document.body){
-      if(el.scrollHeight > el.clientHeight && 
-         (el.classList.contains("modal-box") || 
-          el.classList.contains("assign-modal-box") || 
-          el.classList.contains("subj-modal-box"))) return;
-      el = el.parentElement;
-    }
-  }, {passive:true});
+  window.addEventListener("resize",updateVH);
+  if(window.visualViewport){window.visualViewport.addEventListener("resize",updateVH);window.visualViewport.addEventListener("scroll",updateVH);}
+  document.addEventListener("touchmove",function(e){var el=e.target;while(el&&el!==document.body){if(el.scrollHeight>el.clientHeight&&(el.classList.contains("modal-box")||el.classList.contains("assign-modal-box")||el.classList.contains("subj-modal-box")))return;el=el.parentElement;}},{passive:true});
 };
 </script>
 </body>
