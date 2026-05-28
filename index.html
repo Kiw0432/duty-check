@@ -856,13 +856,14 @@ var _allStudentStatuses = {};
 */
 var _CACHE_TTL_MS = 5 * 60 * 1000; // 5 นาที
 function saveLogsCache(logs){
-  try{ localStorage.setItem("logs_cache", JSON.stringify({ts:Date.now(), data:logs})); }catch(e){}
+  try{ localStorage.setItem("logs_cache", JSON.stringify({ts:Date.now(), v:2, data:logs})); }catch(e){}
 }
 function loadLogsCache(){
   try{
     var raw = localStorage.getItem("logs_cache");
     if(!raw) return null;
     var obj = JSON.parse(raw);
+    if(obj.v !== 2) return null; /* ล้าง cache เก่าที่ใช้ date string query */
     if(Date.now() - obj.ts < _CACHE_TTL_MS) return obj.data;
   }catch(e){}
   return null;
@@ -1001,11 +1002,13 @@ function startRealtimeSync() {
   if (!firestoreDB) return;
   if (realtimeUnsubscribe) { try { realtimeUnsubscribe(); } catch(e){} realtimeUnsubscribe = null; }
 
-  /* ✅ OPTIMIZATION 1: ถ้ายังมี cache ใหม่อยู่ ให้ใช้ก่อน ไม่ต้องรอ Firestore */
+  /* ✅ ล้าง cache เก่าที่อาจ filter ผิด แล้วโหลดใหม่จาก Firestore เสมอ */
   var cached = loadLogsCache();
-  if(cached){
+  if(cached && cached.length > 0){
     _cachedLogs = cached;
     renderHistory(); updateDashboard(); renderChart();
+  } else {
+    localStorage.removeItem("logs_cache");
   }
 
   /* ✅ OPTIMIZATION 2: Tab visibility — pause listener เมื่อ tab hidden */
