@@ -1010,10 +1010,10 @@ function startRealtimeSync() {
 
   /* ✅ OPTIMIZATION 2: Tab visibility — pause listener เมื่อ tab hidden */
   function startListener(){
-    /* ✅ OPTIMIZATION 3: จำกัดเฉพาะ 90 วันล่าสุด (ป้องกัน reads พุ่งเมื่อข้อมูลสะสม) */
-    var cutoff = thaiDateNDaysAgo(90);
+    /* ✅ OPTIMIZATION 3: จำกัดเฉพาะ 90 วันล่าสุด ใช้ createdAt (epoch) แทน date string */
+    var cutoffTs = Date.now() - (90 * 24 * 60 * 60 * 1000);
     realtimeUnsubscribe = logsCol()
-      .where("date", ">=", cutoff)
+      .where("createdAt", ">=", cutoffTs)
       .onSnapshot(function(snapshot) {
         trackRead(snapshot.size); /* นับ reads จริง */
         _cachedLogs = [];
@@ -1055,9 +1055,9 @@ function getAllLogs(){
   /* ถ้ายังไม่มี ดูใน localStorage ก่อน */
   var cached = loadLogsCache();
   if(cached){ _cachedLogs = cached; return Promise.resolve(cached.slice()); }
-  /* Last resort: query Firestore แต่จำกัด 90 วัน */
-  var cutoff = thaiDateNDaysAgo(90);
-  return logsCol().where("date",">=",cutoff).get().then(function(snap){
+  /* Last resort: query Firestore แต่จำกัด 90 วัน ใช้ createdAt (epoch) */
+  var cutoffTs = Date.now() - (90 * 24 * 60 * 60 * 1000);
+  return logsCol().where("createdAt",">=",cutoffTs).get().then(function(snap){
     trackRead(snap.size);
     var logs=[];
     snap.forEach(function(doc){ var d=doc.data(); d._firestoreId=doc.id; logs.push(d); });
