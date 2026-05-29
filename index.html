@@ -869,6 +869,34 @@ var _cachedLogs = [], _cachedAssignmentStatus = {};
 var realtimeUnsubscribe = null;
 var firestoreDB = null, firebaseAuth = null;
 var _allStudentStatuses = {};
+/* ✅ OPTIMIZATION: cache สำหรับ assignment_status (admin) — ป้องกันดึงซ้ำหลายรอบ */
+var _adminStatusCache = null;      // snapshot data
+var _adminStatusCacheTs = 0;       // เวลาที่ cache ครั้งล่าสุด
+var _ADMIN_STATUS_TTL = 5 * 60 * 1000; // TTL 5 นาที
+function _invalidateAdminStatusCache(){ _adminStatusCache = null; _adminStatusCacheTs = 0; }
+function _getAdminStatusCached(){
+  if(_adminStatusCache && (Date.now() - _adminStatusCacheTs) < _ADMIN_STATUS_TTL)
+    return Promise.resolve(_adminStatusCache);
+  return assignStatusCol().get().then(function(snapshot){
+    trackRead(snapshot.size);
+    var statusMap={}, uidToSid={};
+    snapshot.forEach(function(doc){
+      var d=doc.data();
+      if(!statusMap[d.uid]) statusMap[d.uid]={};
+      uidToSid[d.uid]=d.studentId||"";
+      if(d.done) statusMap[d.uid][d.assignId]=true;
+    });
+    var studentDoneMap={};
+    Object.keys(statusMap).forEach(function(uid){
+      var sid=uidToSid[uid]; if(!sid) return;
+      if(!studentDoneMap[sid]) studentDoneMap[sid]={};
+      Object.keys(statusMap[uid]).forEach(function(aid){ studentDoneMap[sid][aid]=true; });
+    });
+    _adminStatusCache = studentDoneMap;
+    _adminStatusCacheTs = Date.now();
+    return studentDoneMap;
+  });
+}
 
 /* ══ LOCAL CACHE ══
    Key: "logs_cache" → { ts: timestamp, data: [...] }
@@ -1144,6 +1172,7 @@ function saveAssignStatusCloud(assignId, done, imageBase64, aiResult) {
   var data = { uid: currentUser.uid, studentId: sid, assignId: assignId, done: done, doneAt: Date.now() };
   if (imageBase64) data.imageBase64 = imageBase64;
   if (aiResult)    data.aiResult    = aiResult;
+  _invalidateAdminStatusCache(); /* ✅ บังคับ admin ดึง status ใหม่ครั้งหน้า */
   return assignStatusCol().doc(key).set(data);
 }
 function isAssignDone(assignId) {
@@ -1265,7 +1294,9 @@ var _adminAITimer=null;
 function renderAdminAISummary(){
   if(!isAdmin) return;
   document.getElementById("adminAiSection").classList.remove("hidden");
-  renderAdminAssignTable();
+  /* ✅ เรียก renderAdminAssignTable เฉพาะถ้าอยู่ที่แท็บ assign เท่านั้น
+     (ป้องกัน render ซ้ำเมื่อ switchAdminTab('assign') จะเรียกอีกครั้งอยู่แล้ว) */
+  if(_adminTab === "assign") renderAdminAssignTable();
   /* ✅ Debounce เพื่อป้องกัน render ซ้ำในช่วงเวลาสั้น */
   if(_adminAITimer){clearTimeout(_adminAITimer);_adminAITimer=null;}
   _adminAITimer=setTimeout(function(){_doRenderAdminAI();},250);
@@ -1320,23 +1351,13 @@ function renderAdminAssignTable() {
     return;
   }
   document.getElementById("adminAssignTable").dataset.loaded = "1";
-  document.getElementById("adminAssignTable").innerHTML = '<div style="text-align:center;color:#bbb;padding:20px;font-size:.85rem;">⏳ กำลังโหลดสถานะการส่งงาน...</div>';
-  /* ✅ ดึง assignment_status ครั้งเดียว (get แทน onSnapshot ประหยัด reads) */
-  assignStatusCol().get().then(function(snapshot) {
-    trackRead(snapshot.size);
-    var statusMap={}, uidToStudent={};
-    snapshot.forEach(function(doc){
-      var d=doc.data();
-      if(!statusMap[d.uid]) statusMap[d.uid]={};
-      uidToStudent[d.uid]=d.studentId||"";
-      if(d.done) statusMap[d.uid][d.assignId]=true;
-    });
-    var studentDoneMap={};
-    Object.keys(statusMap).forEach(function(uid){
-      var sid=uidToStudent[uid]; if(!sid) return;
-      if(!studentDoneMap[sid]) studentDoneMap[sid]={};
-      Object.keys(statusMap[uid]).forEach(function(aid){ studentDoneMap[sid][aid]=true; });
-    });
+  /* ✅ ใช้ cache แทนการ query ซ้ำ — หมด TTL จึงดึงใหม่ */
+  if(_adminStatusCache && (Date.now() - _adminStatusCacheTs) < _ADMIN_STATUS_TTL){
+    /* cache ยังสด — render เลย ไม่ spinner */
+  } else {
+    document.getElementById("adminAssignTable").innerHTML = '<div style="text-align:center;color:#bbb;padding:20px;font-size:.85rem;">⏳ กำลังโหลดสถานะการส่งงาน...</div>';
+  }
+  _getAdminStatusCached().then(function(studentDoneMap) {
     var rows=STUDENTS.map(function(s){
       var doneCount=0;
       assignments.forEach(function(a){ var aKey=a._fid||a.id; if(studentDoneMap[s.id]&&studentDoneMap[s.id][aKey]) doneCount++; });
@@ -1377,22 +1398,9 @@ function runAdminAssignAI() {
   var totalAssign=assignments.length;
   if(totalAssign===0){showStatus("⚠️ ยังไม่มีงานในระบบ");return;}
   showLoading("กำลังวิเคราะห์...");
-  assignStatusCol().get().then(function(snapshot){
+  _getAdminStatusCached().then(function(studentDoneMap){
     hideLoading();
-    trackRead(snapshot.size);
-    var statusMap={},uidToSid={};
-    snapshot.forEach(function(doc){
-      var d=doc.data();
-      if(!statusMap[d.uid])statusMap[d.uid]={};
-      uidToSid[d.uid]=d.studentId||"";
-      if(d.done)statusMap[d.uid][d.assignId]=true;
-    });
-    var studentDoneMap={};
-    Object.keys(statusMap).forEach(function(uid){
-      var sid=uidToSid[uid];if(!sid)return;
-      if(!studentDoneMap[sid])studentDoneMap[sid]={};
-      Object.keys(statusMap[uid]).forEach(function(aid){studentDoneMap[sid][aid]=true;});
-    });
+    /* สร้าง studentStats จาก studentDoneMap */
     var studentStats=STUDENTS.map(function(s){
       var doneCount=0;
       assignments.forEach(function(a){var aKey=a._fid||a.id;if(studentDoneMap[s.id]&&studentDoneMap[s.id][aKey])doneCount++;});
