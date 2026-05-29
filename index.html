@@ -134,6 +134,8 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 .badge-work{background:#e8f5ec;color:#4a9b65;}
 .badge-leave{background:#fff0f0;color:#c75b5b;}
 .badge-late{background:#fff8e8;color:#b87a30;}
+.badge-task{background:#e8f0ff;color:#2980b9;}
+.badge-absent{background:#f5e8f5;color:#8e44ad;}
 .filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
 .filter-bar input[type=date]{flex:1;min-width:130px;margin-bottom:0;}
 .storage-bar-wrap{background:var(--c1);border-radius:12px;padding:10px 14px;margin-bottom:12px;}
@@ -662,6 +664,8 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
       <button class="edit-type-btn" style="background:#e8f5ec;color:#4a9b65;" onclick="applyRetroEdit('ทำเวร')"><span class="eti">🧹</span>ทำเวร</button>
       <button class="edit-type-btn" style="background:#fff0f0;color:#c75b5b;" onclick="applyRetroEdit('ลา')"><span class="eti">📋</span>ลา</button>
       <button class="edit-type-btn" style="background:#fff8e8;color:#b87a30;" onclick="applyRetroEdit('มาสาย')"><span class="eti">⏰</span>มาสาย</button>
+      <button class="edit-type-btn" style="background:#e8f0ff;color:#2980b9;" onclick="applyRetroEdit('ทำภารกิจ')"><span class="eti">🎯</span>ทำภารกิจ</button>
+      <button class="edit-type-btn" style="background:#f5e8f5;color:#8e44ad;" onclick="applyRetroEdit('ขาด')"><span class="eti">❌</span>ขาด</button>
     </div>
     <button class="btn-danger" onclick="deleteRetroRecord()" style="width:100%;margin-bottom:8px;">🗑️ ลบรายการนี้</button>
     <button class="btn-soft"   onclick="closeRetroEdit()"    style="width:100%;">ยกเลิก</button>
@@ -1078,12 +1082,16 @@ function getAllLogs(){
   /* ถ้ายังไม่มี ดูใน localStorage ก่อน */
   var cached = loadLogsCache();
   if(cached){ _cachedLogs = cached; return Promise.resolve(cached.slice()); }
-  /* Last resort: query Firestore แต่จำกัด 90 วัน ใช้ createdAt (epoch) */
+  /* Last resort: query Firestore — ดึงทั้ง 90 วัน + docs เก่าที่ไม่มี createdAt */
   var cutoffTs = Date.now() - (90 * 24 * 60 * 60 * 1000);
-  return logsCol().where("createdAt",">=",cutoffTs).get().then(function(snap){
-    trackRead(snap.size);
-    var logs=[];
-    snap.forEach(function(doc){ var d=doc.data(); d._firestoreId=doc.id; logs.push(d); });
+  var qNew = logsCol().where("createdAt",">=",cutoffTs).get();
+  var qLegacy = logsCol().where("createdAt","==",null).get().catch(function(){ return {forEach:function(){},size:0}; });
+  return Promise.all([qNew, qLegacy]).then(function(results){
+    var snap1=results[0], snap2=results[1];
+    trackRead((snap1.size||0)+(snap2.size||0));
+    var seen={}, logs=[];
+    function addSnap(snap){ if(snap&&snap.forEach) snap.forEach(function(doc){ if(!seen[doc.id]){seen[doc.id]=true;var d=doc.data();d._firestoreId=doc.id;logs.push(d);} }); }
+    addSnap(snap1); addSnap(snap2);
     logs.sort(function(a,b){return(a.createdAt||0)-(b.createdAt||0);});
     _cachedLogs = logs; saveLogsCache(logs);
     return logs.slice();
@@ -1266,9 +1274,9 @@ function _doRenderAdminAI(){
   getAllLogs().then(function(logs){
     var total=STUDENTS.length, today=getThaiDate(), seenToday={};
     logs.filter(function(r){return r.date===today;}).forEach(function(r){seenToday[r.studentId]=r.action;});
-    var workCount=0,leaveCount=0,lateCount=0;
+    var workCount=0,leaveCount=0,lateCount=0,taskCount=0,absentCount=0;
     Object.values(seenToday).forEach(function(a){
-      if(a==="ทำเวร")workCount++;else if(a==="ลา")leaveCount++;else lateCount++;
+      if(a==="ทำเวร")workCount++;else if(a==="ลา")leaveCount++;else if(a==="มาสาย")lateCount++;else if(a==="ทำภารกิจ")taskCount++;else absentCount++;
     });
     var todayChecked=Object.keys(seenToday).length;
     var workPct=Math.round(workCount/total*100),leavePct=Math.round(leaveCount/total*100),latePct=Math.round(lateCount/total*100);
@@ -1439,7 +1447,7 @@ function buildPrintHTML(logs, monthKeys) {
     var lookup={};
     monthLogs.forEach(function(r){if(!lookup[r.date])lookup[r.date]={};lookup[r.date][r.studentId]=r.action;});
     var workTotal=0,leaveTotal=0,lateTotal=0,taskTotal=0,absentTotal=0;
-    monthLogs.forEach(function(r){if(r.action==='ทำเวร')workTotal++;else if(r.action==='ลา')leaveTotal++;else if(r.action==='มาสาย')lateTotal++;else if(r.action==='ทำภารกิจ')taskTotal++;else absentTotal++;});absentTotal+=STUDENTS.length*dates.length-workTotal-leaveTotal-lateTotal-taskTotal-absentTotal;
+    monthLogs.forEach(function(r){if(r.action==='ทำเวร')workTotal++;else if(r.action==='ลา')leaveTotal++;else if(r.action==='มาสาย')lateTotal++;else if(r.action==='ทำภารกิจ')taskTotal++;else if(r.action==='ขาด')absentTotal++;});var unrecorded=Math.max(0,STUDENTS.length*dates.length-workTotal-leaveTotal-lateTotal-taskTotal-absentTotal);absentTotal+=unrecorded;
     var headCells='<th>ที่</th><th class="td-name">ชื่อ-สกุล</th>'+dates.map(function(d){return'<th>'+d.split('/')[0]+'</th>';}).join('')+'<th>รวม</th>';
     var bodyRows=STUDENTS.map(function(s){
       var work=0,leave=0,late=0,task=0;
@@ -1468,8 +1476,8 @@ function getThaiDate(){var n=new Date();return n.getDate().toString().padStart(2
 function thaiDateToISO(d){if(!d)return"";var p=d.split("/");if(p.length<3)return"";return String(parseInt(p[2])-543).padStart(4,'0')+"-"+p[1].padStart(2,'0')+"-"+p[0].padStart(2,'0');}
 var THAI_MONTHS=["","ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
 function monthKeyToLabel(k){var p=k.split("/");return THAI_MONTHS[parseInt(p[0])]+" "+p[1];}
-function actionIcon(a){return a==="ทำเวร"?"🧹":a==="ลา"?"📋":"⏰";}
-function actionBadgeClass(a){return a==="ทำเวร"?"badge-work":a==="ลา"?"badge-leave":"badge-late";}
+function actionIcon(a){return a==="ทำเวร"?"🧹":a==="ลา"?"📋":a==="มาสาย"?"⏰":a==="ทำภารกิจ"?"🎯":a==="ขาด"?"❌":"❓";}
+function actionBadgeClass(a){return a==="ทำเวร"?"badge-work":a==="ลา"?"badge-leave":a==="มาสาย"?"badge-late":a==="ทำภารกิจ"?"badge-task":a==="ขาด"?"badge-absent":"badge-late";}
 function showLoginError(msg){var el=document.getElementById("loginError");el.textContent=msg;el.style.display="block";}
 function safeSetItem(k,v){try{localStorage.setItem(k,v);return true;}catch(e){showStatus("⚠️ พื้นที่เต็ม");return false;}}
 function updateStorageStatus(id){updateQuotaBadge();}
