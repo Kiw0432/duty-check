@@ -1438,22 +1438,22 @@ function buildPrintHTML(logs, monthKeys) {
     var dates=Object.keys(datesSet).sort(function(a,b){return parseInt(a.split('/')[0])-parseInt(b.split('/')[0]);});
     var lookup={};
     monthLogs.forEach(function(r){if(!lookup[r.date])lookup[r.date]={};lookup[r.date][r.studentId]=r.action;});
-    var workTotal=0,leaveTotal=0,lateTotal=0;
-    monthLogs.forEach(function(r){if(r.action==='ทำเวร')workTotal++;else if(r.action==='ลา')leaveTotal++;else lateTotal++;});
+    var workTotal=0,leaveTotal=0,lateTotal=0,absentTotal=0;
+    monthLogs.forEach(function(r){if(r.action==='ทำเวร')workTotal++;else if(r.action==='ลา')leaveTotal++;else if(r.action==='มาสาย')lateTotal++;else absentTotal++;});absentTotal+=STUDENTS.length*dates.length-workTotal-leaveTotal-lateTotal-absentTotal;
     var headCells='<th>ที่</th><th class="td-name">ชื่อ-สกุล</th>'+dates.map(function(d){return'<th>'+d.split('/')[0]+'</th>';}).join('')+'<th>รวม</th>';
     var bodyRows=STUDENTS.map(function(s){
       var work=0,leave=0,late=0;
-      var cells=dates.map(function(d){var action=lookup[d]&&lookup[d][s.id];if(action==='ทำเวร'){work++;return'<td class="v">V</td>';}if(action==='ลา'){leave++;return'<td class="l">L</td>';}if(action==='มาสาย'){late++;return'<td class="s">S</td>';}return'<td>-</td>';}).join('');
+      var cells=dates.map(function(d){var action=lookup[d]&&lookup[d][s.id];if(action==='ทำเวร'){work++;return'<td class="v">V</td>';}if(action==='ลา'){leave++;return'<td class="l">L</td>';}if(action==='มาสาย'){late++;return'<td class="s">S</td>';}if(action==='ขาด'){return'<td class="ab">X</td>';}return'<td class="ab">X</td>';}).join('');
       return'<tr><td>'+s.no+'</td><td class="td-name">'+s.name.replace(/^(นาย|นางสาว|นาง)/,'')+'</td>'+cells+'<td class="sum">'+work+'/'+dates.length+'</td></tr>';
     }).join('');
     return'<div class="page"><h2>ระบบห้องเรียน M5/1 — รายงานเวร: '+monthLabel+'</h2>'+
-      '<p class="meta">V=ทำเวร &nbsp; L=ลา &nbsp; S=มาสาย &nbsp; -=ไม่มีบันทึก'+
-      ' &nbsp;|&nbsp; Work: '+workTotal+' &nbsp; Leave: '+leaveTotal+' &nbsp; Late: '+lateTotal+' &nbsp; Days: '+dates.length+'</p>'+
+      '<p class="meta">V=ทำเวร &nbsp; L=ลา &nbsp; S=มาสาย &nbsp; X=ขาด'+
+      ' &nbsp;|&nbsp; Work: '+workTotal+' &nbsp; Leave: '+leaveTotal+' &nbsp; Late: '+lateTotal+' &nbsp; Absent: '+absentTotal+' &nbsp; Days: '+dates.length+'</p>'+
       '<table><thead><tr>'+headCells+'</tr></thead><tbody>'+bodyRows+'</tbody></table>'+
       '<p class="footer">Generated: '+new Date().toLocaleDateString('th-TH')+' | ระบบห้องเรียน M5/1</p></div>';
   }).join('');
   return'<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>ระบบห้องเรียน M5/1 รายงานเวร</title>'+
-    '<style>body{font-family:system-ui,-apple-system,sans-serif;font-size:10px;color:#333;margin:0;padding:0;}.page{padding:14mm 12mm;page-break-after:always;}.page:last-child{page-break-after:avoid;}h2{font-size:14px;margin:0 0 4px;}.meta{font-size:8.5px;color:#666;margin:0 0 8px;}.footer{font-size:7.5px;color:#aaa;margin-top:8px;}table{width:100%;border-collapse:collapse;table-layout:auto;}th,td{border:1px solid #ccc;padding:3px 4px;text-align:center;white-space:nowrap;font-size:8.5px;}th{background:#D9A299;color:white;font-weight:600;}tr:nth-child(even){background:#faf7f3;}td.td-name{text-align:left;white-space:normal;min-width:80px;}td.v{color:#4a9b65;font-weight:700;}td.l{color:#c75b5b;font-weight:700;}td.s{color:#b87a30;font-weight:700;}td.sum{font-weight:700;}@media print{@page{size:A4 landscape;margin:0;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body>'+pages+'</body></html>';
+    '<style>body{font-family:system-ui,-apple-system,sans-serif;font-size:10px;color:#333;margin:0;padding:0;}.page{padding:14mm 12mm;page-break-after:always;}.page:last-child{page-break-after:avoid;}h2{font-size:14px;margin:0 0 4px;}.meta{font-size:8.5px;color:#666;margin:0 0 8px;}.footer{font-size:7.5px;color:#aaa;margin-top:8px;}table{width:100%;border-collapse:collapse;table-layout:auto;}th,td{border:1px solid #ccc;padding:3px 4px;text-align:center;white-space:nowrap;font-size:8.5px;}th{background:#D9A299;color:white;font-weight:600;}tr:nth-child(even){background:#faf7f3;}td.td-name{text-align:left;white-space:normal;min-width:80px;}td.v{color:#4a9b65;font-weight:700;}td.l{color:#c75b5b;font-weight:700;}td.s{color:#b87a30;font-weight:700;}td.ab{color:#9b59b6;font-weight:700;}td.sum{font-weight:700;}@media print{@page{size:A4 landscape;margin:0;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body>'+pages+'</body></html>';
 }
 function openPrintWindow(html){var w=window.open('','_blank','width=900,height=650');if(!w){showStatus('❌ Pop-up ถูกบล็อก กรุณาอนุญาต pop-up แล้วลองใหม่');return;}w.document.write(html);w.document.close();w.onload=function(){w.focus();w.print();};}
 function getMonthsFromLogs(logs){var months={};logs.forEach(function(r){if(!r.date)return;var p=r.date.split('/');if(p.length<3)return;months[p[1]+'/'+p[2]]=true;});return Object.keys(months).sort();}
