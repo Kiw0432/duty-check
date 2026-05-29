@@ -46,10 +46,11 @@ button:hover{transform:translateY(-2px);}
 .btn-danger{background:var(--red);color:white;}
 .btn-green{background:var(--green);color:white;}
 .btn-blue{background:var(--blue);color:white;}
-.banner-slider{width:100%;height:340px;border-radius:30px;overflow:hidden;position:relative;margin-bottom:24px;}
+.banner-slider{width:100%;height:340px;border-radius:30px;overflow:hidden;position:relative;margin-bottom:24px;background:linear-gradient(135deg,var(--c3),var(--c4));}
 .slides{width:100%;height:100%;position:relative;}
 .slide{position:absolute;width:100%;height:100%;opacity:0;transition:1s;}
 .slide.active{opacity:1;}
+.slide{background:linear-gradient(135deg,var(--c3),var(--c4));} /* ✅ placeholder ระหว่างรอโหลด */
 .slide img{width:100%;height:100%;object-fit:cover;transition:transform 8s ease;}
 .slide.active img{transform:scale(1.05);}
 .dots{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:5;}
@@ -845,6 +846,13 @@ var DEFAULT_SLIDES = [
   "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop",
   "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1200&auto=format&fit=crop"
 ];
+/* ✅ Preload รูป slide แรกทันทีเมื่อ DOM พร้อม */
+(function(){
+  var link=document.createElement("link");
+  link.rel="preload";link.as="image";
+  link.href=DEFAULT_SLIDES[0];
+  document.head.appendChild(link);
+})();
 
 /* ══ STATE ══ */
 var isAdmin = false, currentUser = null, currentUserDoc = null;
@@ -870,7 +878,8 @@ function loadLogsCache(){
     if(!raw) return null;
     var obj = JSON.parse(raw);
     if(obj.v !== 2) return null; /* ล้าง cache เก่าที่ใช้ date string query */
-    if(Date.now() - obj.ts < _CACHE_TTL_MS) return obj.data;
+    /* ✅ คืน data แม้ TTL หมด ถ้า _cachedLogs ว่าง (ดีกว่า null) */
+    if(Date.now() - obj.ts < _CACHE_TTL_MS || _cachedLogs.length===0) return obj.data;
   }catch(e){}
   return null;
 }
@@ -1037,7 +1046,9 @@ function startRealtimeSync() {
   startListener();
 
   /* ✅ OPTIMIZATION 4: Pause/resume เมื่อ tab เปลี่ยน visibility */
-  document.addEventListener("visibilitychange", function(){
+  /* ✅ ลบ listener เก่าก่อน เพื่อป้องกัน stack */
+  if(window._visibilityHandler){document.removeEventListener("visibilitychange",window._visibilityHandler);}
+  window._visibilityHandler=function(){
     if(document.hidden){
       /* Tab hidden — unsubscribe เพื่อหยุดรับ updates (ประหยัด reads) */
       if(realtimeUnsubscribe){ try{realtimeUnsubscribe();}catch(e){} realtimeUnsubscribe=null; }
@@ -1054,7 +1065,8 @@ function startRealtimeSync() {
         }
       }
     }
-  });
+  };
+  document.addEventListener("visibilitychange",window._visibilityHandler);
 }
 
 /* ✅ OPTIMIZATION 5: getAllLogs — ดึงจาก cache ก่อน ไม่ query Firestore ซ้ำ */
@@ -1239,10 +1251,16 @@ function switchAdminTab(tab) {
   document.getElementById("adminTabAssign").classList.toggle("hidden", tab!=="assign");
   if (tab==="assign") renderAdminAssignTable();
 }
+var _adminAITimer=null;
 function renderAdminAISummary(){
   if(!isAdmin) return;
   document.getElementById("adminAiSection").classList.remove("hidden");
   renderAdminAssignTable();
+  /* ✅ Debounce เพื่อป้องกัน render ซ้ำในช่วงเวลาสั้น */
+  if(_adminAITimer){clearTimeout(_adminAITimer);_adminAITimer=null;}
+  _adminAITimer=setTimeout(function(){_doRenderAdminAI();},250);
+}
+function _doRenderAdminAI(){
   getAllLogs().then(function(logs){
     var total=STUDENTS.length, today=getThaiDate(), seenToday={};
     logs.filter(function(r){return r.date===today;}).forEach(function(r){seenToday[r.studentId]=r.action;});
@@ -1464,8 +1482,51 @@ function openPage(id){
 function goHome(){["checkPage","dashboardPage","historyPage","assignPage"].forEach(function(p){document.getElementById(p).classList.add("hidden");});document.getElementById("homePage").classList.remove("hidden");}
 
 /* ══ SLIDES ══ */
-function renderSlides(){var sc=document.getElementById("slides"),dc=document.getElementById("dots");if(!sc||!dc)return;sc.innerHTML="";dc.innerHTML="";slideImages.forEach(function(img,i){sc.innerHTML+='<div class="slide'+(i===0?" active":"")+'"><img src="'+img+'" loading="lazy"></div>';dc.innerHTML+='<div class="dot'+(i===0?" active":"")+'" onclick="showSlide('+i+')"></div>';});}
-function showSlide(i){document.querySelectorAll(".slide").forEach(function(s,idx){s.classList.toggle("active",idx===i);});document.querySelectorAll(".dot").forEach(function(d,idx){d.classList.toggle("active",idx===i);});curSlide=i;}
+var _slideTimer = null;
+function renderSlides(){
+  var sc=document.getElementById("slides"),dc=document.getElementById("dots");
+  if(!sc||!dc)return;
+  /* ✅ ไม่ล้าง DOM ถ้ารูปยังเหมือนเดิม — ป้องกัน reload ซ้ำ */
+  var existing=sc.querySelectorAll(".slide img");
+  var needRebuild=(existing.length!==slideImages.length);
+  if(!needRebuild){
+    existing.forEach(function(img,i){if(img.src!==slideImages[i]&&!(img.src==="" && !slideImages[i]))needRebuild=true;});
+  }
+  if(needRebuild){
+    sc.innerHTML="";dc.innerHTML="";
+    slideImages.forEach(function(img,i){
+      var slide=document.createElement("div");
+      slide.className="slide"+(i===0?" active":"");
+      var im=document.createElement("img");
+      /* ✅ loading=lazy ยกเว้น slide แรก */
+      if(i>0) im.loading="lazy";
+      /* ✅ fallback สีพื้นหลังถ้ารูปโหลดไม่ได้ */
+      im.onerror=function(){this.style.display="none";this.parentElement.style.background="linear-gradient(135deg,var(--c3),var(--c4))";};
+      im.src=img;
+      slide.appendChild(im);
+      sc.appendChild(slide);
+      var dot=document.createElement("div");
+      dot.className="dot"+(i===0?" active":"");
+      dot.setAttribute("onclick","showSlide("+i+")");
+      dc.appendChild(dot);
+    });
+  } else {
+    /* ✅ ถ้า DOM เหมือนเดิม แค่ sync active class */
+    sc.querySelectorAll(".slide").forEach(function(s,idx){s.classList.toggle("active",idx===curSlide);});
+    dc.querySelectorAll(".dot").forEach(function(d,idx){d.classList.toggle("active",idx===curSlide);});
+  }
+  /* ✅ รีเซ็ต auto-slide timer ทุกครั้งที่ rebuild */
+  if(_slideTimer){clearInterval(_slideTimer);_slideTimer=null;}
+  if(slideImages.length>1){
+    _slideTimer=setInterval(function(){showSlide((curSlide+1)%slideImages.length);},4000);
+  }
+}
+function showSlide(i){
+  var slides=document.querySelectorAll(".slide"),dots=document.querySelectorAll(".dot");
+  slides.forEach(function(s,idx){s.classList.toggle("active",idx===i);});
+  dots.forEach(function(d,idx){d.classList.toggle("active",idx===i);});
+  curSlide=i;
+}
 function changeSlide(e,i){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){slideImages[i]=ev.target.result;safeSetItem("slideImages",JSON.stringify(slideImages));renderSlides();showStatus("เปลี่ยนรูปสไลด์ที่"+(i+1)+"แล้ว ✨");};r.readAsDataURL(f);}
 function changeBackground(e){var f=e.target.files[0];if(!f)return;if(f.size>2*1024*1024){showStatus("⚠️ รูปพื้นหลังใหญ่เกิน 2MB กรุณาเลือกรูปใหม่");return;}var r=new FileReader();r.onload=function(ev){if(!safeSetItem("customBackground",ev.target.result))return;document.body.style.backgroundImage="url('"+ev.target.result+"')";document.body.style.backgroundSize="cover";showStatus("เปลี่ยนพื้นหลังแล้ว ✨");};r.readAsDataURL(f);}
 function removeBackground(){localStorage.removeItem("customBackground");document.body.style.backgroundImage="";showStatus("ลบพื้นหลังแล้ว");}
@@ -1481,16 +1542,23 @@ function renderHistory(filterISO){
     var rows=filterISO?log.filter(function(r){return thaiDateToISO(r.date)===filterISO;}).sort(function(a,b){return a.no-b.no;}):log.slice().reverse();
     var colSpan=isAdmin?5:4;
     if(!rows.length){tbody.innerHTML='<tr><td colspan="'+colSpan+'" style="color:#bbb;padding:20px;">ไม่มีข้อมูล</td></tr>';if(cards)cards.innerHTML='<p style="text-align:center;color:#bbb;padding:20px;">ไม่มีข้อมูล</p>';return;}
+    /* ✅ จำกัด 300 row เพื่อป้องกัน DOM ใหญ่เกิน */
+    var MAX_ROWS=300;var truncated=rows.length>MAX_ROWS;if(truncated)rows=rows.slice(0,MAX_ROWS);
     var tableHtml="",cardHtml="";
     rows.forEach(function(r){
       var badge=actionBadgeClass(r.action);
       var proofChip="";
-      if(isAdmin&&r.imageBase64){var ai=r.aiResult;var pClass=ai?(ai.verdict==="pass"?"pass":ai.verdict==="fail"?"fail":"none"):"none";var pIcon=ai?(ai.verdict==="pass"?"✅":ai.verdict==="fail"?"❌":"⚠️"):"📸";var proofDataIdx=_proofChipData.length;_proofChipData.push({name:r.name,meta:r.date+' '+r.action,img:r.imageBase64||'',ai:r.aiResult||null});proofChip='<span class="admin-proof-chip '+pClass+'" onclick="openAdminProofDetailByIdx('+proofDataIdx+')" style="margin-left:4px;">'+pIcon+' หลักฐาน</span>';}
+      if(isAdmin&&r.imageBase64){var ai=r.aiResult;var pClass=ai?(ai.verdict==="pass"?"pass":ai.verdict==="fail"?"fail":"none"):"none";var pIcon=ai?(ai.verdict==="pass"?"✅":ai.verdict==="fail"?"❌":"⚠️"):"📸";var proofDataIdx=_proofChipData.length;/* ✅ ไม่เก็บ base64 ซ้ำ — เก็บแค่ reference index ไปที่ log array */;_proofChipData.push({name:r.name,meta:r.date+' '+r.action,logRef:r,ai:r.aiResult||null});proofChip='<span class="admin-proof-chip '+pClass+'" onclick="openAdminProofDetailByIdx('+proofDataIdx+')" style="margin-left:4px;">'+pIcon+' หลักฐาน</span>';}
       var editBtn=isAdmin?'<button onclick="openRetroEdit(\''+r._firestoreId+'\')" style="background:var(--c2);border:none;border-radius:8px;padding:5px 9px;cursor:pointer;font-family:inherit;font-size:.75rem;">✏️ แก้</button>':'';
       tableHtml+='<tr><td style="white-space:nowrap;">'+escapeHtml(r.date)+'</td><td>'+escapeHtml(String(r.no))+'</td><td class="td-name">'+escapeHtml(r.name)+'</td><td><span class="retro-badge '+badge+'">'+actionIcon(r.action)+' '+escapeHtml(r.action)+'</span>'+proofChip+'</td>'+(isAdmin?'<td>'+editBtn+'</td>':'')+'</tr>';
       cardHtml+='<div class="history-card"><div class="hc-no">'+escapeHtml(String(r.no))+'<br><span style="font-size:.6rem;color:#bbb;">เลขที่</span></div><div class="hc-mid"><div>'+escapeHtml(r.name)+'</div><div style="font-size:.72rem;color:#bbb;">'+escapeHtml(r.date)+'</div></div><div class="hc-right"><span class="retro-badge '+badge+'">'+actionIcon(r.action)+' '+escapeHtml(r.action)+'</span>'+proofChip+(isAdmin?'<div style="margin-top:5px;">'+editBtn+'</div>':'')+'</div></div>';
     });
     tbody.innerHTML=tableHtml;if(cards)cards.innerHTML=cardHtml;
+    if(truncated){
+      var note='<p style="text-align:center;color:#bbb;font-size:.78rem;padding:10px;">แสดง '+MAX_ROWS+' รายการล่าสุด (ใช้ฟิลเตอร์วันที่เพื่อดูรายการที่ต้องการ)</p>';
+      tbody.innerHTML+='<tr><td colspan="'+colSpan+'">'+note+'</td></tr>';
+      if(cards)cards.innerHTML+=note;
+    }
   });
 }
 function filterHistoryDate(){var s=document.getElementById("historyDate").value;renderHistory(s||null);}
@@ -1499,7 +1567,40 @@ function clearHistory(){if(!confirm("ลบประวัติทั้งห�
 function pruneOldData(){if(!confirm("ลบข้อมูลเก่ากว่า 5 เดือน?"))return;showLoading("กำลังลบข้อมูลเก่า...");pruneLogsOlderThan(5).then(function(n){hideLoading();localStorage.removeItem("logs_cache");renderHistory();renderChart();updateDashboard();showStatus("ลบ "+n+" รายการ ✅");}).catch(function(e){hideLoading();showStatus("❌ ลบไม่สำเร็จ");});}
 
 /* ══ CHART ══ */
-function renderChart(){getAllLogs().then(function(log){var md={};log.forEach(function(r){var p=r.date.split("/"),m=p[1]+"/"+p[2];if(!md[m])md[m]={work:0,leave:0,late:0};if(r.action==="ทำเวร")md[m].work++;else if(r.action==="ลา")md[m].leave++;else md[m].late++;});var keys=Object.keys(md).sort();var labels=keys.length?keys.map(monthKeyToLabel):["ยังไม่มีข้อมูล"];var canvas=document.getElementById("monthlyChart");if(!canvas)return;if(monthlyChart){monthlyChart.destroy();monthlyChart=null;}canvas=document.getElementById("monthlyChart");if(!canvas)return;monthlyChart=new Chart(canvas.getContext("2d"),{type:"bar",data:{labels:labels,datasets:[{label:"ทำเวร",data:keys.map(function(k){return md[k].work;}),backgroundColor:"#89b89a"},{label:"ลา",data:keys.map(function(k){return md[k].leave;}),backgroundColor:"#e58d8d"},{label:"มาสาย",data:keys.map(function(k){return md[k].late;}),backgroundColor:"#e5c08d"}]},options:{responsive:true,plugins:{legend:{labels:{font:{family:"inherit"}}}}}});});}
+var _chartRenderTimer=null;
+function renderChart(){
+  /* ✅ Debounce — ป้องกัน render ซ้อนเมื่อ onSnapshot ยิงถี่ */
+  if(_chartRenderTimer){clearTimeout(_chartRenderTimer);_chartRenderTimer=null;}
+  _chartRenderTimer=setTimeout(function(){_doRenderChart();},300);
+}
+function _doRenderChart(){
+  getAllLogs().then(function(log){
+    var md={};
+    log.forEach(function(r){
+      if(!r.date)return;
+      var p=r.date.split("/"),m=p[1]+"/"+p[2];
+      if(!md[m])md[m]={work:0,leave:0,late:0};
+      if(r.action==="ทำเวร")md[m].work++;else if(r.action==="ลา")md[m].leave++;else md[m].late++;
+    });
+    var keys=Object.keys(md).sort();
+    var labels=keys.length?keys.map(monthKeyToLabel):["ยังไม่มีข้อมูล"];
+    var canvas=document.getElementById("monthlyChart");
+    if(!canvas)return;
+    /* ✅ destroy ก่อน แล้วค่อย query canvas ใหม่ */
+    if(monthlyChart){try{monthlyChart.destroy();}catch(e){}monthlyChart=null;}
+    canvas=document.getElementById("monthlyChart");
+    if(!canvas)return;
+    monthlyChart=new Chart(canvas.getContext("2d"),{
+      type:"bar",
+      data:{labels:labels,datasets:[
+        {label:"ทำเวร",data:keys.map(function(k){return md[k].work;}),backgroundColor:"#89b89a"},
+        {label:"ลา",data:keys.map(function(k){return md[k].leave;}),backgroundColor:"#e58d8d"},
+        {label:"มาสาย",data:keys.map(function(k){return md[k].late;}),backgroundColor:"#e5c08d"}
+      ]},
+      options:{responsive:true,plugins:{legend:{labels:{font:{family:"inherit"}}}}}
+    });
+  });
+}
 
 /* ══ IMAGE UPLOAD — ASSIGNMENT PROOF ══ */
 var _pendingSubmitAssignId=null,_pendingImgBase64=null,_pendingAIResult=null;
@@ -1514,7 +1615,7 @@ var _aiProofCache={};
 function runAIProofCheck(imgBase64,assignTitle,onDone){var box=document.getElementById("aiProofBox"),thinking=document.getElementById("aiProofThinking"),result=document.getElementById("aiProofResult");box.classList.add("visible");thinking.style.display="flex";result.style.display="none";var imgData=imgBase64.split(",")[1];var mimeMatch=imgBase64.match(/data:([^;]+);/);var mimeType=mimeMatch?mimeMatch[1]:"image/jpeg";fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":window.ANTHROPIC_API_KEY||"","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,system:"คุณเป็น AI ตรวจสอบหลักฐานการส่งงานนักเรียน ตอบเป็น JSON เท่านั้น ไม่มี markdown หรือ backtick ใดๆ\nรูปแบบ JSON ที่ต้องตอบ: {\"verdict\":\"pass\"|\"warn\"|\"fail\",\"score\":0-100,\"reason\":\"ข้อความสั้นๆ ไม่เกิน 80 ตัวอักษร ภาษาไทย\"}",messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:mimeType,data:imgData}},{type:"text",text:"ตรวจสอบรูปนี้ว่าเป็นหลักฐานการส่งงานจริงมั้ย งานชื่อ: \""+assignTitle+"\"\n- pass = เป็นรูปงาน/เอกสาร/หน้าจอที่ชัดเจน\n- warn = รูปมีแต่ไม่ชัดว่าเกี่ยวกับงาน\n- fail = รูปไม่เกี่ยวกับงานเลย หรือรูปขาวๆ ว่างๆ\nตอบ JSON เท่านั้น"}]}]})}).then(function(res){if(!res.ok){return res.json().then(function(e){throw new Error(e.error&&e.error.message?e.error.message:"HTTP "+res.status);});}return res.json();}).then(function(data){var text=(data.content||[]).map(function(b){return b.text||"";}).join("").trim();var parsed;try{parsed=JSON.parse(text);}catch(e){var vm=text.match(/"verdict"\s*:\s*"(\w+)"/);var rm=text.match(/"reason"\s*:\s*"([^"]+)"/);var sm=text.match(/"score"\s*:\s*(\d+)/);parsed={verdict:vm?vm[1]:"warn",score:sm?parseInt(sm[1]):50,reason:rm?rm[1]:"ไม่สามารถวิเคราะห์ได้"};}thinking.style.display="none";result.style.display="block";var icon=parsed.verdict==="pass"?"✅":parsed.verdict==="fail"?"❌":"⚠️";var cls=parsed.verdict==="pass"?"ai-proof-pass":parsed.verdict==="fail"?"ai-proof-fail":"ai-proof-warn";var label=parsed.verdict==="pass"?"รูปหลักฐานผ่าน!":parsed.verdict==="fail"?"รูปไม่ใช่หลักฐานงาน":"ตรวจสอบได้บางส่วน";result.innerHTML='<div class="'+cls+'">'+icon+' '+label+' ('+parsed.score+'/100)</div><div style="margin-top:6px;font-size:.8rem;color:#888;">'+escapeHtml(parsed.reason)+'</div>'+(parsed.verdict==="fail"?'<div style="margin-top:8px;font-size:.78rem;color:var(--red);">⚠️ แนะนำให้เลือกรูปใหม่ที่เป็นหลักฐานงานจริง</div>':'');if(onDone)onDone(parsed);}).catch(function(err){thinking.style.display="none";result.style.display="block";result.innerHTML='<div style="color:#bbb;font-size:.8rem;">⚠️ ไม่สามารถตรวจสอบ AI ได้ในขณะนี้ ส่งงานต่อได้เลย</div>';console.error("AI proof check error:",err);if(onDone)onDone({verdict:"unknown",score:0,reason:""});});}
 
 var _proofChipData=[];
-function openAdminProofDetailByIdx(idx){var d=_proofChipData[idx];if(!d)return;openAdminProofDetail(d.name,d.meta,d.img,d.ai);}
+function openAdminProofDetailByIdx(idx){var d=_proofChipData[idx];if(!d)return;/* ✅ ดึง base64 จาก logRef เพื่อไม่ต้องเก็บซ้ำใน array */;openAdminProofDetail(d.name,d.meta,d.logRef?d.logRef.imageBase64:null,d.ai);}
 function openAdminProofDetail(studentName,assignTitle,imgBase64,aiResult){document.getElementById("adminProofDetailTitle").textContent="📸 "+escapeHtml(assignTitle);document.getElementById("adminProofDetailMeta").textContent="นักเรียน: "+escapeHtml(studentName);var imgEl=document.getElementById("adminProofDetailImg");if(imgBase64){imgEl.src=imgBase64;imgEl.style.display="block";}else{imgEl.style.display="none";}var aiEl=document.getElementById("adminProofDetailAI");if(aiResult){var icon=aiResult.verdict==="pass"?"✅":aiResult.verdict==="fail"?"❌":"⚠️";aiEl.innerHTML='<strong>ผล AI:</strong> '+icon+' '+escapeHtml(aiResult.reason||'')+'<br><span style="font-size:.75rem;color:#bbb;">Score: '+(aiResult.score||"?")+'</span>';}else{aiEl.textContent="ยังไม่มีผล AI";}document.getElementById("adminProofDetailModal").style.display="flex";}
 function closeAdminProofDetail(){document.getElementById("adminProofDetailModal").style.display="none";}
 function openImgView(src){document.getElementById("imgViewFull").src=src;document.getElementById("imgViewOverlay").style.display="flex";}
@@ -1567,14 +1668,19 @@ function loadAssignDataFromCloud(){
     if(!snap.empty){subjects=[];var seenFids={};snap.forEach(function(doc){if(seenFids[doc.id])return;seenFids[doc.id]=true;var d=doc.data();d._fid=doc.id;if(!d.id)d.id=doc.id;subjects.push(d);});safeSetItem("subjects_v1",JSON.stringify(subjects));}
   }).catch(function(e){console.error("subjects load error:",e);});
   /* ✅ assignments ยังใช้ onSnapshot เพราะเปลี่ยนบ่อย แต่ track reads */
+  var _assignRenderTimer=null;
   firestoreDB.collection("assignments_m51").orderBy("createdAt").onSnapshot(function(snap){
     trackRead(snap.size);
     assignments=[];snap.forEach(function(doc){var d=doc.data();d._fid=doc.id;assignments.push(d);});
     safeSetItem("assignments_v1",JSON.stringify(assignments));
     var aat=document.getElementById("adminAssignTable");if(aat)aat.dataset.loaded="1";
-    renderAssignPage();
-    var dashPage=document.getElementById("dashboardPage");
-    if(dashPage&&!dashPage.classList.contains("hidden")){if(isAdmin)renderAdminAssignTable();else renderAISummary();}
+    /* ✅ Debounce — snapshot อาจยิงหลายครั้งต่อเนื่อง */
+    if(_assignRenderTimer){clearTimeout(_assignRenderTimer);_assignRenderTimer=null;}
+    _assignRenderTimer=setTimeout(function(){
+      renderAssignPage();
+      var dashPage=document.getElementById("dashboardPage");
+      if(dashPage&&!dashPage.classList.contains("hidden")){if(isAdmin)renderAdminAssignTable();else renderAISummary();}
+    },200);
   });
 }
 function saveAssignData(){safeSetItem("subjects_v1",JSON.stringify(subjects));safeSetItem("assignments_v1",JSON.stringify(assignments));}
@@ -1586,7 +1692,13 @@ function getSubject(id){return subjects.find(function(s){return s.id===id||s._fi
 function todayISO(){var n=new Date();return n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0")+"-"+String(n.getDate()).padStart(2,"0");}
 function isoToThai(iso){if(!iso)return"";var p=iso.split("-");return p[2]+"/"+p[1]+"/"+(parseInt(p[0])+543);}
 function assignStatus(a){var done=isAdmin?a.done:isAssignDone(a._fid||a.id);if(done)return"done";if(!a.due)return"ok";var today=todayISO();if(a.due<today)return"overdue";return(new Date(a.due)-new Date(today))/86400000<=3?"due-soon":"ok";}
-function renderAssignPage(){if(!calYear)initCal();document.getElementById("addAssignBtn").classList.toggle("hidden",!isAdmin);renderAssignSummary();renderSubjectTabs();renderAssignList();if(assignViewMode==="cal")renderCal();}
+function renderAssignPage(){
+  if(!currentUser)return; /* ✅ ไม่ render ก่อน login */
+  if(!calYear)initCal();
+  document.getElementById("addAssignBtn").classList.toggle("hidden",!isAdmin);
+  renderAssignSummary();renderSubjectTabs();renderAssignList();
+  if(assignViewMode==="cal")renderCal();
+}
 function renderAssignSummary(){var total=assignments.length,done=assignments.filter(function(a){return isAdmin?a.done:isAssignDone(a._fid||a.id);}).length,overdue=assignments.filter(function(a){return assignStatus(a)==="overdue";}).length,pending=total-done;document.getElementById("assignSummary").innerHTML='<div class="assign-sum-card"><p>ทั้งหมด</p><h2>'+total+'</h2></div><div class="assign-sum-card"><p>รอส่ง</p><h2 style="color:var(--yellow);">'+pending+'</h2></div><div class="assign-sum-card"><p>ส่งแล้ว</p><h2 style="color:var(--green);">'+done+'</h2></div><div class="assign-sum-card"><p>เกินกำหนด</p><h2 style="color:var(--red);">'+overdue+'</h2></div>';}
 function renderSubjectTabs(){var html='<button class="subject-tab'+(currentSubjectFilter==="all"?" active":"")+'" onclick="filterBySubject(\'all\')">📚 ทั้งหมด</button>';subjects.forEach(function(s){var count=assignments.filter(function(a){return a.subjectId===s.id&&assignStatus(a)!=="done";}).length;html+='<button class="subject-tab'+(currentSubjectFilter===s.id?" active":"")+'" onclick="filterBySubject(\''+s.id+'\')" style="border-color:'+s.color+';">'+escapeHtml(s.name)+(count>0?'<span style="background:var(--c4);color:white;border-radius:6px;padding:1px 6px;font-size:.68rem;margin-left:4px;">'+count+'</span>':'')+'</button>';});document.getElementById("subjectTabs").innerHTML=html;}
 function filterBySubject(id){currentSubjectFilter=id;renderSubjectTabs();renderAssignList();}
@@ -1631,8 +1743,7 @@ window.onload = function() {
   document.getElementById("todayDate").innerHTML="📅 "+getThaiDate();
   var savedSlides=localStorage.getItem("slideImages");
   slideImages=savedSlides?JSON.parse(savedSlides):DEFAULT_SLIDES.slice();
-  renderSlides();
-  setInterval(function(){showSlide((curSlide+1)%slideImages.length);},4000);
+  renderSlides(); /* renderSlides จัดการ interval เองแล้ว */
   var bg=localStorage.getItem("customBackground");
   if(bg){document.body.style.backgroundImage="url('"+bg+"')";document.body.style.backgroundSize="cover";}
   loadAssignData();
