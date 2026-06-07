@@ -17,7 +17,7 @@
   onerror="window._firebaseLoadError=true;console.error('❌ โหลด firebase-auth-compat.js ไม่ได้')"></script>
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js"
   onerror="window._firebaseLoadError=true;console.error('❌ โหลด firebase-firestore-compat.js ไม่ได้')"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 
 <style>
 :root{
@@ -931,12 +931,7 @@ function initFirebase() {
     if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
     firestoreDB  = firebase.firestore();
     /* Long-polling ป้องกัน QUIC_TOO_MANY_RTOS */
-    firestoreDB.settings({ experimentalAutoDetectLongPolling: true, merge: true });
-    /* ✅ Enable offline persistence — อ่าน cache แทน network เมื่อเป็นไปได้ (ลด reads มาก) */
-    firestoreDB.enablePersistence({synchronizeTabs: true}).catch(function(err){
-      if(err.code === 'failed-precondition') console.warn("Persistence: multiple tabs open");
-      else if(err.code === 'unimplemented') console.warn("Persistence: browser not supported");
-    });
+    firestoreDB.settings({ experimentalAutoDetectLongPolling: true, merge: true, cache: {type:'persistent'} });
     firebaseAuth = firebase.auth();
     return true;
   } catch(e) {
@@ -1594,6 +1589,7 @@ function renderChart(){
 }
 function _doRenderChart(){
   getAllLogs().then(function(log){
+    if(!window.Chart){console.warn("⚠️ Chart.js ยังไม่โหลด กำลังรีเฟรช");setTimeout(_doRenderChart,1000);return;}
     var md={};
     log.forEach(function(r){
       if(!r.date)return;
