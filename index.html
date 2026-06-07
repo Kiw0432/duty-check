@@ -11,12 +11,109 @@
 <title>ระบบห้องเรียน M5/1</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏫</text></svg>">
 
-<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"
-  onerror="window._firebaseLoadError=true;console.error('❌ โหลด firebase-app-compat.js ไม่ได้')"></script>
-<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js"
-  onerror="window._firebaseLoadError=true;console.error('❌ โหลด firebase-auth-compat.js ไม่ได้')"></script>
-<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js"
-  onerror="window._firebaseLoadError=true;console.error('❌ โหลด firebase-firestore-compat.js ไม่ได้')"></script>
+<!-- ✅ Firebase initialization fix - Initialize flags and handler BEFORE loading scripts -->
+<script>
+window._firebaseLoadError = false;
+window._firebaseReady = false;
+window._skipFirebaseFlag = false;
+console.log('🔧 Firebase flags initialized');
+
+// Define error handler FIRST before using it in script onerror attributes
+function handleFirebaseError(module) {
+  console.warn(`⚠️ Failed to load Firebase ${module}. Running in offline mode.`);
+  window._firebaseLoadError = true;
+  window._skipFirebaseFlag = true;
+  
+  // Create comprehensive Firebase polyfill for offline mode
+  if (typeof firebase === 'undefined') {
+    window.firebase = {
+      apps: [],
+      app: function() {
+        return { name: '[DEFAULT]' };
+      },
+      initializeApp: function(config) {
+        console.log('📱 Firebase polyfill: initializeApp called');
+        this.apps.push({ name: '[DEFAULT]' });
+        return this.app();
+      },
+      auth: function() {
+        return {
+          signInWithEmailAndPassword: function(email, pass) {
+            return Promise.reject(new Error('Firebase not available'));
+          },
+          onAuthStateChanged: function(callback) {
+            // Call immediately with null user (not authenticated)
+            setTimeout(() => callback(null), 100);
+            return function unsubscribe() {};
+          },
+          signOut: function() {
+            return Promise.resolve();
+          },
+          currentUser: null
+        };
+      },
+      firestore: function() {
+        return {
+          settings: function(opts) {
+            console.log('📱 Firebase polyfill: settings called');
+          },
+          collection: function(name) {
+            return {
+              doc: function(id) {
+                return {
+                  get: function() {
+                    return Promise.resolve({ 
+                      exists: false,
+                      data: function() { return {}; }
+                    });
+                  },
+                  set: function() { return Promise.resolve(); },
+                  update: function() { return Promise.resolve(); },
+                  delete: function() { return Promise.resolve(); }
+                };
+              },
+              where: function() { return this; },
+              get: function() {
+                return Promise.resolve({ 
+                  docs: [],
+                  size: 0,
+                  forEach: function() {}
+                });
+              },
+              add: function() { return Promise.resolve({ id: 'local-' + Date.now() }); },
+              onSnapshot: function(callback) {
+                return function unsubscribe() {};
+              }
+            };
+          },
+          serverTimestamp: function() {
+            return new Date().toISOString();
+          }
+        };
+      }
+    };
+    console.log('✅ Firebase polyfill initialized');
+  }
+}
+
+// Safety timeout - if Firebase doesn't load after 8 seconds, enable offline mode
+setTimeout(() => {
+  if (!window._firebaseReady && typeof firebase === 'undefined') {
+    console.warn('⏱️ Firebase loading timeout. Enabling offline mode.');
+    window._skipFirebaseFlag = true;
+    window._firebaseLoadError = true;
+  }
+}, 8000);
+</script>
+
+<!-- Load Firebase libraries with proper error handling -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"
+  onerror="handleFirebaseError('firebase-app')" 
+  onload="window._firebaseReady = true;"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"
+  onerror="handleFirebaseError('firebase-auth')"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"
+  onerror="handleFirebaseError('firebase-firestore')"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 
 <style>
@@ -34,8 +131,8 @@ body{background:var(--c1);color:var(--text);}
 .setting-btn{background:#b89c82;color:white;}
 .logout-btn{background:#de7f7f;color:white;}
 .card{background:white;border-radius:24px;padding:20px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,.05);}
-.login-card{max-width:420px;margin:40px auto;padding:30px;border-radius:34px;}
-.login-tabs{display:flex;background:var(--c1);border-radius:16px;padding:4px;gap:4px;margin-bottom:20px;}
+.login-card{max-width:580px;width:90%;margin:60px auto;padding:40px;border-radius:34px;box-shadow:0 8px 32px rgba(0,0,0,.08);}
+.login-tabs{display:flex;background:var(--c1);border-radius:16px;padding:6px;gap:6px;margin-bottom:24px;}
 .login-tab{flex:1;padding:10px;border:none;border-radius:12px;cursor:pointer;font-size:.88rem;font-weight:600;background:transparent;color:#bbb;transition:.2s;}
 .login-tab.active{background:var(--c4);color:white;}
 input[type=text],input[type=password],input[type=date],select,textarea{width:100%;border:none;background:var(--c1);padding:13px;border-radius:14px;outline:none;margin-bottom:12px;font-size:16px;-webkit-appearance:none;appearance:none;}
@@ -171,6 +268,7 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 .assign-sum-card h2{font-size:1.4rem;color:var(--c4);margin-top:4px;}
 .assign-sum-card p{font-size:.72rem;color:#bbb;}
 .assign-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.38);display:none;justify-content:center;align-items:center;z-index:99999;padding:10px;}
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.38);display:none;justify-content:center;align-items:center;z-index:99999;padding:10px;}
 .assign-modal-box{background:white;width:100%;max-width:460px;padding:22px;border-radius:26px;max-height:90vh;overflow-y:auto;}
 .assign-form-label{font-size:.82rem;color:#999;font-weight:600;margin-bottom:4px;display:block;}
 .assign-form-group{margin-bottom:14px;}
@@ -360,6 +458,9 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   <div class="splash-bar-track">
     <div class="splash-bar-fill"></div>
   </div>
+  <div style="margin-top:20px;text-align:center;">
+    <button onclick="skipFirebase()" style="background:#d9a299;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;">⏭️ ข้ามไป</button>
+  </div>
 </div>
 
 <div class="container">
@@ -447,7 +548,7 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
           <div class="type-card" id="tc-work"  onclick="selectType('ทำเวร',this)"><span class="type-tick">✓</span><div class="ti">🧹</div><div class="tn">ทำเวร</div></div>
           <div class="type-card" id="tc-task"  onclick="selectType('ทำภารกิจ',this)"><span class="type-tick">✓</span><div class="ti">📌</div><div class="tn">ทำภารกิจ</div></div>
           <div class="type-card" id="tc-leave" onclick="selectType('ลา',this)"><span class="type-tick">✓</span><div class="ti">📋</div><div class="tn">ลา</div></div>
-          <div class="type-card" id="tc-late"  onclick="selectType('มาสาย',this)"><span class="type-tick">✓</span><div class="ti">⏰</div><div class="tn\">มาสาย</div></div>
+          <div class="type-card" id="tc-late"  onclick="selectType('มาสาย',this)"><span class="type-tick">✓</span><div class="ti">⏰</div><div class="tn">มาสาย</div></div>
         </div>
         <div class="flow-nav">
           <button class="btn-soft" onclick="flowNext(1)">← ย้อนกลับ</button>
@@ -926,31 +1027,89 @@ function loadLogsCache(){
 /* ══ FIREBASE INIT ══ */
 function initFirebase() {
   try {
-    if (typeof firebase === "undefined" || window._firebaseLoadError) {
-      console.error("❌ Firebase SDK ไม่โหลดสำเร็จ");
+    console.log("🔥 Firebase init starting...");
+    
+    // If firebase object doesn't exist at all, nothing we can do
+    if (typeof firebase === "undefined") {
+      console.warn("⚠️ Firebase object not available at all");
       return false;
     }
-    if (!firebase.apps.length) {
-      firebase.initializeApp(FIREBASE_CONFIG);
-      console.log("✅ Firebase initialized");
+    
+    // If CDN failed but polyfill exists, use it (offline mode via polyfill)
+    if (window._firebaseLoadError || window._skipFirebaseFlag) {
+      console.warn("⚠️ Firebase CDN failed - attempting to use polyfill");
+      // Polyfill provides firebase.auth() and firebase.firestore() as no-ops
+      try {
+        firebaseAuth = firebase.auth();
+        firestoreDB  = firebase.firestore();
+        console.log("✅ Firebase polyfill auth/firestore acquired");
+        return true; // Allow login flow to proceed (will fail gracefully on actual calls)
+      } catch(pe) {
+        console.error("❌ Polyfill init failed:", pe.message);
+        return false;
+      }
     }
+    
+    if (!firebase.apps.length) {
+      console.log("📍 Initializing Firebase app...");
+      firebase.initializeApp(FIREBASE_CONFIG);
+    }
+    
+    console.log("🔗 Getting Firestore...");
     firestoreDB  = firebase.firestore();
-    /* Long-polling ป้องกัน QUIC_TOO_MANY_RTOS */
-    firestoreDB.settings({ experimentalAutoDetectLongPolling: true, merge: true, cache: {type:'persistent'} });
+    firestoreDB.settings({ experimentalAutoDetectLongPolling: true, merge: true });
+    
+    console.log("🔐 Getting Auth...");
     firebaseAuth = firebase.auth();
     
-    /* ⏱️ ตั้ง timeout สำหรับ Firebase persistence */
-    firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(e){
-      console.warn("⚠️ Firebase persistence error:", e.message);
-    });
-    
+    console.log("✅ Firebase initialized successfully!");
     return true;
   } catch(e) {
-    console.error("🔥 Firebase init error:", e.message);
-    document.getElementById("loginError").style.display = "block";
-    document.getElementById("loginError").textContent = "❌ Firebase: " + e.message;
+    console.error("❌ Firebase init error:", e.message, e);
+    window._skipFirebaseFlag = true;
+    var loginError = document.getElementById("loginError");
+    if (loginError) {
+      loginError.style.display = "block";
+      loginError.textContent = "⚠️ Firebase ไม่ตอบสนอง - ใช้ offline mode";
+    }
     return false;
   }
+}
+
+/* ══ FIREBASE READY CHECK ══ */
+function checkFirebaseReady(callback, timeout) {
+  timeout = timeout || 6000;
+  var startTime = Date.now();
+  
+  function check() {
+    console.log("⏳ Checking Firebase... firebaseAuth =", typeof firebaseAuth);
+    
+    if (typeof firebaseAuth !== "undefined" && firebaseAuth) {
+      console.log("✅ Firebase ready!");
+      callback(true);
+      return;
+    }
+    
+    if (Date.now() - startTime > timeout) {
+      console.warn("⚠️ Firebase timeout - proceeding offline");
+      callback(false);
+      return;
+    }
+    
+    setTimeout(check, 500);
+  }
+  
+  check();
+}
+
+/* ══ SKIP FIREBASE BYPASS ══ */
+function skipFirebase() {
+  console.warn("⚠️ User skipped Firebase - proceeding to login");
+  var sp=document.getElementById("splashPage");
+  if(sp){sp.style.display="none";}
+  var loginPage=document.getElementById("loginPage");
+  if(loginPage){loginPage.classList.remove("hidden");}
+  showStatus("⚠️ Firebase ไม่ตอบสนอง - กรุณากรอกรหัสผ่าน");
 }
 
 /* ══ AUTH ══ */
@@ -1478,6 +1637,12 @@ function buildPrintHTML(logs, monthKeys) {
   return'<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>ระบบห้องเรียน M5/1 รายงานเวร</title>'+
     '<style>body{font-family:system-ui,-apple-system,sans-serif;font-size:10px;color:#333;margin:0;padding:0;}.page{padding:14mm 12mm;page-break-after:always;}.page:last-child{page-break-after:avoid;}h2{font-size:14px;margin:0 0 4px;}.meta{font-size:8.5px;color:#666;margin:0 0 8px;}.footer{font-size:7.5px;color:#aaa;margin-top:8px;}table{width:100%;border-collapse:collapse;table-layout:auto;}th,td{border:1px solid #ccc;padding:3px 4px;text-align:center;white-space:nowrap;font-size:8.5px;}th{background:#D9A299;color:white;font-weight:600;}tr:nth-child(even){background:#faf7f3;}td.td-name{text-align:left;white-space:normal;min-width:80px;}td.v{color:#4a9b65;font-weight:700;}td.l{color:#c75b5b;font-weight:700;}td.s{color:#b87a30;font-weight:700;}td.ab{color:#9b59b6;font-weight:700;}td.t{color:#2980b9;font-weight:700;}td.sum{font-weight:700;}@media print{@page{size:A4 landscape;margin:0;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body>'+pages+'</body></html>';
 }
+
+/* ══ MONEY CHECK ══ */
+function renderMoneyCheck(date){try{var data=JSON.parse(localStorage.getItem("money_"+date)||"{}"),html="";Object.keys(data).forEach(function(k){var m=data[k];if(!m.date)return;var statusIcon=m.status==="received"?"✓":m.status==="not-received"?"✕":"⏳";var statusColor=m.status==="received"?"var(--green)":m.status==="not-received"?"var(--red)":"var(--yellow)";html+='<div style="padding:10px;background:var(--c1);border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><div><p style="margin:0;font-weight:600;">'+m.date+' <span style="color:'+statusColor+';">'+statusIcon+'</span></p><p style="margin:3px 0 0 0;font-size:0.85rem;color:#999;">'+(m.note||"—")+'</p></div><p style="margin:0;font-weight:600;color:var(--c4);font-size:1.1rem;">฿ '+m.amount+'</p></div>';});var el5=document.getElementById("moneyHistory");if(el5)el5.innerHTML=html||'<p style="text-align:center;color:#bbb;padding:20px;font-size:0.9rem;">ยังไม่มีข้อมูล</p>';}catch(err){console.error("renderMoneyCheck error:",err);}}
+function showMoneyCheckPage(){openPage("moneyCheckPage");setTimeout(function(){loadMoneyData();},100);}
+function showHowToUse(){document.getElementById("howToUseModal").style.display="flex";}
+function closeHowToUse(){document.getElementById("howToUseModal").style.display="none";}
 </script>
 
 <!-- 💰 MONEY CHECK PAGE -->
@@ -1554,6 +1719,7 @@ function buildPrintHTML(logs, monthKeys) {
 
 </html>';
 }
+<script>
 function openPrintWindow(html){var w=window.open('','_blank','width=900,height=650');if(!w){showStatus('❌ Pop-up ถูกบล็อก กรุณาอนุญาต pop-up แล้วลองใหม่');return;}w.document.write(html);w.document.close();w.onload=function(){w.focus();w.print();};}
 function getMonthsFromLogs(logs){var months={};logs.forEach(function(r){if(!r.date)return;var p=r.date.split('/');if(p.length<3)return;months[p[1]+'/'+p[2]]=true;});return Object.keys(months).sort();}
 function getThaiMonthLabel(key){var THAI_M=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];var p=key.split('/');return THAI_M[parseInt(p[0])]+' '+p[1];}
@@ -1842,55 +2008,109 @@ function renderCalDayDetail(iso){var items=assignments.filter(function(a){return
 
 /* ══ STARTUP ══ */
 window.onload = function() {
+  console.log("🚀 Page load starting...");
+  
+  // Safety timeout to hide splash after 10 seconds no matter what
+  var splashSafetyTimeout = setTimeout(function() {
+    console.warn("⏰ Safety timeout - forcing splash to hide");
+    var sp = document.getElementById("splashPage");
+    if(sp) {
+      sp.style.display = "none";
+      sp.classList.add("fade-out");
+    }
+    // Show login page as fallback
+    var loginPage = document.getElementById("loginPage");
+    if(loginPage) loginPage.classList.remove("hidden");
+  }, 10000);
+  
   var splashMsgs=["กำลังเชื่อมต่อ Firebase...","ตรวจสอบสิทธิ์ผู้ใช้...","โหลดข้อมูลห้องเรียน...","เตรียมระบบ AI..."];
   var _smIdx=0,_smEl=document.getElementById("splashMsg");
   var _smTimer=setInterval(function(){_smIdx=(_smIdx+1)%splashMsgs.length;if(_smEl)_smEl.textContent=splashMsgs[_smIdx];},900);
-  function hideSplash(){clearInterval(_smTimer);var sp=document.getElementById("splashPage");if(sp&&!sp.classList.contains("fade-out")){setTimeout(function(){sp.classList.add("fade-out");setTimeout(function(){sp.style.display="none";},500);},400);}}
+  
+  function hideSplash(){
+    console.log("🎬 Hiding splash screen");
+    clearInterval(_smTimer);
+    clearTimeout(splashSafetyTimeout);
+    var sp=document.getElementById("splashPage");
+    if(sp&&!sp.classList.contains("fade-out")){
+      setTimeout(function(){sp.classList.add("fade-out");setTimeout(function(){sp.style.display="none";},500);},400);
+    }
+  }
+  
   document.getElementById("todayDate").innerHTML="📅 "+getThaiDate();
   var savedSlides=localStorage.getItem("slideImages");
   slideImages=savedSlides?JSON.parse(savedSlides):DEFAULT_SLIDES.slice();
-  renderSlides(); /* renderSlides จัดการ interval เองแล้ว */
+  renderSlides();
+  
   var bg=localStorage.getItem("customBackground");
   if(bg){var bgUrl=bg.replace(/'/g,"\\'");document.body.style.backgroundImage="url('"+bgUrl+"')";document.body.style.backgroundSize="cover";}
+  
   loadAssignData();
-  if(!initFirebase()){hideSplash();showStatus("❌ Firebase โหลดไม่สำเร็จ โปรดรีเฟรช");return;}
-  var _authHandled=false;
-  var _authTimeout=setTimeout(function(){
-    console.warn("⚠️ Firebase auth timeout - proceeding to login page");
-    if(!_authHandled){
-      _authHandled=true;
+  
+  console.log("🔧 Initializing Firebase...");
+  if(!initFirebase()){
+    console.warn("⚠️ Firebase init failed - switching to offline mode");
+    hideSplash();
+    // Show login page directly
+    var loginPage=document.getElementById("loginPage");
+    if(loginPage) loginPage.classList.remove("hidden");
+    showStatus("⚠️ Firebase ไม่สามารถเชื่อมต่อ - ใช้ offline mode");
+    return;
+  }
+  
+  console.log("⏳ Waiting for Firebase to be ready...");
+  checkFirebaseReady(function(isReady){
+    console.log("📊 Firebase ready check result:", isReady);
+    
+    if (!isReady) {
+      console.warn("⚠️ Firebase not responding - showing login page");
       hideSplash();
       var loginPage=document.getElementById("loginPage");
       if(loginPage){loginPage.classList.remove("hidden");}
+      showStatus("⚠️ Firebase ช้า - กรุณากรอกรหัสผ่าน");
+      return;
     }
-  },8000); /* ⏱️ รอ 8 วินาที ถ้ายังไม่มี response ให้ไปหน้า login */
-  
-  firebaseAuth.onAuthStateChanged(function(user){
-    clearTimeout(_authTimeout);
-    if(user){
-      /* มี user อยู่แล้ว — ตรวจว่ายังอยู่หน้า login ไหม */
-      var loginPage=document.getElementById("loginPage");
-      var alreadyLoggedIn=loginPage&&loginPage.classList.contains("hidden");
-      if(alreadyLoggedIn){hideSplash();return;} /* อยู่ในระบบแล้ว ไม่ต้องทำซ้ำ */
-      if(_authHandled){hideSplash();return;}
-      _authHandled=true;
-      showLoading("กำลังโหลดข้อมูล...");
-      checkUserRole(user).catch(function(e){
-        console.error("checkUserRole error:",e);
-        hideLoading();
-        _authHandled=false;
-        showLoginError("❌ โหลดข้อมูลผู้ใช้ไม่สำเร็จ: "+(e.message||e));
-      });
-    }else{
-      /* logout แล้ว — reset flag */
-      if(!_authHandled){
-        _authHandled=true;
-        hideSplash();
+    
+    var _authHandled=false;
+    
+    console.log("🔐 Setting up onAuthStateChanged...");
+    firebaseAuth.onAuthStateChanged(function(user){
+      console.log("🔍 onAuthStateChanged fired, user:", user ? "yes" : "no");
+      
+      if(user){
         var loginPage=document.getElementById("loginPage");
-        if(loginPage){loginPage.classList.remove("hidden");}
+        var alreadyLoggedIn=loginPage&&loginPage.classList.contains("hidden");
+        if(alreadyLoggedIn){
+          console.log("👤 Already logged in");
+          hideSplash();
+          return;
+        }
+        if(_authHandled){
+          console.log("⏭️ Auth already handled");
+          hideSplash();
+          return;
+        }
+        _authHandled=true;
+        console.log("🔑 User detected, loading role...");
+        showLoading("กำลังโหลดข้อมูล...");
+        checkUserRole(user).catch(function(e){
+          console.error("checkUserRole error:",e);
+          hideLoading();
+          _authHandled=false;
+          showLoginError("❌ โหลดข้อมูลผู้ใช้ไม่สำเร็จ: "+(e.message||e));
+        });
+      }else{
+        if(!_authHandled){
+          _authHandled=true;
+          console.log("📝 No user - showing login");
+          hideSplash();
+          var loginPage=document.getElementById("loginPage");
+          if(loginPage){loginPage.classList.remove("hidden");}
+        }
       }
-    }
-  });
+    });
+  }, 6000);
+  
   var _baseVH=window.innerHeight;
   function updateVH(){var h=window.visualViewport?window.visualViewport.height:window.innerHeight;document.documentElement.style.setProperty("--vh",(h*0.01)+"px");var isKbOpen=(window.innerHeight-h)>150;document.body.classList.toggle("keyboard-open",isKbOpen);}
   updateVH();
@@ -1903,6 +2123,7 @@ window.onload = function() {
 var _introStep=0;function showIntroIfFirst(){if(!localStorage.getItem("introSeen")){document.getElementById("introModal").style.display="flex";}}function nextIntroStep(){_introStep++;if(_introStep>4){localStorage.setItem("introSeen","true");closeIntro();showStatus("✨ ยินดีต้อนรับสู่ระบบ!");return;}for(var i=0;i<=4;i++){var step=document.getElementById("introStep"+i);if(step)step.style.display=(i===_introStep)?"block":"none";}}function closeIntro(){document.getElementById("introModal").style.display="none";localStorage.setItem("introSeen","true");}
 /* ════════════════════════════════════════════════════════════
    💰 MONEY CHECK SYSTEM
+════════════════════════════════════════════════════════════ */
 var moneyChecks=[];
 function openMoneyCheckModal(){
   var today=new Date().toISOString().split("T")[0];
@@ -1979,10 +2200,8 @@ function renderMoneyCheck(){
     if(el5)el5.innerHTML=html||'<p style="text-align:center;color:#bbb;padding:20px;font-size:0.9rem;">ยังไม่มีข้อมูล</p>';
   }catch(err){console.error("renderMoneyCheck error:",err);}
 }
-function showMoneyCheckPage(){openPage("moneyCheckPage");setTimeout(function(){loadMoneyData();},100);}
-function showHowToUse(){document.getElementById("howToUseModal").style.display="flex";}
-function closeHowToUse(){document.getElementById("howToUseModal").style.display="none";}
 </script>
+
 <!-- 📘 INTRO TUTORIAL MODAL -->
 <div id="introModal" class="modal-overlay" style="display:none;z-index:10000;">
   <div class="modal-box" style="max-width:500px;padding:30px;text-align:center;">
@@ -2045,76 +2264,5 @@ function closeHowToUse(){document.getElementById("howToUseModal").style.display=
 
 
 
-<!-- 💰 MONEY CHECK PAGE -->
-<div id="moneyCheckPage" class="hidden">
-  <div class="container">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-        <h2 style="margin:0;font-size:1.3rem;">💰 เช็คเงิน</h2>
-        <div>
-          <button class="btn-main" onclick="openMoneyCheckModal()" style="padding:8px 12px;font-size:0.9rem;">➕ เช็คเงิน</button>
-          <button class="btn-soft" onclick="resetMoneyToday()" style="padding:8px 12px;font-size:0.9rem;margin-left:5px;">🔄 รีเซ็ต</button>
-        </div>
-      </div>
-      <div id="moneyCheckToday" style="background:var(--c1);padding:15px;border-radius:12px;margin-bottom:15px;text-align:center;">
-        <p style="color:#999;font-size:0.9rem;margin:0 0 5px 0;">วันนี้</p>
-        <h2 style="color:var(--c4);margin:0;font-size:1.8rem;">฿ <span id="moneyToday">0</span></h2>
-        <p id="moneyStatusToday" style="font-size:0.85rem;color:#666;margin:5px 0 0 0;">ยังไม่เช็ค</p>
-      </div>
-      <div>
-        <p style="font-size:0.9rem;font-weight:600;margin:15px 0 10px 0;color:#666;">📅 ประวัติเดือนนี้</p>
-        <div id="moneyHistory" style="max-height:300px;overflow-y:auto;">
-          <p style="text-align:center;color:#bbb;padding:20px;font-size:0.9rem;">ยังไม่มีข้อมูล</p>
-        </div>
-      </div>
-      <div style="margin-top:15px;padding-top:15px;border-top:1px solid var(--c2);">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.9rem;">
-          <div style="background:var(--c1);padding:10px;border-radius:8px;text-align:center;">
-            <p style="color:#999;margin:0 0 5px 0;">รวมเดือนนี้</p>
-            <h4 style="color:var(--green);margin:0;">฿ <span id="moneyMonthTotal">0</span></h4>
-          </div>
-          <div style="background:var(--c1);padding:10px;border-radius:8px;text-align:center;">
-            <p style="color:#999;margin:0 0 5px 0;">วันที่เช็คแล้ว</p>
-            <h4 style="color:var(--blue);margin:0;"><span id="moneyCheckedDays">0</span> วัน</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- 📖 HOW TO USE MODAL -->
-<div id="howToUseModal" class="modal-overlay" style="display:none;z-index:10000;">
-  <div class="modal-box" style="max-width:500px;padding:30px;text-align:left;max-height:90vh;overflow-y:auto;">
-    <button onclick="closeHowToUse()" style="position:absolute;top:10px;right:15px;border:none;background:none;font-size:24px;cursor:pointer;">✕</button>
-    <h2 style="color:var(--c4);margin-bottom:20px;text-align:center;">📖 วิธีใช้เว็บไซต์</h2>
-    <div style="margin-bottom:20px;">
-      <h3 style="color:var(--c4);font-size:1rem;margin-bottom:8px;">🤖 สรุป AI</h3>
-      <p style="color:#666;font-size:0.95rem;line-height:1.6;margin:0;">ดูสรุปข้อมูลส่วนตัวของคุณจาก AI ที่วิเคราะห์สถิติการเข้าเรียน งานที่ส่ง และพฤติกรรมอื่นๆ</p>
-    </div>
-    <div style="margin-bottom:20px;">
-      <h3 style="color:var(--c4);font-size:1rem;margin-bottom:8px;">📋 ย้อนหลัง</h3>
-      <p style="color:#666;font-size:0.95rem;line-height:1.6;margin:0;">ดูประวัติการเข้าเรียนและภารกิจทั้งหมดของคุณ สามารถกรองตามวันที่หรือประเภทได้ สามารถส่งออก PDF ได้</p>
-    </div>
-    <div style="margin-bottom:20px;">
-      <h3 style="color:var(--c4);font-size:1rem;margin-bottom:8px;">📚 งาน</h3>
-      <p style="color:#666;font-size:0.95rem;line-height:1.6;margin:0;">ดูรายการงานที่อาจารย์มอบหมายให้ คลิกงานเพื่อดูรายละเอียด สามารถอัปโหลดรูปหลักฐานการทำงาน AI จะตรวจสอบรูปให้</p>
-    </div>
-    <div style="margin-bottom:20px;">
-      <h3 style="color:var(--c4);font-size:1rem;margin-bottom:8px;">💰 เช็คเงิน</h3>
-      <p style="color:#666;font-size:0.95rem;line-height:1.6;margin:0;">บันทึกจำนวนเงินค่าใช้จ่ายหรือเงินที่ได้ในแต่ละวัน ดูประวัติและสรุปยอดรวมของเดือน</p>
-    </div>
-    <div style="background:var(--c1);border-radius:12px;padding:15px;margin-bottom:20px;">
-      <h3 style="color:var(--c4);font-size:0.95rem;margin-bottom:8px;">💡 เคล็ดลับ</h3>
-      <ul style="margin:0;padding-left:20px;color:#666;font-size:0.9rem;">
-        <li style="margin-bottom:6px;">คลิก ⚙️ เพื่อเข้าถึงการตั้งค่า</li>
-        <li style="margin-bottom:6px;">AI จะช่วยตรวจสอบว่างานของคุณเสร็จหรือไม่</li>
-        <li style="margin-bottom:6px;">สามารถเปลี่ยนรหัสผ่านได้ที่การตั้งค่า</li>
-        <li>ข้อมูลจะบันทึกบนคลาวด์อัตโนมัติ</li>
-      </ul>
-    </div>
-    <button onclick="closeHowToUse()" class="btn-main" style="width:100%;margin-top:15px;">ปิด ✓</button>
-  </div>
-</div>
 
 </html>
