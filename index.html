@@ -1467,7 +1467,90 @@ function buildPrintHTML(logs, monthKeys) {
       '<p class="footer">Generated: '+new Date().toLocaleDateString('th-TH')+' | ระบบห้องเรียน M5/1</p></div>';
   }).join('');
   return'<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>ระบบห้องเรียน M5/1 รายงานเวร</title>'+
-    '<style>body{font-family:system-ui,-apple-system,sans-serif;font-size:10px;color:#333;margin:0;padding:0;}.page{padding:14mm 12mm;page-break-after:always;}.page:last-child{page-break-after:avoid;}h2{font-size:14px;margin:0 0 4px;}.meta{font-size:8.5px;color:#666;margin:0 0 8px;}.footer{font-size:7.5px;color:#aaa;margin-top:8px;}table{width:100%;border-collapse:collapse;table-layout:auto;}th,td{border:1px solid #ccc;padding:3px 4px;text-align:center;white-space:nowrap;font-size:8.5px;}th{background:#D9A299;color:white;font-weight:600;}tr:nth-child(even){background:#faf7f3;}td.td-name{text-align:left;white-space:normal;min-width:80px;}td.v{color:#4a9b65;font-weight:700;}td.l{color:#c75b5b;font-weight:700;}td.s{color:#b87a30;font-weight:700;}td.ab{color:#9b59b6;font-weight:700;}td.t{color:#2980b9;font-weight:700;}td.sum{font-weight:700;}@media print{@page{size:A4 landscape;margin:0;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body>'+pages+'</body></html>';
+    '<style>body{font-family:system-ui,-apple-system,sans-serif;font-size:10px;color:#333;margin:0;padding:0;}.page{padding:14mm 12mm;page-break-after:always;}.page:last-child{page-break-after:avoid;}h2{font-size:14px;margin:0 0 4px;}.meta{font-size:8.5px;color:#666;margin:0 0 8px;}.footer{font-size:7.5px;color:#aaa;margin-top:8px;}table{width:100%;border-collapse:collapse;table-layout:auto;}th,td{border:1px solid #ccc;padding:3px 4px;text-align:center;white-space:nowrap;font-size:8.5px;}th{background:#D9A299;color:white;font-weight:600;}tr:nth-child(even){background:#faf7f3;}td.td-name{text-align:left;white-space:normal;min-width:80px;}td.v{color:#4a9b65;font-weight:700;}td.l{color:#c75b5b;font-weight:700;}td.s{color:#b87a30;font-weight:700;}td.ab{color:#9b59b6;font-weight:700;}td.t{color:#2980b9;font-weight:700;}td.sum{font-weight:700;}@media print{@page{size:A4 landscape;margin:0;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body>'+pages+'</body>
+<!-- 💰 MONEY CHECK PAGE (separate from dashboard) -->
+<div id="moneyCheckPage" class="hidden">
+  <div class="container">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+        <h2 style="margin:0;font-size:1.3rem;">💰 เช็คเงิน</h2>
+        <div>
+          <button class="btn-main" onclick="openMoneyCheckModal()" style="padding:8px 12px;font-size:0.9rem;">➕ เช็คเงิน</button>
+          <button class="btn-soft" onclick="resetMoneyToday()" style="padding:8px 12px;font-size:0.9rem;margin-left:5px;">🔄 รีเซ็ต</button>
+        </div>
+      </div>
+      <div id="moneyCheckToday" style="background:var(--c1);padding:15px;border-radius:12px;margin-bottom:15px;text-align:center;">
+        <p style="color:#999;font-size:0.9rem;margin:0 0 5px 0;">วันนี้</p>
+        <h2 style="color:var(--c4);margin:0;font-size:1.8rem;">฿ <span id="moneyToday">0</span></h2>
+        <p id="moneyStatusToday" style="font-size:0.85rem;color:#666;margin:5px 0 0 0;">ยังไม่เช็ค</p>
+      </div>
+      <div>
+        <p style="font-size:0.9rem;font-weight:600;margin:15px 0 10px 0;color:#666;">📅 ประวัติเดือนนี้</p>
+        <div id="moneyHistory" style="max-height:300px;overflow-y:auto;">
+          <p style="text-align:center;color:#bbb;padding:20px;font-size:0.9rem;">ยังไม่มีข้อมูล</p>
+        </div>
+      </div>
+      <div style="margin-top:15px;padding-top:15px;border-top:1px solid var(--c2);">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.9rem;">
+          <div style="background:var(--c1);padding:10px;border-radius:8px;text-align:center;">
+            <p style="color:#999;margin:0 0 5px 0;">รวมเดือนนี้</p>
+            <h4 style="color:var(--green);margin:0;">฿ <span id="moneyMonthTotal">0</span></h4>
+          </div>
+          <div style="background:var(--c1);padding:10px;border-radius:8px;text-align:center;">
+            <p style="color:#999;margin:0 0 5px 0;">วันที่เช็คแล้ว</p>
+            <h4 style="color:var(--blue);margin:0;"><span id="moneyCheckedDays">0</span> วัน</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 📖 HOW TO USE MODAL -->
+<div id="howToUseModal" class="modal-overlay" style="display:none;z-index:10000;">
+  <div class="modal-box" style="max-width:500px;padding:30px;text-align:left;max-height:90vh;overflow-y:auto;">
+    <button onclick="closeHowToUse()" style="position:absolute;top:10px;right:15px;border:none;background:none;font-size:24px;cursor:pointer;">✕</button>
+    <h2 style="color:var(--c4);margin-bottom:20px;text-align:center;">📖 วิธีใช้เว็บไซต์</h2>
+    
+    <div style="margin-bottom:20px;">
+      <h3 style="color:var(--c4);font-size:1rem;margin-bottom:8px;">🤖 สรุป AI</h3>
+      <p style="color:#666;font-size:0.95rem;line-height:1.6;margin:0;">ดูสรุปข้อมูลส่วนตัวของคุณจาก AI ที่วิเคราะห์สถิติการเข้าเรียน งานที่ส่ง และพฤติกรรมอื่นๆ</p>
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <h3 style="color:var(--c4);font-size:1rem;margin-bottom:8px;">📋 ย้อนหลัง</h3>
+      <p style="color:#666;font-size:0.95rem;line-height:1.6;margin:0;">ดูประวัติการเข้าเรียนและภารกิจทั้งหมดของคุณ สามารถกรองตามวันที่หรือประเภทได้ สามารถส่งออก PDF ได้</p>
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <h3 style="color:var(--c4);font-size:1rem;margin-bottom:8px;">📚 งาน</h3>
+      <p style="color:#666;font-size:0.95rem;line-height:1.6;margin:0;">ดูรายการงานที่อาจารย์มอบหมายให้ คลิกงานเพื่อดูรายละเอียด สามารถอัปโหลดรูปหลักฐานการทำงาน AI จะตรวจสอบรูปให้</p>
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <h3 style="color:var(--c4);font-size:1rem;margin-bottom:8px;">💰 เช็คเงิน</h3>
+      <p style="color:#666;font-size:0.95rem;line-height:1.6;margin:0;">บันทึกจำนวนเงินค่าใช้จ่ายหรือเงินที่ได้ในแต่ละวัน ดูประวัติและสรุปยอดรวมของเดือน</p>
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <h3 style="color:var(--c4);font-size:1rem;margin-bottom:8px;">🏠 Home</h3>
+      <p style="color:#666;font-size:0.95rem;line-height:1.6;margin:0;">กลับไปที่หน้าแรกเพื่อดูข้อมูลสรุปอย่างรวดเร็ว</p>
+    </div>
+
+    <div style="background:var(--c1);border-radius:12px;padding:15px;margin-bottom:20px;">
+      <h3 style="color:var(--c4);font-size:0.95rem;margin-bottom:8px;">💡 เคล็ดลับ</h3>
+      <ul style="margin:0;padding-left:20px;color:#666;font-size:0.9rem;">
+        <li style="margin-bottom:6px;">คลิก ⚙️ เพื่อเข้าถึงการตั้งค่า</li>
+        <li style="margin-bottom:6px;">รูปเสมือน AI จะช่วยตรวจสอบว่างานของคุณเสร็จสมบูรณ์หรือไม่</li>
+        <li style="margin-bottom:6px;">สามารถเปลี่ยนรหัสผ่านได้ที่การตั้งค่า</li>
+        <li>ข้อมูลของคุณจะบันทึกลงบนคลาวด์อัตโนมัติ</li>
+      </ul>
+    </div>
+
+    <button onclick="closeHowToUse()" class="btn-main" style="width:100%;margin-top:15px;">ปิด ✓</button>
+  </div>
+</div>
+</html>';
 }
 function openPrintWindow(html){var w=window.open('','_blank','width=900,height=650');if(!w){showStatus('❌ Pop-up ถูกบล็อก กรุณาอนุญาต pop-up แล้วลองใหม่');return;}w.document.write(html);w.document.close();w.onload=function(){w.focus();w.print();};}
 function getMonthsFromLogs(logs){var months={};logs.forEach(function(r){if(!r.date)return;var p=r.date.split('/');if(p.length<3)return;months[p[1]+'/'+p[2]]=true;});return Object.keys(months).sort();}
@@ -1800,7 +1883,7 @@ window.onload = function() {
 /* ════════════════════════════════════════════════════════════
    📱 OPEN MONEY CHECK PAGE
 ════════════════════════════════════════════════════════════ */
-function openMoneyCheckPage(){openPage('moneyCheckPage');loadMoneyData();}
+function openMoneyCheckPage(){openPage('moneyCheckPage');setTimeout(function(){loadMoneyData();},100);}
 /* ════════════════════════════════════════════════════════════
    📖 HOW TO USE MODAL
 ════════════════════════════════════════════════════════════ */
@@ -1812,8 +1895,13 @@ function closeHowToUse(){document.getElementById("howToUseModal").style.display=
 var _introStep=0;function showIntroIfFirst(){if(!localStorage.getItem("introSeen")){document.getElementById("introModal").style.display="flex";}}function nextIntroStep(){_introStep++;if(_introStep>4){localStorage.setItem("introSeen","true");closeIntro();showStatus("✨ ยินดีต้อนรับสู่ระบบ!");return;}for(var i=0;i<=4;i++){var step=document.getElementById("introStep"+i);if(step)step.style.display=(i===_introStep)?"block":"none";}}function closeIntro(){document.getElementById("introModal").style.display="none";localStorage.setItem("introSeen","true");}
 /* ════════════════════════════════════════════════════════════
    💰 MONEY CHECK SYSTEM
-════════════════════════════════════════════════════════════ */
-var moneyChecks=[];function openMoneyCheckModal(){var today=new Date().toISOString().split("T")[0];document.getElementById("moneyDate").value=today;document.getElementById("moneyAmount").value="";document.getElementById("moneyStatus").value="received";document.getElementById("moneyNote").value="";document.getElementById("moneyCheckModal").style.display="flex";}function closeMoneyCheckModal(){document.getElementById("moneyCheckModal").style.display="none";}function saveMoneyCheck(){var date=document.getElementById("moneyDate").value;var amount=parseFloat(document.getElementById("moneyAmount").value)||0;var status=document.getElementById("moneyStatus").value;var note=document.getElementById("moneyNote").value.trim();if(!date){showStatus("⚠️ กรุณาเลือกวันที่");return;}var entry={id:"mc_"+Date.now(),date:date,amount:amount,status:status,note:note,createdAt:new Date().toISOString()};moneyChecks.push(entry);localStorage.setItem("moneyChecks_v1",JSON.stringify(moneyChecks));if(firestoreDB&&currentUser){firestoreDB.collection("money_check_m51").add({userId:currentUser.uid,date:date,amount:amount,status:status,note:note,timestamp:new Date()}).catch(function(e){console.error("Save money check error:",e);});}renderMoneyCheck();closeMoneyCheckModal();showStatus("✅ บันทึกเงินแล้ว");}function resetMoneyToday(){var today=new Date().toISOString().split("T")[0];moneyChecks=moneyChecks.filter(function(m){return m.date!==today;});localStorage.setItem("moneyChecks_v1",JSON.stringify(moneyChecks));renderMoneyCheck();showStatus("🔄 รีเซ็ตแล้ว");}function loadMoneyData(){var saved=localStorage.getItem("moneyChecks_v1");if(saved){try{moneyChecks=JSON.parse(saved);}catch(e){moneyChecks=[];}}renderMoneyCheck();}function renderMoneyCheck(){var today=new Date().toISOString().split("T")[0];var todayData=moneyChecks.find(function(m){return m.date===today;});var moneyTodayEl=document.getElementById("moneyToday");var moneyStatusEl=document.getElementById("moneyStatusToday");if(todayData){if(moneyTodayEl)moneyTodayEl.textContent=todayData.amount;var statusText=todayData.status==="received"?"✓ ได้เงิน":todayData.status==="not-received"?"✕ ไม่ได้เงิน":"⏳ รอการยืนยัน";if(moneyStatusEl)moneyStatusEl.textContent=statusText;}else{if(moneyTodayEl)moneyTodayEl.textContent="0";if(moneyStatusEl)moneyStatusEl.textContent="ยังไม่เช็ค";}var now=new Date();var currentMonth=(now.getMonth()+1).toString().padStart(2,"0");var currentYear=now.getFullYear().toString();var monthData=moneyChecks.filter(function(m){return m.date.startsWith(currentYear+"-"+currentMonth);});var total=monthData.reduce(function(sum,m){return sum+m.amount;},0);var checkedDays=monthData.length;var moneyMonthEl=document.getElementById("moneyMonthTotal");var moneyDaysEl=document.getElementById("moneyCheckedDays");if(moneyMonthEl)moneyMonthEl.textContent=total;if(moneyDaysEl)moneyDaysEl.textContent=checkedDays;var html="";monthData.sort(function(a,b){return b.date.localeCompare(a.date);}).forEach(function(m){var statusIcon=m.status==="received"?"✓":m.status==="not-received"?"✕":"⏳";var statusColor=m.status==="received"?"var(--green)":m.status==="not-received"?"var(--red)":"var(--yellow)";html+='<div style="padding:10px;background:var(--c1);border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><div><p style="margin:0;font-weight:600;">'+m.date+' <span style="color:'+statusColor+';">'+statusIcon+'</span></p><p style="margin:3px 0 0 0;font-size:0.85rem;color:#999;">'+(m.note||"—")+'</p></div><p style="margin:0;font-weight:600;color:var(--c4);font-size:1.1rem;">฿ '+m.amount+'</p></div>';});var moneyHistoryEl=document.getElementById("moneyHistory");if(moneyHistoryEl)moneyHistoryEl.innerHTML=html||'<p style="text-align:center;color:#bbb;padding:20px;font-size:0.9rem;">ยังไม่มีข้อมูล</p>';}/* Load money data only after DOM is ready */setTimeout(function(){loadMoneyData();},100);
+function openMoneyCheckModal(){var today=new Date().toISOString().split("T")[0];document.getElementById("moneyDate").value=today;document.getElementById("moneyAmount").value="";document.getElementById("moneyStatus").value="received";document.getElementById("moneyNote").value="";document.getElementById("moneyCheckModal").style.display="flex";}
+function closeMoneyCheckModal(){document.getElementById("moneyCheckModal").style.display="none";}
+function saveMoneyCheck(){var date=document.getElementById("moneyDate").value;var amount=parseFloat(document.getElementById("moneyAmount").value)||0;var status=document.getElementById("moneyStatus").value;var note=document.getElementById("moneyNote").value.trim();if(!date){showStatus("⚠️ กรุณาเลือกวันที่");return;}var entry={id:"mc_"+Date.now(),date:date,amount:amount,status:status,note:note,createdAt:new Date().toISOString()};moneyChecks.push(entry);localStorage.setItem("moneyChecks_v1",JSON.stringify(moneyChecks));if(firestoreDB&&currentUser){firestoreDB.collection("money_check_m51").add({userId:currentUser.uid,date:date,amount:amount,status:status,note:note,timestamp:new Date()}).catch(function(e){console.error("Save money check error:",e);});}renderMoneyCheck();closeMoneyCheckModal();showStatus("✅ บันทึกเงินแล้ว");}
+function resetMoneyToday(){var today=new Date().toISOString().split("T")[0];moneyChecks=moneyChecks.filter(function(m){return m.date!==today;});localStorage.setItem("moneyChecks_v1",JSON.stringify(moneyChecks));renderMoneyCheck();showStatus("🔄 รีเซ็ตแล้ว");}
+function loadMoneyData(){var saved=localStorage.getItem("moneyChecks_v1");if(saved){try{moneyChecks=JSON.parse(saved);}catch(e){moneyChecks=[];}}if(document.getElementById("moneyToday")){renderMoneyCheck();}}
+function renderMoneyCheck(){try{var today=new Date().toISOString().split("T")[0];var todayData=moneyChecks.find(function(m){return m.date===today;});var el_moneyToday=document.getElementById("moneyToday");var el_moneyStatus=document.getElementById("moneyStatusToday");if(el_moneyToday&&el_moneyStatus){if(todayData){el_moneyToday.textContent=todayData.amount;var statusText=todayData.status==="received"?"✓ ได้เงิน":todayData.status==="not-received"?"✕ ไม่ได้เงิน":"⏳ รอการยืนยัน";el_moneyStatus.textContent=statusText;}else{el_moneyToday.textContent="0";el_moneyStatus.textContent="ยังไม่เช็ค";}}var now=new Date();var currentMonth=(now.getMonth()+1).toString().padStart(2,"0");var currentYear=now.getFullYear().toString();var monthData=moneyChecks.filter(function(m){return m.date.startsWith(currentYear+"-"+currentMonth);});var total=monthData.reduce(function(sum,m){return sum+m.amount;},0);var checkedDays=monthData.length;var el_moneyMonth=document.getElementById("moneyMonthTotal");var el_moneyDays=document.getElementById("moneyCheckedDays");if(el_moneyMonth)el_moneyMonth.textContent=total;if(el_moneyDays)el_moneyDays.textContent=checkedDays;var html="";monthData.sort(function(a,b){return b.date.localeCompare(a.date);}).forEach(function(m){var statusIcon=m.status==="received"?"✓":m.status==="not-received"?"✕":"⏳";var statusColor=m.status==="received"?"var(--green)":m.status==="not-received"?"var(--red)":"var(--yellow)";html+='<div style="padding:10px;background:var(--c1);border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><div><p style="margin:0;font-weight:600;">'+m.date+' <span style="color:'+statusColor+';">'+statusIcon+'</span></p><p style="margin:3px 0 0 0;font-size:0.85rem;color:#999;">'+(m.note||"—")+'</p></div><p style="margin:0;font-weight:600;color:var(--c4);font-size:1.1rem;">฿ '+m.amount+'</p></div>';});var el_moneyHistory=document.getElementById("moneyHistory");if(el_moneyHistory)el_moneyHistory.innerHTML=html||'<p style="text-align:center;color:#bbb;padding:20px;font-size:0.9rem;">ยังไม่มีข้อมูล</p>';}catch(err){console.error("Error in renderMoneyCheck:",err);}}
+var moneyChecks=[];
 </script>
 <!-- 📘 INTRO TUTORIAL MODAL -->
 <div id="introModal" class="modal-overlay" style="display:none;z-index:10000;">
@@ -1874,6 +1962,7 @@ var moneyChecks=[];function openMoneyCheckModal(){var today=new Date().toISOStri
     </div>
   </div>
 </div>
+
 
 
 <!-- 💰 MONEY CHECK PAGE (separate from dashboard) -->
@@ -1958,5 +2047,4 @@ var moneyChecks=[];function openMoneyCheckModal(){var today=new Date().toISOStri
     <button onclick="closeHowToUse()" class="btn-main" style="width:100%;margin-top:15px;">ปิด ✓</button>
   </div>
 </div>
-
 </html>
