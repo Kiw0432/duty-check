@@ -463,7 +463,7 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   </div>
 </div>
 
-<div class="container">
+<div class="container" id="mainContainer" style="display:none !important;">
   <div class="header">
     <div class="logo">
       <h1>ระบบห้องเรียน M5/1</h1>
@@ -1009,6 +1009,7 @@ var slideImages = [], curSlide = 0;
 var retroEditLogIndex = null;
 var _cachedLogs = [], _cachedAssignmentStatus = {};
 var realtimeUnsubscribe = null;
+var assignUnsubscribe = null;
 var firestoreDB = null, firebaseAuth = null;
 var _allStudentStatuses = {};
 /* ✅ OPTIMIZATION: cache สำหรับ assignment_status (admin) — ป้องกันดึงซ้ำหลายรอบ */
@@ -1183,31 +1184,76 @@ function loginStudent() {
 }
 function checkUserRole(user) {
   currentUser = user;
-  /* อ่าน user doc — 1 read เท่านั้น */
-  return firestoreDB.collection("users").doc(user.uid).get()
+  var timeoutPromise = new Promise(function(_, reject){
+    setTimeout(function(){ reject(new Error("FIRESTORE_TIMEOUT")); }, 8000);
+  });
+  return Promise.race([
+    firestoreDB.collection("users").doc(user.uid).get(),
+    timeoutPromise
+  ])
     .then(function(doc) {
       trackRead(1);
       if (doc.exists) {
         currentUserDoc = doc.data();
         isAdmin = currentUserDoc.role === "admin";
       } else {
+        /* doc ไม่มี — ลองหาจาก STUDENTS ก่อน */
         var studentId = user.email ? user.email.replace(STUDENT_DOMAIN, "") : "";
         var s = STUDENTS.find(function(x){ return x.id === studentId; });
-        if (!s) {
-          return firebaseAuth.signOut().then(function(){ throw new Error("ไม่พบข้อมูลผู้ใช้"); });
-        }
-        currentUserDoc = { role:"student", studentId:studentId, name:s.name, no:s.no };
-        isAdmin = false;
-        if (user.uid && user.email && user.email.endsWith(STUDENT_DOMAIN)) {
-          return firestoreDB.collection("users").doc(user.uid).set(currentUserDoc);
+        if (s) {
+          /* เป็นนักเรียน */
+          currentUserDoc = { role:"student", studentId:studentId, name:s.name, no:s.no };
+          isAdmin = false;
+          if (user.uid && user.email && user.email.endsWith(STUDENT_DOMAIN)) {
+            firestoreDB.collection("users").doc(user.uid).set(currentUserDoc).catch(function(){});
+          }
+        } else {
+          /* ไม่อยู่ใน STUDENTS — อาจเป็น admin ที่ยังไม่มี doc หรือ email ไม่ตรง */
+          /* ✅ ให้ login เป็น admin แทนที่จะ signOut ทิ้ง */
+          console.warn("⚠️ User doc not found — treating as admin (no STUDENT match)");
+          currentUserDoc = { role:"admin", email: user.email };
+          isAdmin = true;
+          /* บันทึก doc admin ไว้ครั้งแรก */
+          firestoreDB.collection("users").doc(user.uid).set(currentUserDoc).catch(function(){});
         }
       }
     })
-    .then(function(){ hideLoading(); startSystem(); if(!isAdmin) setTimeout(showIntroIfFirst, 500); });
+    .catch(function(e) {
+      if (e.message === "FIRESTORE_TIMEOUT") {
+        console.warn("⚠️ Firestore timeout — logging out for safety");
+        hideLoading();
+        return firebaseAuth.signOut().then(function(){
+          showLoginError("⚠️ เชื่อมต่อฐานข้อมูลช้าเกินไป กรุณา login ใหม่อีกครั้ง");
+        });
+      }
+      if (e.code === "permission-denied" || (e.message && e.message.indexOf("permission") !== -1)) {
+        /* ✅ Firestore rules deny — ถ้า email ไม่ใช่ student domain ให้เป็น admin */
+        console.warn("⚠️ Firestore permission denied reading user doc — falling back by email");
+        var studentId2 = user.email ? user.email.replace(STUDENT_DOMAIN, "") : "";
+        var s2 = STUDENTS.find(function(x){ return x.id === studentId2; });
+        if (s2) {
+          currentUserDoc = { role:"student", studentId:studentId2, name:s2.name, no:s2.no };
+          isAdmin = false;
+        } else {
+          currentUserDoc = { role:"admin", email: user.email };
+          isAdmin = true;
+        }
+        return; /* ไม่ throw — ให้ไปต่อได้ */
+      }
+      throw e;
+    })
+    .then(function(){
+      if (currentUserDoc) {
+        hideLoading();
+        startSystem();
+        if(!isAdmin) setTimeout(showIntroIfFirst, 500);
+      }
+    });
 }
 function logout() {
   if (monthlyChart) { try { monthlyChart.destroy(); } catch(e){} monthlyChart = null; }
   if (realtimeUnsubscribe) { try { realtimeUnsubscribe(); } catch(e){} realtimeUnsubscribe = null; }
+  if (assignUnsubscribe) { try { assignUnsubscribe(); } catch(e){} assignUnsubscribe = null; }
   currentUser = null; currentUserDoc = null; isAdmin = false;
   _cachedLogs = []; _cachedAssignmentStatus = {}; _allStudentStatuses = {};
   firebaseAuth.signOut().then(function(){ location.reload(); }).catch(function(){ location.reload(); });
@@ -1220,6 +1266,8 @@ function _safeHide(id){ var e=_safeEl(id); if(e) e.classList.add("hidden"); }
 function startSystem() {
   _safeHide("loginPage");
   _safeShow("homePage");
+  renderSlides();
+  loadMoneyData();
   if (isAdmin) {
     _safeShow("topActions"); _safeShow("editColHeader");
     _safeShow("teacherNav"); _safeShow("addAssignBtn");
@@ -1939,7 +1987,8 @@ function loadAssignDataFromCloud(){
   }).catch(function(e){console.error("subjects load error:",e);});
   /* ✅ assignments ยังใช้ onSnapshot เพราะเปลี่ยนบ่อย แต่ track reads */
   var _assignRenderTimer=null;
-  firestoreDB.collection("assignments_m51").orderBy("createdAt").onSnapshot(function(snap){
+  if(assignUnsubscribe){try{assignUnsubscribe();}catch(e){}assignUnsubscribe=null;}
+  assignUnsubscribe = firestoreDB.collection("assignments_m51").orderBy("createdAt").onSnapshot(function(snap){
     trackRead(snap.size);
     assignments=[];snap.forEach(function(doc){var d=doc.data();d._fid=doc.id;assignments.push(d);});
     safeSetItem("assignments_v1",JSON.stringify(assignments));
@@ -2012,14 +2061,19 @@ window.onload = function() {
   // Safety timeout to hide splash after 10 seconds no matter what
   var splashSafetyTimeout = setTimeout(function() {
     console.warn("⏰ Safety timeout - forcing splash to hide");
+    var mc = document.getElementById("mainContainer");
+    if(mc){ mc.style.cssText = ""; mc.style.display = "block"; }
     var sp = document.getElementById("splashPage");
-    if(sp) {
-      sp.style.display = "none";
-      sp.classList.add("fade-out");
-    }
-    // Show login page as fallback
+    if(sp) { sp.style.display = "none"; sp.classList.add("fade-out"); }
+    // Hide everything except loginPage
+    ["homePage","checkPage","dashboardPage","historyPage","assignPage","moneyCheckPage",
+     "teacherNav","studentNav","topActions","studentActions"].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el) el.classList.add("hidden");
+    });
     var loginPage = document.getElementById("loginPage");
     if(loginPage) loginPage.classList.remove("hidden");
+    hideLoading();
   }, 10000);
   
   var splashMsgs=["กำลังเชื่อมต่อ Firebase...","ตรวจสอบสิทธิ์ผู้ใช้...","โหลดข้อมูลห้องเรียน...","เตรียมระบบ AI..."];
@@ -2030,6 +2084,8 @@ window.onload = function() {
     console.log("🎬 Hiding splash screen");
     clearInterval(_smTimer);
     clearTimeout(splashSafetyTimeout);
+    var mc=document.getElementById("mainContainer");
+    if(mc){ mc.style.cssText = ""; mc.style.display = "block"; }
     var sp=document.getElementById("splashPage");
     if(sp&&!sp.classList.contains("fade-out")){
       setTimeout(function(){sp.classList.add("fade-out");setTimeout(function(){sp.style.display="none";},500);},400);
@@ -2039,7 +2095,7 @@ window.onload = function() {
   document.getElementById("todayDate").innerHTML="📅 "+getThaiDate();
   var savedSlides=localStorage.getItem("slideImages");
   slideImages=savedSlides?JSON.parse(savedSlides):DEFAULT_SLIDES.slice();
-  renderSlides();
+  // renderSlides moved to startSystem() - don't render before login
   
   var bg=localStorage.getItem("customBackground");
   if(bg){var bgUrl=bg.replace(/'/g,"\\'");document.body.style.backgroundImage="url('"+bgUrl+"')";document.body.style.backgroundSize="cover";}
@@ -2099,6 +2155,9 @@ window.onload = function() {
           showLoginError("❌ โหลดข้อมูลผู้ใช้ไม่สำเร็จ: "+(e.message||e));
         });
       }else{
+        /* ✅ ทุกครั้งที่ user = null ให้หยุด listeners ทันที ป้องกัน permission-denied */
+        if(realtimeUnsubscribe){try{realtimeUnsubscribe();}catch(e){}realtimeUnsubscribe=null;}
+        if(assignUnsubscribe){try{assignUnsubscribe();}catch(e){}assignUnsubscribe=null;}
         if(!_authHandled){
           _authHandled=true;
           console.log("📝 No user - showing login");
