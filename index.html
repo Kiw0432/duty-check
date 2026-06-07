@@ -927,21 +927,28 @@ function loadLogsCache(){
 function initFirebase() {
   try {
     if (typeof firebase === "undefined" || window._firebaseLoadError) {
-      var msg = "❌ โหลด Firebase SDK ไม่ได้\n\n• ไม่มี internet\n• เปิดจาก file:// โดยตรง\n\nลองรีเฟรช";
-      document.getElementById("loginError").style.display = "block";
-      document.getElementById("loginError").textContent = msg;
+      console.error("❌ Firebase SDK ไม่โหลดสำเร็จ");
       return false;
     }
-    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    if (!firebase.apps.length) {
+      firebase.initializeApp(FIREBASE_CONFIG);
+      console.log("✅ Firebase initialized");
+    }
     firestoreDB  = firebase.firestore();
     /* Long-polling ป้องกัน QUIC_TOO_MANY_RTOS */
     firestoreDB.settings({ experimentalAutoDetectLongPolling: true, merge: true, cache: {type:'persistent'} });
     firebaseAuth = firebase.auth();
+    
+    /* ⏱️ ตั้ง timeout สำหรับ Firebase persistence */
+    firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(e){
+      console.warn("⚠️ Firebase persistence error:", e.message);
+    });
+    
     return true;
   } catch(e) {
-    console.error("Firebase init error:", e);
+    console.error("🔥 Firebase init error:", e.message);
     document.getElementById("loginError").style.display = "block";
-    document.getElementById("loginError").textContent = "❌ Firebase error: " + e.message;
+    document.getElementById("loginError").textContent = "❌ Firebase: " + e.message;
     return false;
   }
 }
@@ -1848,7 +1855,18 @@ window.onload = function() {
   loadAssignData();
   if(!initFirebase()){hideSplash();showStatus("❌ Firebase โหลดไม่สำเร็จ โปรดรีเฟรช");return;}
   var _authHandled=false;
+  var _authTimeout=setTimeout(function(){
+    console.warn("⚠️ Firebase auth timeout - proceeding to login page");
+    if(!_authHandled){
+      _authHandled=true;
+      hideSplash();
+      var loginPage=document.getElementById("loginPage");
+      if(loginPage){loginPage.classList.remove("hidden");}
+    }
+  },8000); /* ⏱️ รอ 8 วินาที ถ้ายังไม่มี response ให้ไปหน้า login */
+  
   firebaseAuth.onAuthStateChanged(function(user){
+    clearTimeout(_authTimeout);
     if(user){
       /* มี user อยู่แล้ว — ตรวจว่ายังอยู่หน้า login ไหม */
       var loginPage=document.getElementById("loginPage");
@@ -1865,9 +1883,13 @@ window.onload = function() {
       });
     }else{
       /* logout แล้ว — reset flag */
-      _authHandled=false;
+      if(!_authHandled){
+        _authHandled=true;
+        hideSplash();
+        var loginPage=document.getElementById("loginPage");
+        if(loginPage){loginPage.classList.remove("hidden");}
+      }
     }
-    hideSplash();
   });
   var _baseVH=window.innerHeight;
   function updateVH(){var h=window.visualViewport?window.visualViewport.height:window.innerHeight;document.documentElement.style.setProperty("--vh",(h*0.01)+"px");var isKbOpen=(window.innerHeight-h)>150;document.body.classList.toggle("keyboard-open",isKbOpen);}
