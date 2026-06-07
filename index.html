@@ -689,6 +689,42 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
       </div>
     </div>
   </div>
+
+  <!-- 💰 MONEY CHECK PAGE -->
+  <div id="moneyCheckPage" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+        <h2 style="margin:0;font-size:1.3rem;">💰 เช็คเงิน</h2>
+        <div>
+          <button class="btn-main" onclick="openMoneyCheckModal()" style="padding:8px 12px;font-size:0.9rem;">➕ เช็คเงิน</button>
+          <button class="btn-soft" onclick="resetMoneyToday()" style="padding:8px 12px;font-size:0.9rem;margin-left:5px;">🔄 รีเซ็ต</button>
+        </div>
+      </div>
+      <div id="moneyCheckToday" style="background:var(--c1);padding:15px;border-radius:12px;margin-bottom:15px;text-align:center;">
+        <p style="color:#999;font-size:0.9rem;margin:0 0 5px 0;">วันนี้</p>
+        <h2 style="color:var(--c4);margin:0;font-size:1.8rem;">฿ <span id="moneyToday">0</span></h2>
+        <p id="moneyStatusToday" style="font-size:0.85rem;color:#666;margin:5px 0 0 0;">ยังไม่เช็ค</p>
+      </div>
+      <div>
+        <p style="font-size:0.9rem;font-weight:600;margin:15px 0 10px 0;color:#666;">📅 ประวัติเดือนนี้</p>
+        <div id="moneyHistory" style="max-height:300px;overflow-y:auto;">
+          <p style="text-align:center;color:#bbb;padding:20px;font-size:0.9rem;">ยังไม่มีข้อมูล</p>
+        </div>
+      </div>
+      <div style="margin-top:15px;padding-top:15px;border-top:1px solid var(--c2);">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.9rem;">
+          <div style="background:var(--c1);padding:10px;border-radius:8px;text-align:center;">
+            <p style="color:#999;margin:0 0 5px 0;">รวมเดือนนี้</p>
+            <h4 style="color:var(--green);margin:0;">฿ <span id="moneyMonthTotal">0</span></h4>
+          </div>
+          <div style="background:var(--c1);padding:10px;border-radius:8px;text-align:center;">
+            <p style="color:#999;margin:0 0 5px 0;">วันที่เช็คแล้ว</p>
+            <h4 style="color:var(--blue);margin:0;"><span id="moneyCheckedDays">0</span> วัน</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1645,43 +1681,6 @@ function showHowToUse(){document.getElementById("howToUseModal").style.display="
 function closeHowToUse(){document.getElementById("howToUseModal").style.display="none";}
 </script>
 
-<!-- 💰 MONEY CHECK PAGE -->
-<div id="moneyCheckPage" class="hidden">
-  <div class="container">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-        <h2 style="margin:0;font-size:1.3rem;">💰 เช็คเงิน</h2>
-        <div>
-          <button class="btn-main" onclick="openMoneyCheckModal()" style="padding:8px 12px;font-size:0.9rem;">➕ เช็คเงิน</button>
-          <button class="btn-soft" onclick="resetMoneyToday()" style="padding:8px 12px;font-size:0.9rem;margin-left:5px;">🔄 รีเซ็ต</button>
-        </div>
-      </div>
-      <div id="moneyCheckToday" style="background:var(--c1);padding:15px;border-radius:12px;margin-bottom:15px;text-align:center;">
-        <p style="color:#999;font-size:0.9rem;margin:0 0 5px 0;">วันนี้</p>
-        <h2 style="color:var(--c4);margin:0;font-size:1.8rem;">฿ <span id="moneyToday">0</span></h2>
-        <p id="moneyStatusToday" style="font-size:0.85rem;color:#666;margin:5px 0 0 0;">ยังไม่เช็ค</p>
-      </div>
-      <div>
-        <p style="font-size:0.9rem;font-weight:600;margin:15px 0 10px 0;color:#666;">📅 ประวัติเดือนนี้</p>
-        <div id="moneyHistory" style="max-height:300px;overflow-y:auto;">
-          <p style="text-align:center;color:#bbb;padding:20px;font-size:0.9rem;">ยังไม่มีข้อมูล</p>
-        </div>
-      </div>
-      <div style="margin-top:15px;padding-top:15px;border-top:1px solid var(--c2);">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.9rem;">
-          <div style="background:var(--c1);padding:10px;border-radius:8px;text-align:center;">
-            <p style="color:#999;margin:0 0 5px 0;">รวมเดือนนี้</p>
-            <h4 style="color:var(--green);margin:0;">฿ <span id="moneyMonthTotal">0</span></h4>
-          </div>
-          <div style="background:var(--c1);padding:10px;border-radius:8px;text-align:center;">
-            <p style="color:#999;margin:0 0 5px 0;">วันที่เช็คแล้ว</p>
-            <h4 style="color:var(--blue);margin:0;"><span id="moneyCheckedDays">0</span> วัน</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- 📖 HOW TO USE MODAL -->
 <div id="howToUseModal" class="modal-overlay" style="display:none;z-index:10000;">
@@ -1741,7 +1740,7 @@ function updateStorageStatus(id){updateQuotaBadge();}
 
 /* ══ NAVIGATION ══ */
 function openPage(id){
-  ["homePage","checkPage","dashboardPage","historyPage","assignPage"].forEach(function(p){document.getElementById(p).classList.add("hidden");});
+  ["homePage","checkPage","dashboardPage","historyPage","assignPage","moneyCheckPage"].forEach(function(p){document.getElementById(p).classList.add("hidden");});
   document.getElementById(id).classList.remove("hidden");
   if(id==="dashboardPage"){updateDashboard();renderChart();if(isAdmin)renderAdminAISummary();}
   if(id==="historyPage"){updateStorageStatus("storageBarWrap");if(isAdmin){document.getElementById("pdfExportSection").classList.remove("hidden");populatePDFMonthSelect();}}
