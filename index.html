@@ -526,6 +526,40 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
       </div>
     </div>
     <div class="card"><h2 style="margin-bottom:12px;">📈 สรุปรายเดือน</h2><canvas id="monthlyChart"></canvas></div>
+
+    <!-- 💰 MONEY CHECK SECTION -->
+    <div class="card" id="moneyCheckSection">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+        <h3 style="margin:0;">💰 เช็คเงิน</h3>
+        <div>
+          <button class="btn-main" onclick="openMoneyCheckModal()" style="padding:8px 12px;font-size:0.9rem;">➕ เช็คเงิน</button>
+          <button class="btn-soft" onclick="resetMoneyToday()" style="padding:8px 12px;font-size:0.9rem;margin-left:5px;">🔄 รีเซ็ต</button>
+        </div>
+      </div>
+      <div id="moneyCheckToday" style="background:var(--c1);padding:15px;border-radius:12px;margin-bottom:15px;text-align:center;">
+        <p style="color:#999;font-size:0.9rem;margin:0 0 5px 0;">วันนี้</p>
+        <h2 style="color:var(--c4);margin:0;font-size:1.8rem;">฿ <span id="moneyToday">0</span></h2>
+        <p id="moneyStatusToday" style="font-size:0.85rem;color:#666;margin:5px 0 0 0;">ยังไม่เช็ค</p>
+      </div>
+      <div>
+        <p style="font-size:0.9rem;font-weight:600;margin:15px 0 10px 0;color:#666;">📅 ประวัติเดือนนี้</p>
+        <div id="moneyHistory" style="max-height:300px;overflow-y:auto;">
+          <p style="text-align:center;color:#bbb;padding:20px;font-size:0.9rem;">ยังไม่มีข้อมูล</p>
+        </div>
+      </div>
+      <div style="margin-top:15px;padding-top:15px;border-top:1px solid var(--c2);">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.9rem;">
+          <div style="background:var(--c1);padding:10px;border-radius:8px;text-align:center;">
+            <p style="color:#999;margin:0 0 5px 0;">รวมเดือนนี้</p>
+            <h4 style="color:var(--green);margin:0;">฿ <span id="moneyMonthTotal">0</span></h4>
+          </div>
+          <div style="background:var(--c1);padding:10px;border-radius:8px;text-align:center;">
+            <p style="color:#999;margin:0 0 5px 0;">วันที่เช็คแล้ว</p>
+            <h4 style="color:var(--blue);margin:0;"><span id="moneyCheckedDays">0</span> วัน</h4>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- HISTORY -->
@@ -997,7 +1031,7 @@ function checkUserRole(user) {
         }
       }
     })
-    .then(function(){ hideLoading(); startSystem(); });
+    .then(function(){ hideLoading(); startSystem(); if(!isAdmin) setTimeout(showIntroIfFirst, 500); });
 }
 function logout() {
   if (monthlyChart) { try { monthlyChart.destroy(); } catch(e){} monthlyChart = null; }
@@ -1794,8 +1828,75 @@ window.onload = function() {
   updateVH();
   window.addEventListener("resize",updateVH);
   if(window.visualViewport){window.visualViewport.addEventListener("resize",updateVH);window.visualViewport.addEventListener("scroll",updateVH);}
-  document.addEventListener("touchmove",function(e){var el=e.target;while(el&&el!==document.body){if(el.scrollHeight>el.clientHeight&&(el.classList.contains("modal-box")||el.classList.contains("assign-modal-box")||el.classList.contains("subj-modal-box")))return;el=el.parentElement;}},{passive:true});
 };
+/* ════════════════════════════════════════════════════════════
+   📘 INTRO TUTORIAL SYSTEM
+════════════════════════════════════════════════════════════ */
+var _introStep=0;function showIntroIfFirst(){if(!localStorage.getItem("introSeen")){document.getElementById("introModal").style.display="flex";}}function nextIntroStep(){_introStep++;if(_introStep>4){localStorage.setItem("introSeen","true");closeIntro();showStatus("✨ ยินดีต้อนรับสู่ระบบ!");return;}for(var i=0;i<=4;i++){var step=document.getElementById("introStep"+i);if(step)step.style.display=(i===_introStep)?"block":"none";}}function closeIntro(){document.getElementById("introModal").style.display="none";localStorage.setItem("introSeen","true");}
+/* ════════════════════════════════════════════════════════════
+   💰 MONEY CHECK SYSTEM
+════════════════════════════════════════════════════════════ */
+var moneyChecks=[];function openMoneyCheckModal(){var today=new Date().toISOString().split("T")[0];document.getElementById("moneyDate").value=today;document.getElementById("moneyAmount").value="";document.getElementById("moneyStatus").value="received";document.getElementById("moneyNote").value="";document.getElementById("moneyCheckModal").style.display="flex";}function closeMoneyCheckModal(){document.getElementById("moneyCheckModal").style.display="none";}function saveMoneyCheck(){var date=document.getElementById("moneyDate").value;var amount=parseFloat(document.getElementById("moneyAmount").value)||0;var status=document.getElementById("moneyStatus").value;var note=document.getElementById("moneyNote").value.trim();if(!date){showStatus("⚠️ กรุณาเลือกวันที่");return;}var entry={id:"mc_"+Date.now(),date:date,amount:amount,status:status,note:note,createdAt:new Date().toISOString()};moneyChecks.push(entry);localStorage.setItem("moneyChecks_v1",JSON.stringify(moneyChecks));if(firestoreDB&&currentUser){firestoreDB.collection("money_check_m51").add({userId:currentUser.uid,date:date,amount:amount,status:status,note:note,timestamp:new Date()}).catch(function(e){console.error("Save money check error:",e);});}renderMoneyCheck();closeMoneyCheckModal();showStatus("✅ บันทึกเงินแล้ว");}function resetMoneyToday(){var today=new Date().toISOString().split("T")[0];moneyChecks=moneyChecks.filter(function(m){return m.date!==today;});localStorage.setItem("moneyChecks_v1",JSON.stringify(moneyChecks));renderMoneyCheck();showStatus("🔄 รีเซ็ตแล้ว");}function loadMoneyData(){var saved=localStorage.getItem("moneyChecks_v1");if(saved){try{moneyChecks=JSON.parse(saved);}catch(e){moneyChecks=[];}}renderMoneyCheck();}function renderMoneyCheck(){var today=new Date().toISOString().split("T")[0];var todayData=moneyChecks.find(function(m){return m.date===today;});if(todayData){document.getElementById("moneyToday").textContent=todayData.amount;var statusText=todayData.status==="received"?"✓ ได้เงิน":todayData.status==="not-received"?"✕ ไม่ได้เงิน":"⏳ รอการยืนยัน";document.getElementById("moneyStatusToday").textContent=statusText;}else{document.getElementById("moneyToday").textContent="0";document.getElementById("moneyStatusToday").textContent="ยังไม่เช็ค";}var now=new Date();var currentMonth=(now.getMonth()+1).toString().padStart(2,"0");var currentYear=now.getFullYear().toString();var monthData=moneyChecks.filter(function(m){return m.date.startsWith(currentYear+"-"+currentMonth);});var total=monthData.reduce(function(sum,m){return sum+m.amount;},0);var checkedDays=monthData.length;document.getElementById("moneyMonthTotal").textContent=total;document.getElementById("moneyCheckedDays").textContent=checkedDays;var html="";monthData.sort(function(a,b){return b.date.localeCompare(a.date);}).forEach(function(m){var statusIcon=m.status==="received"?"✓":m.status==="not-received"?"✕":"⏳";var statusColor=m.status==="received"?"var(--green)":m.status==="not-received"?"var(--red)":"var(--yellow)";html+='<div style="padding:10px;background:var(--c1);border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><div><p style="margin:0;font-weight:600;">'+m.date+' <span style="color:'+statusColor+';">'+statusIcon+'</span></p><p style="margin:3px 0 0 0;font-size:0.85rem;color:#999;">'+(m.note||"—")+'</p></div><p style="margin:0;font-weight:600;color:var(--c4);font-size:1.1rem;">฿ '+m.amount+'</p></div>';});document.getElementById("moneyHistory").innerHTML=html||'<p style="text-align:center;color:#bbb;padding:20px;font-size:0.9rem;">ยังไม่มีข้อมูล</p>';}loadMoneyData();
 </script>
-</body>
+<!-- 📘 INTRO TUTORIAL MODAL -->
+<div id="introModal" class="modal-overlay" style="display:none;z-index:10000;">
+  <div class="modal-box" style="max-width:500px;padding:30px;text-align:center;">
+    <button onclick="closeIntro()" style="position:absolute;top:10px;right:15px;border:none;background:none;font-size:24px;cursor:pointer;">✕</button>
+    <div id="introContent">
+      <div id="introStep0" class="intro-step" style="display:block;">
+        <h2 style="color:var(--c4);margin-bottom:20px;">📚 ยินดีต้อนรับ!</h2>
+        <p style="font-size:1.1rem;line-height:1.6;color:#666;">นี่คือระบบจัดการเรียนของห้อง M5/1<br>มาดูกันว่าระบบนี้ใช้อย่างไร 😊</p>
+        <button onclick="nextIntroStep()" class="btn-main" style="width:100%;margin-top:20px;">ดูต่อ →</button>
+      </div>
+      <div id="introStep1" class="intro-step" style="display:none;">
+        <h2 style="color:var(--c4);margin-bottom:20px;">✅ เช็คชื่อ</h2>
+        <p style="font-size:1rem;line-height:1.6;color:#666;">ใช้สำหรับบันทึกการเข้าเรียน<br>คลิกปุ่ม "เช็คชื่อ" เพื่อบันทึกว่าคุณมาเรียนในวันนั้น</p>
+        <button onclick="nextIntroStep()" class="btn-main" style="width:100%;margin-top:20px;">ต่อไป →</button>
+      </div>
+      <div id="introStep2" class="intro-step" style="display:none;">
+        <h2 style="color:var(--c4);margin-bottom:20px;">💰 เช็คเงิน</h2>
+        <p style="font-size:1rem;line-height:1.6;color:#666;">ใช้สำหรับบันทึกเงินค่าใช้จ่าย<br>คลิก "เช็คเงิน" เพื่อบันทึกเงินที่ได้ในแต่ละวัน</p>
+        <button onclick="nextIntroStep()" class="btn-main" style="width:100%;margin-top:20px;">ต่อไป →</button>
+      </div>
+      <div id="introStep3" class="intro-step" style="display:none;">
+        <h2 style="color:var(--c4);margin-bottom:20px;">📝 งานที่มอบหมาย</h2>
+        <p style="font-size:1rem;line-height:1.6;color:#666;">ดูงานที่อาจารย์มอบหมายให้คุณ<br>อัปเดตสถานะงานได้ทันที</p>
+        <button onclick="nextIntroStep()" class="btn-main" style="width:100%;margin-top:20px;">ต่อไป →</button>
+      </div>
+      <div id="introStep4" class="intro-step" style="display:none;">
+        <h2 style="color:var(--c4);margin-bottom:20px;">📊 สรุปผลลัพธ์</h2>
+        <p style="font-size:1rem;line-height:1.6;color:#666;">ดูสรุปของคุณได้ในแดชบอร์ด<br>แสดงเอกสารข้อมูลรวมไปถึงกำหนดเวลา</p>
+        <button onclick="nextIntroStep()" class="btn-main" style="width:100%;margin-top:20px;">เสร็จสิ้น ✓</button>
+      </div>
+    </div>
+    <p style="font-size:0.85rem;color:#bbb;margin-top:15px;">
+      <button onclick="closeIntro()" style="border:none;background:none;color:#999;cursor:pointer;text-decoration:underline;">ข้ามไป</button>
+    </p>
+  </div>
+</div>
+
+<!-- 💰 MONEY CHECK MODAL -->
+<div id="moneyCheckModal" class="modal-overlay" style="display:none;z-index:5000;">
+  <div class="modal-box" style="max-width:400px;">
+    <h3 style="margin-top:0;">💰 บันทึกเงิน</h3>
+    <label style="display:block;margin-top:15px;font-weight:600;color:#666;">วันที่</label>
+    <input type="date" id="moneyDate" style="margin-bottom:12px;width:100%;">
+    <label style="display:block;margin-top:15px;font-weight:600;color:#666;">จำนวนเงิน (฿)</label>
+    <input type="number" id="moneyAmount" placeholder="0" min="0" style="margin-bottom:12px;width:100%;">
+    <label style="display:block;margin-top:15px;font-weight:600;color:#666;">สถานะ</label>
+    <select id="moneyStatus" style="margin-bottom:12px;width:100%;">
+      <option value="received">✓ ได้เงิน</option>
+      <option value="not-received">✕ ไม่ได้เงิน</option>
+      <option value="pending">⏳ รอการยืนยัน</option>
+    </select>
+    <label style="display:block;margin-top:15px;font-weight:600;color:#666;">หมายเหตุ</label>
+    <textarea id="moneyNote" placeholder="เช่น มหัศจรรย์เงิน, ค่าใช้จ่าย" style="margin-bottom:12px;width:100%;height:80px;"></textarea>
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <button onclick="closeMoneyCheckModal()" class="btn-soft" style="flex:1;">ยกเลิก</button>
+      <button onclick="saveMoneyCheck()" class="btn-main" style="flex:1;">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+
 </html>
