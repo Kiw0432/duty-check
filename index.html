@@ -2158,19 +2158,20 @@ function filterHistoryDate(){
   /* ตรวจว่า date ที่เลือกอยู่ใน cache หรือเปล่า */
   var cached=_cachedLogs.filter(function(r){return thaiDateToISO(r.date)===s;});
   if(cached.length>0){renderHistory(s);return;}
-  /* ถ้าไม่มีใน cache (เช่น เก่ากว่า 365 วัน) ให้ query Firestore โดยตรง */
+  /* ถ้าไม่มีใน cache — query เฉพาะวันที่นั้นด้วย where("date","==") แทนดึงทั้ง collection */
+  var thaiDate=isoToThai(s); /* แปลง YYYY-MM-DD → DD/MM/YYYY+543 */
   showLoading("กำลังโหลดข้อมูลวันที่เลือก...");
-  logsCol().get().then(function(snap){
+  logsCol().where("date","==",thaiDate).get().then(function(snap){
     hideLoading();
     trackRead(snap.size);
     var found=[];
-    snap.forEach(function(doc){var d=doc.data();d._firestoreId=doc.id;if(thaiDateToISO(d.date)===s)found.push(d);});
+    snap.forEach(function(doc){var d=doc.data();d._firestoreId=doc.id;found.push(d);});
     if(!found.length){
       document.getElementById("historyTable").innerHTML='<tr><td colspan="5" style="color:#bbb;padding:20px;">ไม่มีข้อมูลวันที่นี้</td></tr>';
       var cards=document.getElementById("historyCards");if(cards)cards.innerHTML='<p style="text-align:center;color:#bbb;padding:20px;">ไม่มีข้อมูล</p>';
       return;
     }
-    /* merge เข้า cache ชั่วคราว แล้ว render */
+    /* merge เข้า cache แล้ว render */
     var existingIds={}; _cachedLogs.forEach(function(r){if(r._firestoreId)existingIds[r._firestoreId]=true;});
     var newOnes=found.filter(function(r){return!existingIds[r._firestoreId];});
     if(newOnes.length>0){_cachedLogs=_cachedLogs.concat(newOnes);saveLogsCache(_cachedLogs);}
