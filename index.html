@@ -1513,7 +1513,7 @@ function startRealtimeSync() {
   /* ✅ OPTIMIZATION 2: Tab visibility — pause listener เมื่อ tab hidden */
   function startListener(){
     /* ✅ OPTIMIZATION 3: จำกัดเฉพาะ 90 วันล่าสุด ใช้ createdAt (epoch) แทน date string */
-    var cutoffTs = Date.now() - (90 * 24 * 60 * 60 * 1000);
+    var cutoffTs = Date.now() - (365 * 24 * 60 * 60 * 1000);
     realtimeUnsubscribe = logsCol()
       .where("createdAt", ">=", cutoffTs)
       .onSnapshot(function(snapshot) {
@@ -1535,12 +1535,13 @@ function startRealtimeSync() {
       }, function(err){ console.error("Realtime error:", err); showStatus("⚠️ การเชื่อมต่อ real-time ขัดข้อง"); });
     _lastSnapshotTime = Date.now();
 
-    /* ✅ BUG FIX: Fetch legacy records (string/no createdAt) แบบ one-time เพื่อป้องกันข้อมูลหาย */
+    /* Fetch ALL records ที่อยู่นอก window (ไม่มี createdAt หรือเก่ากว่า 365 วัน) แบบ one-time */
     logsCol().get().then(function(fullSnap){
       trackRead(fullSnap.size);
       var legacyFound = [];
       fullSnap.forEach(function(doc){
         var d = doc.data();
+        /* รวม: ไม่มี createdAt, createdAt ไม่ใช่ number, หรือ createdAt < cutoff */
         if(typeof d.createdAt !== "number" || d.createdAt < cutoffTs){
           d._firestoreId = doc.id;
           legacyFound.push(d);
@@ -1592,8 +1593,8 @@ function getAllLogs(){
   /* ถ้ายังไม่มี ดูใน localStorage ก่อน */
   var cached = loadLogsCache();
   if(cached){ _cachedLogs = cached; return Promise.resolve(cached.slice()); }
-  /* Last resort: query Firestore — ดึงทั้ง 90 วัน + docs เก่าที่ไม่มี createdAt */
-  var cutoffTs = Date.now() - (90 * 24 * 60 * 60 * 1000);
+  /* Last resort: query Firestore — ดึงทั้ง 365 วัน + docs เก่าที่ไม่มี createdAt */
+  var cutoffTs = Date.now() - (365 * 24 * 60 * 60 * 1000);
   var qNew = logsCol().where("createdAt",">=",cutoffTs).get();
   var qLegacy = logsCol().where("createdAt","==",null).get().catch(function(){ return {forEach:function(){},size:0}; });
   return Promise.all([qNew, qLegacy]).then(function(results){
@@ -2151,7 +2152,31 @@ function renderHistory(filterISO){
     }
   });
 }
-function filterHistoryDate(){var s=document.getElementById("historyDate").value;renderHistory(s||null);}
+function filterHistoryDate(){
+  var s=document.getElementById("historyDate").value;
+  if(!s){renderHistory(null);return;}
+  /* ตรวจว่า date ที่เลือกอยู่ใน cache หรือเปล่า */
+  var cached=_cachedLogs.filter(function(r){return thaiDateToISO(r.date)===s;});
+  if(cached.length>0){renderHistory(s);return;}
+  /* ถ้าไม่มีใน cache (เช่น เก่ากว่า 365 วัน) ให้ query Firestore โดยตรง */
+  showLoading("กำลังโหลดข้อมูลวันที่เลือก...");
+  logsCol().get().then(function(snap){
+    hideLoading();
+    trackRead(snap.size);
+    var found=[];
+    snap.forEach(function(doc){var d=doc.data();d._firestoreId=doc.id;if(thaiDateToISO(d.date)===s)found.push(d);});
+    if(!found.length){
+      document.getElementById("historyTable").innerHTML='<tr><td colspan="5" style="color:#bbb;padding:20px;">ไม่มีข้อมูลวันที่นี้</td></tr>';
+      var cards=document.getElementById("historyCards");if(cards)cards.innerHTML='<p style="text-align:center;color:#bbb;padding:20px;">ไม่มีข้อมูล</p>';
+      return;
+    }
+    /* merge เข้า cache ชั่วคราว แล้ว render */
+    var existingIds={}; _cachedLogs.forEach(function(r){if(r._firestoreId)existingIds[r._firestoreId]=true;});
+    var newOnes=found.filter(function(r){return!existingIds[r._firestoreId];});
+    if(newOnes.length>0){_cachedLogs=_cachedLogs.concat(newOnes);saveLogsCache(_cachedLogs);}
+    renderHistory(s);
+  }).catch(function(e){hideLoading();showStatus("❌ โหลดไม่สำเร็จ: "+e.message);});
+}
 function clearHistoryFilter(){document.getElementById("historyDate").value="";renderHistory();}
 function clearHistory(){if(!confirm("ลบประวัติทั้งหมด?"))return;showLoading("กำลังลบ...");clearAllLogs().then(function(){hideLoading();localStorage.removeItem("logs_cache");renderHistory();renderChart();updateDashboard();showStatus("ลบแล้ว 🗑️");}).catch(function(e){hideLoading();showStatus("❌ ลบไม่สำเร็จ");});}
 function pruneOldData(){if(!confirm("ลบข้อมูลเก่ากว่า 5 เดือน?"))return;showLoading("กำลังลบข้อมูลเก่า...");pruneLogsOlderThan(5).then(function(n){hideLoading();localStorage.removeItem("logs_cache");renderHistory();renderChart();updateDashboard();showStatus("ลบ "+n+" รายการ ✅");}).catch(function(e){hideLoading();showStatus("❌ ลบไม่สำเร็จ");});}
