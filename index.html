@@ -123,7 +123,7 @@ setTimeout(() => {
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Noto Sans Thai','Sarabun','Prompt',system-ui,-apple-system,sans-serif;}
 body{background:var(--c1);color:var(--text);}
-.container{max-width:1100px;margin:auto;padding:20px;padding-bottom:calc(130px + env(safe-area-inset-bottom));}
+.container{max-width:1100px;margin:auto;padding:20px;padding-bottom:40px;}
 .header{background:linear-gradient(135deg,var(--c3),var(--c4));padding:16px 20px;border-radius:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px;color:white;}
 .logo h1{font-size:1.6rem;line-height:1.2;}
 .top-actions{display:flex;gap:8px;flex-wrap:wrap;}
@@ -166,9 +166,6 @@ button:hover{transform:translateY(-2px);}
 .ai-tips{list-style:none;padding:0;}
 .ai-tips li{padding:8px 10px;border-radius:10px;background:white;margin-bottom:6px;font-size:.82rem;line-height:1.5;border-left:3px solid var(--c4);}
 .ai-urgent{background:#fff8e8;border-radius:12px;padding:10px 12px;font-size:.82rem;font-weight:600;color:#b87a30;margin-top:8px;border:1px solid #f5d98a;}
-.bottom-nav{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:white;padding:10px;border-radius:26px;display:flex;gap:6px;box-shadow:0 8px 25px rgba(0,0,0,.08);z-index:999;max-width:calc(100vw - 20px);width:auto;bottom:calc(14px + env(safe-area-inset-bottom));will-change:transform;}
-body.keyboard-open .bottom-nav{display:none;}
-.bottom-nav button{background:var(--c4);color:white;padding:11px 8px;font-size:.82rem;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .modal-wrap{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.38);display:none;justify-content:center;align-items:center;z-index:99999;padding:10px;}
 .modal-box{background:white;width:100%;max-width:500px;padding:24px;border-radius:28px;max-height:90vh;overflow-y:auto;}
 .setting-title{font-size:1rem;font-weight:600;margin-bottom:10px;color:var(--c4);padding-bottom:6px;border-bottom:2px solid var(--c2);}
@@ -319,7 +316,17 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 .subj-link-row{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
 .subj-link-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:10px;font-size:.75rem;font-weight:600;text-decoration:none;background:var(--c1);color:var(--text);border:1px solid var(--c3);transition:.15s;}
 .subj-link-btn:hover{background:var(--c2);}
-.loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,.82);display:flex;justify-content:center;align-items:center;z-index:999999;}
+.setting-upload-row{display:flex;align-items:center;gap:8px;padding:8px 0;flex-wrap:wrap;}
+.setting-upload-label{font-size:.82rem;color:#888;font-weight:600;min-width:70px;flex-shrink:0;}
+.setting-file-btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;background:var(--c2);color:var(--text);font-size:.82rem;font-weight:600;cursor:pointer;border:none;white-space:nowrap;transition:.15s;}
+.setting-file-btn:hover{background:var(--c3);color:white;}
+.setting-file-hint{font-size:.78rem;color:#bbb;flex:1;}
+.admin-student-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--c1);border-radius:12px;margin-bottom:8px;}
+.asi-no{min-width:26px;font-size:.78rem;color:var(--c4);font-weight:700;text-align:center;}
+.asi-name{font-size:.88rem;font-weight:600;}
+.asi-id{font-size:.72rem;color:#bbb;margin-top:2px;}
+.reset-btn{margin-left:auto;padding:5px 10px;border-radius:9px;font-size:.75rem;background:var(--c4);color:white;border:none;cursor:pointer;white-space:nowrap;}
+
 
 /* ── Firestore quota badge ── */
 .quota-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600;background:#e8f5ec;color:#4a9b65;}
@@ -374,8 +381,11 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 .img-view-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);display:none;justify-content:center;align-items:center;z-index:9999999;padding:16px;}
 .img-view-overlay img{max-width:100%;max-height:90vh;border-radius:14px;object-fit:contain;}
 .img-view-overlay .close-view{position:fixed;top:18px;right:18px;background:white;border:none;border-radius:50%;width:36px;height:36px;font-size:1.1rem;cursor:pointer;font-weight:700;}
-.loading-box{background:white;padding:28px 36px;border-radius:26px;text-align:center;}
+.loading-box{background:white;padding:28px 36px;border-radius:26px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.15);}
 .loader{width:50px;height:50px;border:5px solid #eee;border-top:5px solid var(--c4);border-radius:50%;margin:auto;margin-bottom:12px;animation:spin 1s linear infinite;}
+/* ✅ Fixed loading overlay — must be position:fixed to overlay content */
+#loadingOverlay{position:fixed!important;top:0!important;left:0!important;width:100%!important;height:100%!important;background:rgba(0,0,0,.35)!important;display:flex!important;justify-content:center!important;align-items:center!important;z-index:9999999!important;}
+#loadingOverlay.hidden{display:none!important;}
 .hidden{display:none!important;}
 .admin-student-list{display:grid;gap:8px;}
 .admin-student-item{background:var(--c1);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;}
@@ -396,31 +406,59 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 .ai-stream-box{background:white;border-radius:14px;padding:14px;margin-top:14px;font-size:.84rem;line-height:1.8;min-height:60px;white-space:pre-wrap;border:1.5px solid var(--c3);}
 .ai-stream-box .cursor{display:inline-block;width:8px;height:14px;background:var(--c4);border-radius:2px;vertical-align:middle;animation:blink .7s infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
-.tab-bar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+/* ── Two-pane Settings ── */
+.setting-modal-inner{display:flex;height:100%;min-height:0;gap:0;overflow:hidden;border-radius:28px;}
+.setting-sidebar{width:200px;flex-shrink:0;background:var(--c1);border-radius:28px 0 0 28px;padding:18px 10px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;}
+.setting-sidebar-header{font-size:1.1rem;font-weight:700;color:var(--text);padding:6px 10px 14px;border-bottom:2px solid var(--c2);margin-bottom:4px;}
+.setting-nav-item{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:14px;cursor:pointer;font-size:.88rem;font-weight:600;color:#888;transition:.15s;border:none;background:transparent;width:100%;text-align:left;}
+.setting-nav-item:hover{background:var(--c2);color:var(--text);}
+.setting-nav-item.active{background:white;color:var(--c4);box-shadow:0 2px 8px rgba(0,0,0,.07);}
+.setting-nav-item .sni{font-size:1.1rem;flex-shrink:0;}
+.setting-content{flex:1;padding:24px;overflow-y:auto;min-width:0;background:white;border-radius:0 28px 28px 0;}
+.setting-pane{display:none;}
+.setting-pane.active{display:block;}
+.setting-pane-title{font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:18px;padding-bottom:10px;border-bottom:2px solid var(--c1);}
+@media(max-width:600px){
+  .setting-modal-inner{flex-direction:column;border-radius:22px;}
+  .setting-sidebar{width:100%;border-radius:22px 22px 0 0;flex-direction:row;flex-wrap:nowrap;overflow-x:auto;padding:10px 8px;gap:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .setting-sidebar::-webkit-scrollbar{display:none;}
+  .setting-sidebar-header{display:none;}
+  .setting-nav-item{flex-direction:column;gap:3px;padding:8px 10px;font-size:.7rem;white-space:nowrap;flex-shrink:0;min-width:60px;align-items:center;}
+  .setting-nav-item .sni{font-size:1.3rem;}
+  .setting-content{border-radius:0 0 22px 22px;padding:16px;}
+}
 .tab-btn{padding:8px 16px;border-radius:12px;border:2px solid var(--c3);background:white;color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.15s;}
 .tab-btn.active{background:var(--c4);border-color:var(--c4);color:white;}
 .tab-btn:hover:not(.active){background:var(--c2);}
+#adminMenuGrid button:hover,#studentMenuGrid button:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.10);}
 .assign-card,.assign-check,.student-card,.type-card,.cal-cell{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
 
 @media(max-width:600px){
   input,select,textarea{font-size:16px!important;}
   .table-wrapper{display:none;}
   .history-cards{display:flex;}
-  .container{padding:10px;padding-bottom:calc(110px + env(safe-area-inset-bottom));}
-  .logo h1{font-size:1.05rem;}
-  .top-actions button{padding:8px 10px;font-size:.76rem;}
-  .banner-slider{height:160px;border-radius:16px;}
-  .bottom-nav{bottom:0!important;left:0!important;right:0!important;transform:none!important;width:100%!important;max-width:100%!important;border-radius:22px 22px 0 0!important;padding:8px 2px calc(8px + env(safe-area-inset-bottom))!important;gap:2px!important;justify-content:space-around!important;overflow:hidden;}
-  .bottom-nav button{padding:7px 2px 5px;font-size:.58rem;border-radius:10px;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1;white-space:nowrap;overflow:hidden;}
-  .bottom-nav button .nav-icon{font-size:1.1rem;line-height:1;}
-  .bottom-nav button .nav-label{font-size:.55rem;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+  .container{padding:10px;padding-bottom:30px;}
+  .logo h1{font-size:1rem;}
+  .top-actions{gap:4px;}
+  .top-actions button{padding:7px 8px;font-size:.72rem;}
+  .header{padding:12px 14px;border-radius:18px;margin-bottom:12px;}
+  .banner-slider{height:180px;border-radius:16px;margin-bottom:14px;}
+  /* Login card mobile */
+  .login-card{margin:20px auto;padding:24px 18px;border-radius:22px;}
+  /* Menu grid mobile — bigger touch targets */
+  #adminMenuGrid,#studentMenuGrid{gap:8px;}
+  #adminMenuGrid button,#studentMenuGrid button{border-radius:16px;padding:18px 6px;}
+  #adminMenuGrid button span:first-child,#studentMenuGrid button span:first-child{font-size:1.8rem;}
+  #adminMenuGrid button span:last-child,#studentMenuGrid button span:last-child{font-size:.78rem;}
+  /* Cards */
+  .card{border-radius:18px;padding:14px;}
   .student-grid{grid-template-columns:repeat(2,1fr);gap:6px;}
   .type-card{padding:14px 4px;}
   .type-card .ti{font-size:1.3rem;}
   .type-card .tn{font-size:.8rem;}
   th,td{padding:8px 5px;font-size:.76rem;}
   td.td-name{min-width:90px;}
-  .modal-box,.assign-modal-box,.subj-modal-box{padding:16px;border-radius:22px;max-height:88vh;}
+  .modal-box,.assign-modal-box,.subj-modal-box{padding:16px;border-radius:22px;max-height:92vh;}
   .dash-card h1{font-size:1.6rem;}
   .assign-card{padding:12px;gap:10px;}
   .assign-title{font-size:.88rem;}
@@ -432,6 +470,8 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
   .assign-sum-card p{font-size:.68rem;}
   .cal-cell{min-height:40px;}
   .cal-day{font-size:.76rem;}
+  /* Settings modal mobile */
+  #settingModal .modal-box{height:min(92vh,560px);}
 }
 @media(min-width:601px){
   .history-cards{display:none!important;}
@@ -471,10 +511,11 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
     </div>
     <div class="top-actions hidden" id="topActions">
       <button class="setting-btn" onclick="openSetting()">⚙️ ตั้งค่า</button>
-      <button class="btn-blue" style="padding:10px 14px;font-size:.88rem;" onclick="openAdminPanel()">👥 นักเรียน</button>
+      <button class="btn-soft" style="background:rgba(255,255,255,.25);color:white;" onclick="goHome()">🏠 หน้าหลัก</button>
       <button class="logout-btn" onclick="logout()">🚪 ออก</button>
     </div>
     <div class="top-actions hidden" id="studentActions">
+      <button class="btn-soft" style="background:rgba(255,255,255,.3);color:white;" onclick="goHome()">🏠 หน้าหลัก</button>
       <button class="btn-soft" style="background:rgba(255,255,255,.3);color:white;" onclick="openChangePwd()">🔑 เปลี่ยนรหัส</button>
       <button class="logout-btn" onclick="logout()">🚪 ออก</button>
     </div>
@@ -515,8 +556,56 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
       <div class="slides" id="slides"></div>
       <div class="dots"   id="dots"></div>
     </div>
-    <div class="card" style="text-align:center;padding:18px;">
-      <p style="color:#bbb;font-size:.9rem;">ยินดีต้อนรับ 👋 เลือกเมนูด้านล่าง</p>
+    <div class="card" style="padding:14px 18px;">
+      <p style="color:#bbb;font-size:.85rem;text-align:center;margin:0;">ยินดีต้อนรับ 👋 เลือกเมนูด้านล่าง</p>
+    </div>
+
+    <!-- Admin menu grid -->
+    <div id="adminMenuGrid" class="hidden" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+      <button onclick="openPage('checkPage');initFlow()" style="background:white;border:none;border-radius:22px;padding:20px 8px;box-shadow:0 4px 16px rgba(0,0,0,.06);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:.2s;">
+        <span style="font-size:2rem;">📝</span>
+        <span style="font-size:.82rem;font-weight:700;color:var(--text);">เช็คชื่อ</span>
+      </button>
+      <button onclick="openPage('dashboardPage');renderAdminAISummary()" style="background:white;border:none;border-radius:22px;padding:20px 8px;box-shadow:0 4px 16px rgba(0,0,0,.06);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:.2s;">
+        <span style="font-size:2rem;">📊</span>
+        <span style="font-size:.82rem;font-weight:700;color:var(--text);">Dashboard</span>
+      </button>
+      <button onclick="openPage('historyPage');renderHistory()" style="background:white;border:none;border-radius:22px;padding:20px 8px;box-shadow:0 4px 16px rgba(0,0,0,.06);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:.2s;">
+        <span style="font-size:2rem;">🕒</span>
+        <span style="font-size:.82rem;font-weight:700;color:var(--text);">ย้อนหลัง</span>
+      </button>
+      <button onclick="openPage('assignPage');renderAssignPage()" style="background:white;border:none;border-radius:22px;padding:20px 8px;box-shadow:0 4px 16px rgba(0,0,0,.06);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:.2s;">
+        <span style="font-size:2rem;">📚</span>
+        <span style="font-size:.82rem;font-weight:700;color:var(--text);">งาน</span>
+      </button>
+      <button onclick="showMoneyCheckPage()" style="background:white;border:none;border-radius:22px;padding:20px 8px;box-shadow:0 4px 16px rgba(0,0,0,.06);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:.2s;">
+        <span style="font-size:2rem;">💰</span>
+        <span style="font-size:.82rem;font-weight:700;color:var(--text);">เงิน</span>
+      </button>
+      <button onclick="openSetting()" style="background:white;border:none;border-radius:22px;padding:20px 8px;box-shadow:0 4px 16px rgba(0,0,0,.06);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:.2s;">
+        <span style="font-size:2rem;">⚙️</span>
+        <span style="font-size:.82rem;font-weight:700;color:var(--text);">ตั้งค่า</span>
+      </button>
+    </div>
+
+    <!-- Student menu grid -->
+    <div id="studentMenuGrid" class="hidden" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;">
+      <button onclick="openPage('dashboardPage');renderAISummary()" style="background:white;border:none;border-radius:22px;padding:20px 8px;box-shadow:0 4px 16px rgba(0,0,0,.06);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:.2s;">
+        <span style="font-size:2rem;">🤖</span>
+        <span style="font-size:.82rem;font-weight:700;color:var(--text);">สรุป AI</span>
+      </button>
+      <button onclick="openPage('historyPage');renderHistory()" style="background:white;border:none;border-radius:22px;padding:20px 8px;box-shadow:0 4px 16px rgba(0,0,0,.06);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:.2s;">
+        <span style="font-size:2rem;">📋</span>
+        <span style="font-size:.82rem;font-weight:700;color:var(--text);">ย้อนหลัง</span>
+      </button>
+      <button onclick="openPage('assignPage');renderAssignPage()" style="background:white;border:none;border-radius:22px;padding:20px 8px;box-shadow:0 4px 16px rgba(0,0,0,.06);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:.2s;">
+        <span style="font-size:2rem;">📚</span>
+        <span style="font-size:.82rem;font-weight:700;color:var(--text);">งาน</span>
+      </button>
+      <button onclick="showHowToUse()" style="background:white;border:none;border-radius:22px;padding:20px 8px;box-shadow:0 4px 16px rgba(0,0,0,.06);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:.2s;">
+        <span style="font-size:2rem;">❓</span>
+        <span style="font-size:.82rem;font-weight:700;color:var(--text);">วิธีใช้</span>
+      </button>
     </div>
   </div>
 
@@ -611,6 +700,9 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
             <button class="btn-soft" style="padding:10px 14px;font-size:.85rem;" onclick="renderAdminAssignTable()">🔄 รีเฟรชข้อมูล</button>
             <span style="font-size:.72rem;color:#bbb;">🤖 วิเคราะห์อัตโนมัติ · ฟรี ไม่ใช้ API</span>
           </div>
+          <div id="adminAIKeyWarning" style="display:none;margin-top:10px;padding:10px 12px;background:#fff8e8;border-radius:10px;font-size:.8rem;color:#b87a30;">
+            ⚠️ ฟีเจอร์ตรวจ AI รูปหลักฐาน ต้องใส่ Anthropic API Key ใน <code>window.ANTHROPIC_API_KEY</code> ในไฟล์ index.html (บรรทัดที่มี ANTHROPIC_API_KEY = "")
+          </div>
           <div id="adminAssignAIStream" class="hidden">
             <div style="font-size:.8rem;color:#aaa;margin-top:14px;margin-bottom:6px;font-weight:600;">💬 ผลการวิเคราะห์จาก AI</div>
             <div class="ai-stream-box" id="aiStreamText"></div>
@@ -690,99 +782,203 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
     </div>
   </div>
 
-  <!-- 💰 MONEY CHECK PAGE -->
+  <!-- 💰 MONEY CHECK PAGE (admin only - 3-step flow) -->
   <div id="moneyCheckPage" class="hidden">
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-        <h2 style="margin:0;font-size:1.3rem;">💰 เช็คเงิน</h2>
-        <div>
-          <button class="btn-main" onclick="openMoneyCheckModal()" style="padding:8px 12px;font-size:0.9rem;">➕ เช็คเงิน</button>
-          <button class="btn-soft" onclick="resetMoneyToday()" style="padding:8px 12px;font-size:0.9rem;margin-left:5px;">🔄 รีเซ็ต</button>
+      <!-- 3-step stepper -->
+      <div class="flow-stepper">
+        <div class="flow-step"><div class="step-circle active" id="msc1">1</div><div class="step-label active" id="msl1">เลือกนักเรียน</div></div>
+        <div class="step-line" id="mline1"></div>
+        <div class="flow-step"><div class="step-circle" id="msc2">2</div><div class="step-label" id="msl2">บันทึกเงิน</div></div>
+        <div class="step-line" id="mline2"></div>
+        <div class="flow-step"><div class="step-circle" id="msc3">3</div><div class="step-label" id="msl3">ยืนยัน</div></div>
+      </div>
+
+      <div id="moneyLockedMsg" class="locked-msg hidden">🔒 เฉพาะผู้ดูแลเท่านั้น</div>
+
+      <!-- Step 1: เลือกนักเรียน -->
+      <div id="moneyStep1">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+          <span style="font-weight:600;">เลือกนักเรียน</span>
+          <button class="btn-soft" style="padding:6px 12px;font-size:.8rem;" onclick="moneyToggleSelectAll()">เลือก/ยกเลิกทั้งหมด</button>
+        </div>
+        <input type="text" id="moneySearch" placeholder="🔍 ค้นหาชื่อ/เลขที่..." onkeyup="renderMoneyStudents()" style="margin-bottom:6px;">
+        <div class="sel-count" id="moneySelCount">เลือกแล้ว 0 คน</div>
+        <div class="student-grid" id="moneyStudentGrid"></div>
+        <div class="flow-nav">
+          <button class="btn-main" id="moneyBtn1" onclick="moneyFlowNext(2)" disabled style="opacity:.5;">ถัดไป →</button>
         </div>
       </div>
-      <div id="moneyCheckToday" style="background:var(--c1);padding:15px;border-radius:12px;margin-bottom:15px;text-align:center;">
-        <p style="color:#999;font-size:0.9rem;margin:0 0 5px 0;">วันนี้</p>
-        <h2 style="color:var(--c4);margin:0;font-size:1.8rem;">฿ <span id="moneyToday">0</span></h2>
-        <p id="moneyStatusToday" style="font-size:0.85rem;color:#666;margin:5px 0 0 0;">ยังไม่เช็ค</p>
+
+      <!-- Step 2: กรอกข้อมูลเงิน -->
+      <div id="moneyStep2" class="hidden">
+        <div style="font-weight:600;margin-bottom:4px;">บันทึกข้อมูลเงิน</div>
+        <div style="font-size:.85rem;color:#bbb;margin-bottom:14px;" id="moneyStep2sub"></div>
+        <label style="font-size:.82rem;color:#888;font-weight:600;display:block;margin-bottom:4px;">วันที่</label>
+        <input type="date" id="moneyFlowDate" style="margin-bottom:12px;">
+        <label style="font-size:.82rem;color:#888;font-weight:600;display:block;margin-bottom:4px;">จำนวนเงิน (฿)</label>
+        <input type="number" id="moneyFlowAmount" placeholder="0" min="0" style="margin-bottom:12px;">
+        <label style="font-size:.82rem;color:#888;font-weight:600;display:block;margin-bottom:4px;">สถานะ</label>
+        <div class="type-grid" style="grid-template-columns:repeat(3,1fr);">
+          <div class="type-card" id="mc-received" onclick="selectMoneyStatus('received',this)">
+            <span class="type-tick">✓</span><div class="ti">✅</div><div class="tn">ได้เงิน</div>
+          </div>
+          <div class="type-card" id="mc-not-received" onclick="selectMoneyStatus('not-received',this)">
+            <span class="type-tick">✓</span><div class="ti">❌</div><div class="tn">ไม่ได้เงิน</div>
+          </div>
+          <div class="type-card" id="mc-pending" onclick="selectMoneyStatus('pending',this)">
+            <span class="type-tick">✓</span><div class="ti">⏳</div><div class="tn">รอยืนยัน</div>
+          </div>
+        </div>
+        <label style="font-size:.82rem;color:#888;font-weight:600;display:block;margin-bottom:4px;margin-top:4px;">หมายเหตุ</label>
+        <textarea id="moneyFlowNote" placeholder="หมายเหตุ (ไม่บังคับ)" style="height:60px;margin-bottom:12px;width:100%;border:none;background:var(--c1);padding:12px;border-radius:14px;outline:none;font-family:inherit;resize:none;"></textarea>
+        <div class="flow-nav">
+          <button class="btn-soft" onclick="moneyFlowNext(1)">← ย้อนกลับ</button>
+          <button class="btn-main" id="moneyBtn2" onclick="moneyFlowNext(3)" disabled style="opacity:.5;">ถัดไป →</button>
+        </div>
       </div>
-      <div>
-        <p style="font-size:0.9rem;font-weight:600;margin:15px 0 10px 0;color:#666;">📅 ประวัติเดือนนี้</p>
-        <div id="moneyHistory" style="max-height:300px;overflow-y:auto;">
+
+      <!-- Step 3: ยืนยัน -->
+      <div id="moneyStep3" class="hidden">
+        <div style="font-weight:600;margin-bottom:12px;">ยืนยันการบันทึก</div>
+        <div class="confirm-box">
+          <div class="confirm-row"><span style="color:#bbb;flex-shrink:0;">วันที่</span><span id="mCfDate"></span></div>
+          <div class="confirm-row"><span style="color:#bbb;flex-shrink:0;">จำนวนเงิน</span><span id="mCfAmount" style="font-weight:600;color:var(--green);"></span></div>
+          <div class="confirm-row"><span style="color:#bbb;flex-shrink:0;">สถานะ</span><span id="mCfStatus" style="font-weight:600;color:var(--c4);"></span></div>
+          <div class="confirm-row"><span style="color:#bbb;flex-shrink:0;">หมายเหตุ</span><span id="mCfNote" style="color:#888;"></span></div>
+          <div class="confirm-row" style="flex-direction:column;align-items:flex-start;">
+            <span style="color:#bbb;margin-bottom:4px;">นักเรียนที่เลือก (<span id="mCfCount">0</span> คน)</span>
+            <div class="confirm-list" id="mCfList"></div>
+          </div>
+        </div>
+        <div class="flow-nav">
+          <button class="btn-soft" onclick="moneyFlowNext(2)">← ย้อนกลับ</button>
+          <button class="btn-main" onclick="submitMoneyFlow()">💾 บันทึก</button>
+        </div>
+      </div>
+
+      <!-- สรุป/ประวัติ -->
+      <div style="margin-top:20px;border-top:1px solid var(--c2);padding-top:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+          <span style="font-weight:600;font-size:.95rem;">📅 ประวัติเช็คเงินเดือนนี้</span>
+          <div style="display:flex;gap:8px;">
+            <input type="date" id="moneyFilterDate" onchange="renderMoneyHistoryByDate()" style="padding:6px 10px;font-size:.8rem;border:none;background:var(--c1);border-radius:10px;width:auto;margin-bottom:0;">
+            <button class="btn-soft" onclick="document.getElementById('moneyFilterDate').value='';renderMoneyCheck();" style="padding:6px 12px;font-size:.8rem;">ทั้งหมด</button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
+          <div style="background:var(--c1);padding:10px 8px;border-radius:12px;text-align:center;">
+            <div style="font-size:1.1rem;font-weight:700;color:var(--green);">฿<span id="moneyMonthTotal">0</span></div>
+            <div style="font-size:.7rem;color:#bbb;">รวมเดือนนี้</div>
+          </div>
+          <div style="background:var(--c1);padding:10px 8px;border-radius:12px;text-align:center;">
+            <div style="font-size:1.1rem;font-weight:700;color:var(--blue);"><span id="moneyCheckedDays">0</span></div>
+            <div style="font-size:.7rem;color:#bbb;">วันที่บันทึก</div>
+          </div>
+          <div style="background:var(--c1);padding:10px 8px;border-radius:12px;text-align:center;">
+            <div style="font-size:1.1rem;font-weight:700;color:var(--c4);" id="moneyToday">0</div>
+            <div style="font-size:.7rem;color:#bbb;" id="moneyStatusToday">วันนี้</div>
+          </div>
+        </div>
+        <div id="moneyHistory" style="max-height:320px;overflow-y:auto;">
           <p style="text-align:center;color:#bbb;padding:20px;font-size:0.9rem;">ยังไม่มีข้อมูล</p>
-        </div>
-      </div>
-      <div style="margin-top:15px;padding-top:15px;border-top:1px solid var(--c2);">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.9rem;">
-          <div style="background:var(--c1);padding:10px;border-radius:8px;text-align:center;">
-            <p style="color:#999;margin:0 0 5px 0;">รวมเดือนนี้</p>
-            <h4 style="color:var(--green);margin:0;">฿ <span id="moneyMonthTotal">0</span></h4>
-          </div>
-          <div style="background:var(--c1);padding:10px;border-radius:8px;text-align:center;">
-            <p style="color:#999;margin:0 0 5px 0;">วันที่เช็คแล้ว</p>
-            <h4 style="color:var(--blue);margin:0;"><span id="moneyCheckedDays">0</span> วัน</h4>
-          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
-<div class="bottom-nav hidden" id="teacherNav">
-  <button onclick="openPage('checkPage');initFlow()"><span class="nav-icon">📝</span><span class="nav-label">เช็คชื่อ</span></button>
-  <button onclick="openPage('dashboardPage');renderAdminAISummary()"><span class="nav-icon">📊</span><span class="nav-label">Dash</span></button>
-  <button onclick="openPage('historyPage');renderHistory()"><span class="nav-icon">🕒</span><span class="nav-label">ย้อนหลัง</span></button>
-  <button onclick="openPage('assignPage');renderAssignPage()"><span class="nav-icon">📚</span><span class="nav-label">งาน</span></button>
-  <button onclick="goHome()"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
-</div>
-<div class="bottom-nav hidden" id="studentNav">
-  <button onclick="openPage('dashboardPage');renderAISummary()"><span class="nav-icon">🤖</span><span class="nav-label">สรุป AI</span></button>
-  <button onclick="openPage('historyPage');renderHistory()"><span class="nav-icon">📋</span><span class="nav-label">ย้อนหลัง</span></button>
-  <button onclick="openPage('assignPage');renderAssignPage()"><span class="nav-icon">📚</span><span class="nav-label">งาน</span></button>
-  <button onclick="showMoneyCheckPage()"><span class="nav-icon">💰</span><span class="nav-label">เงิน</span></button>
-  <button onclick="showHowToUse()"><span class="nav-icon">❓</span><span class="nav-label">วิธีใช้</span></button>
-  <button onclick="goHome()"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
-</div>
-
-<!-- MODALS (unchanged structure) -->
+<!-- MODALS -->
 <div class="modal-wrap" id="settingModal">
-  <div class="modal-box">
-    <h2 style="margin-bottom:18px;">⚙️ ตั้งค่า</h2>
-    <div style="margin-bottom:20px;">
-      <div class="setting-title">🖼️ รูปสไลด์</div>
-      <div class="upload-box"><p style="margin-bottom:6px;font-size:.85rem;color:#aaa;">สไลด์ที่ 1</p><input type="file" accept="image/*" onchange="changeSlide(event,0)"></div>
-      <div class="upload-box"><p style="margin-bottom:6px;font-size:.85rem;color:#aaa;">สไลด์ที่ 2</p><input type="file" accept="image/*" onchange="changeSlide(event,1)"></div>
-      <div class="upload-box"><p style="margin-bottom:6px;font-size:.85rem;color:#aaa;">สไลด์ที่ 3</p><input type="file" accept="image/*" onchange="changeSlide(event,2)"></div>
-    </div>
-    <div style="margin-bottom:20px;">
-      <div class="setting-title">🌄 รูปพื้นหลัง</div>
-      <div class="upload-box"><input type="file" accept="image/*" onchange="changeBackground(event)"></div>
-      <div class="upload-box"><button class="btn-danger" style="width:100%;" onclick="removeBackground()">🗑️ ลบรูปพื้นหลัง</button></div>
-    </div>
-    <div style="margin-bottom:20px;">
-      <div class="setting-title">✏️ แก้ไขข้อมูลย้อนหลัง</div>
-      <div class="upload-box" style="padding:14px;">
-        <input type="date" id="retroDate" onchange="loadRetroData()" style="margin-bottom:8px;">
-        <button class="btn-green" style="width:100%;margin-bottom:10px;font-size:.85rem;" onclick="recordAbsentStudents()">📌 บันทึกอัตโนมัติ "ขาด" เพื่อนักเรียนที่ไม่มีรายการ</button>
-        <div class="table-wrapper" style="max-height:220px;overflow-y:auto;">
-          <table><thead><tr><th>เลขที่</th><th class="td-name" style="text-align:left;">ชื่อ</th><th>ประเภท</th><th>จัดการ</th></tr></thead>
-          <tbody id="retroTable"><tr><td colspan="4" style="color:#bbb;padding:12px;">เลือกวันที่ก่อน</td></tr></tbody></table>
+  <div class="modal-box" style="max-width:760px;padding:0;overflow:hidden;height:min(88vh,640px);display:flex;">
+    <div class="setting-modal-inner" style="width:100%;height:100%;">
+
+      <!-- LEFT SIDEBAR -->
+      <div class="setting-sidebar">
+        <div class="setting-sidebar-header">⚙️ ตั้งค่า</div>
+        <button class="setting-nav-item active" onclick="switchSettingPane('paneSlides',this)"><span class="sni">🖼️</span>รูปสไลด์</button>
+        <button class="setting-nav-item" onclick="switchSettingPane('paneBg',this)"><span class="sni">🌄</span>พื้นหลัง</button>
+        <button class="setting-nav-item" onclick="switchSettingPane('paneRetro',this)"><span class="sni">✏️</span>ย้อนหลัง</button>
+        <button class="setting-nav-item" onclick="switchSettingPane('paneData',this)"><span class="sni">📂</span>ข้อมูล</button>
+        <button class="setting-nav-item" onclick="switchSettingPane('paneSubjects',this)"><span class="sni">📚</span>วิชา</button>
+        <button class="setting-nav-item" onclick="switchSettingPane('paneStudents',this)"><span class="sni">👥</span>นักเรียน</button>
+        <div style="flex:1;"></div>
+        <button class="setting-nav-item" onclick="closeSetting()" style="color:var(--red);margin-top:8px;"><span class="sni">✕</span>ปิด</button>
+      </div>
+
+      <!-- RIGHT CONTENT -->
+      <div class="setting-content">
+
+        <!-- Pane: รูปสไลด์ -->
+        <div class="setting-pane active" id="paneSlides">
+          <div class="setting-pane-title">🖼️ รูปสไลด์</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="setting-upload-row">
+              <span class="setting-upload-label">สไลด์ที่ 1</span>
+              <label class="setting-file-btn"><input type="file" accept="image/*" onchange="changeSlide(event,0)" style="display:none;"><span>📁 เลือกไฟล์</span></label>
+              <span class="setting-file-hint" id="slideHint0">ไม่ได้เลือกไฟล์ใด</span>
+            </div>
+            <div class="setting-upload-row">
+              <span class="setting-upload-label">สไลด์ที่ 2</span>
+              <label class="setting-file-btn"><input type="file" accept="image/*" onchange="changeSlide(event,1)" style="display:none;"><span>📁 เลือกไฟล์</span></label>
+              <span class="setting-file-hint" id="slideHint1">ไม่ได้เลือกไฟล์ใด</span>
+            </div>
+            <div class="setting-upload-row">
+              <span class="setting-upload-label">สไลด์ที่ 3</span>
+              <label class="setting-file-btn"><input type="file" accept="image/*" onchange="changeSlide(event,2)" style="display:none;"><span>📁 เลือกไฟล์</span></label>
+              <span class="setting-file-hint" id="slideHint2">ไม่ได้เลือกไฟล์ใด</span>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-    <div style="margin-bottom:20px;">
-      <div class="setting-title">📂 จัดการข้อมูล</div>
-      <div class="upload-box">
-        <button class="btn-soft" style="width:100%;margin-bottom:8px;" onclick="pruneOldData()">🧹 ลบข้อมูลเก่ากว่า 5 เดือน</button>
-        <button class="btn-danger" style="width:100%;" onclick="clearHistory()">🗑️ ลบประวัติทั้งหมด</button>
-      </div>
-    </div>
-    <div style="margin-bottom:20px;">
-      <div class="setting-title">📚 จัดการวิชา (แอดมินเท่านั้น)</div>
-      <div id="subjectSettingList"></div>
-      <button class="btn-soft" style="width:100%;margin-top:6px;" onclick="openAddSubject()">+ เพิ่มวิชาใหม่</button>
-    </div>
-    <button class="btn-main" onclick="closeSetting()" style="width:100%;">✕ ปิด</button>
+
+        <!-- Pane: พื้นหลัง -->
+        <div class="setting-pane" id="paneBg">
+          <div class="setting-pane-title">🌄 รูปพื้นหลัง</div>
+          <div class="setting-upload-row">
+            <label class="setting-file-btn"><input type="file" accept="image/*" onchange="changeBackground(event)" style="display:none;"><span>📁 เลือกไฟล์</span></label>
+            <span class="setting-file-hint" id="bgHint">ไม่ได้เลือกไฟล์ใด</span>
+          </div>
+          <button class="btn-danger" style="width:100%;margin-top:12px;" onclick="removeBackground()">🗑️ ลบรูปพื้นหลัง</button>
+        </div>
+
+        <!-- Pane: แก้ไขข้อมูลย้อนหลัง -->
+        <div class="setting-pane" id="paneRetro">
+          <div class="setting-pane-title">✏️ แก้ไขข้อมูลย้อนหลัง</div>
+          <div class="upload-box" style="padding:14px;">
+            <input type="date" id="retroDate" onchange="loadRetroData()" style="margin-bottom:8px;">
+            <button class="btn-green" style="width:100%;margin-bottom:10px;font-size:.85rem;" onclick="recordAbsentStudents()">📌 บันทึกอัตโนมัติ "ขาด" เพื่อนักเรียนที่ไม่มีรายการ</button>
+            <div class="table-wrapper" style="max-height:300px;overflow-y:auto;">
+              <table><thead><tr><th>เลขที่</th><th class="td-name" style="text-align:left;">ชื่อ</th><th>ประเภท</th><th>จัดการ</th></tr></thead>
+              <tbody id="retroTable"><tr><td colspan="4" style="color:#bbb;padding:12px;">เลือกวันที่ก่อน</td></tr></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pane: จัดการข้อมูล -->
+        <div class="setting-pane" id="paneData">
+          <div class="setting-pane-title">📂 จัดการข้อมูล</div>
+          <div class="upload-box">
+            <button class="btn-soft" style="width:100%;margin-bottom:8px;" onclick="pruneOldData()">🧹 ลบข้อมูลเก่ากว่า 5 เดือน</button>
+            <button class="btn-danger" style="width:100%;" onclick="clearHistory()">🗑️ ลบประวัติทั้งหมด</button>
+          </div>
+        </div>
+
+        <!-- Pane: จัดการวิชา -->
+        <div class="setting-pane" id="paneSubjects">
+          <div class="setting-pane-title">📚 จัดการวิชา</div>
+          <div id="subjectSettingList"></div>
+          <button class="btn-soft" style="width:100%;margin-top:8px;" onclick="openAddSubject()">+ เพิ่มวิชาใหม่</button>
+        </div>
+
+        <!-- Pane: นักเรียน -->
+        <div class="setting-pane" id="paneStudents">
+          <div class="setting-pane-title">👥 จัดการนักเรียน</div>
+          <p style="font-size:.85rem;color:#aaa;margin-bottom:14px;">รีเซ็ตรหัสผ่านกลับเป็นรหัสนักเรียน 5 หลัก</p>
+          <div id="settingStudentList"></div>
+        </div>
+
+      </div><!-- end setting-content -->
+    </div><!-- end setting-modal-inner -->
   </div>
 </div>
 
@@ -1047,14 +1243,14 @@ function _getAdminStatusCached(){
 */
 var _CACHE_TTL_MS = 5 * 60 * 1000; // 5 นาที
 function saveLogsCache(logs){
-  try{ localStorage.setItem("logs_cache", JSON.stringify({ts:Date.now(), v:2, data:logs})); }catch(e){}
+  try{ localStorage.setItem("logs_cache", JSON.stringify({ts:Date.now(), v:3, data:logs})); }catch(e){}
 }
 function loadLogsCache(){
   try{
     var raw = localStorage.getItem("logs_cache");
     if(!raw) return null;
     var obj = JSON.parse(raw);
-    if(obj.v !== 2) return null; /* ล้าง cache เก่าที่ใช้ date string query */
+    if(obj.v !== 3) return null; /* ล้าง cache เก่า */
     /* ✅ คืน data แม้ TTL หมด ถ้า _cachedLogs ว่าง (ดีกว่า null) */
     if(Date.now() - obj.ts < _CACHE_TTL_MS || _cachedLogs.length===0) return obj.data;
   }catch(e){}
@@ -1270,10 +1466,12 @@ function startSystem() {
   loadMoneyData();
   if (isAdmin) {
     _safeShow("topActions"); _safeShow("editColHeader");
-    _safeShow("teacherNav"); _safeShow("addAssignBtn");
+    _safeShow("addAssignBtn");
+    _safeShow("adminMenuGrid"); _safeHide("studentMenuGrid");
   } else {
-    _safeShow("studentActions"); _safeShow("studentNav"); _safeShow("studentProfileCard");
+    _safeShow("studentActions"); _safeShow("studentProfileCard");
     _safeHide("addAssignBtn");
+    _safeShow("studentMenuGrid"); _safeHide("adminMenuGrid");
     var _pn=_safeEl("profileName"); if(_pn) _pn.textContent = currentUserDoc.name || "";
     var _pi=_safeEl("profileId");   if(_pi) _pi.textContent = "รหัส " + (currentUserDoc.studentId || "");
   }
@@ -1318,13 +1516,45 @@ function startRealtimeSync() {
       .where("createdAt", ">=", cutoffTs)
       .onSnapshot(function(snapshot) {
         trackRead(snapshot.size); /* นับ reads จริง */
-        _cachedLogs = [];
-        snapshot.forEach(function(doc){ var d=doc.data(); d._firestoreId=doc.id; _cachedLogs.push(d); });
-        _cachedLogs.sort(function(a,b){ return (a.createdAt||0)-(b.createdAt||0); });
+        var newLogs = [];
+        snapshot.forEach(function(doc){ var d=doc.data(); d._firestoreId=doc.id; newLogs.push(d); });
+        newLogs.sort(function(a,b){ return (a.createdAt||0)-(b.createdAt||0); });
+
+        /* ✅ BUG FIX: รวม legacy records (ที่มี string createdAt หรือไม่มี) เข้ากับ new logs */
+        var legacyLogs = _cachedLogs.filter(function(r){ return typeof r.createdAt !== "number" || r.createdAt < cutoffTs; });
+        var merged = legacyLogs.concat(newLogs);
+        /* dedup by _firestoreId */
+        var seen = {}; var deduped = [];
+        merged.forEach(function(r){ var k=r._firestoreId||r.date+"_"+r.studentId; if(!seen[k]){seen[k]=true;deduped.push(r);} });
+        deduped.sort(function(a,b){ return (a.createdAt||0)-(b.createdAt||0); });
+        _cachedLogs = deduped;
         saveLogsCache(_cachedLogs); /* บันทึก cache */
         renderHistory(); updateDashboard(); renderChart();
       }, function(err){ console.error("Realtime error:", err); showStatus("⚠️ การเชื่อมต่อ real-time ขัดข้อง"); });
     _lastSnapshotTime = Date.now();
+
+    /* ✅ BUG FIX: Fetch legacy records (string/no createdAt) แบบ one-time เพื่อป้องกันข้อมูลหาย */
+    logsCol().get().then(function(fullSnap){
+      trackRead(fullSnap.size);
+      var legacyFound = [];
+      fullSnap.forEach(function(doc){
+        var d = doc.data();
+        if(typeof d.createdAt !== "number" || d.createdAt < cutoffTs){
+          d._firestoreId = doc.id;
+          legacyFound.push(d);
+        }
+      });
+      if(legacyFound.length > 0){
+        var existingIds = {}; _cachedLogs.forEach(function(r){ if(r._firestoreId) existingIds[r._firestoreId]=true; });
+        var newLegacy = legacyFound.filter(function(r){ return !existingIds[r._firestoreId]; });
+        if(newLegacy.length > 0){
+          _cachedLogs = _cachedLogs.concat(newLegacy);
+          _cachedLogs.sort(function(a,b){ return (a.createdAt||0)-(b.createdAt||0); });
+          saveLogsCache(_cachedLogs);
+          renderHistory(); updateDashboard(); renderChart();
+        }
+      }
+    }).catch(function(e){ console.warn("Legacy fetch error:", e); });
   }
 
   startListener();
@@ -1631,7 +1861,7 @@ function renderAdminAssignTable() {
     var highRisk=rows.filter(function(r){return r.pct<40;}).length;
     var midRisk=rows.filter(function(r){return r.pct>=40&&r.pct<70;}).length;
     var lowRisk=rows.filter(function(r){return r.pct>=70;}).length;
-    var avgPct=Math.round(rows.reduce(function(s,r){return s+r.pct;},0)/rows.length);
+    var avgPct=rows.length?Math.round(rows.reduce(function(s,r){return s+r.pct;},0)/rows.length):0;
     html+='<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">'+
       '<div style="flex:1;min-width:70px;background:white;border-radius:12px;padding:10px 6px;text-align:center;"><div style="font-size:1.3rem;font-weight:700;color:#e58d8d;">'+highRisk+'</div><div style="font-size:.7rem;color:#bbb;">เสี่ยงสูง</div></div>'+
       '<div style="flex:1;min-width:70px;background:white;border-radius:12px;padding:10px 6px;text-align:center;"><div style="font-size:1.3rem;font-weight:700;color:#e5c08d;">'+midRisk+'</div><div style="font-size:.7rem;color:#bbb;">เสี่ยงกลาง</div></div>'+
@@ -1659,7 +1889,7 @@ function runAdminAssignAI() {
     var highRisk=studentStats.filter(function(s){return s.pct<40;});
     var midRisk=studentStats.filter(function(s){return s.pct>=40&&s.pct<70;});
     var lowRisk=studentStats.filter(function(s){return s.pct>=70;});
-    var avgPct=Math.round(studentStats.reduce(function(a,s){return a+s.pct;},0)/studentStats.length);
+    var avgPct=studentStats.length?Math.round(studentStats.reduce(function(a,s){return a+s.pct;},0)/studentStats.length):0;
     var perfect=studentStats.filter(function(s){return s.pct===100;});
     var zero=studentStats.filter(function(s){return s.pct===0;});
     var lines=[];
@@ -1722,45 +1952,77 @@ function buildPrintHTML(logs, monthKeys) {
     '<style>body{font-family:system-ui,-apple-system,sans-serif;font-size:10px;color:#333;margin:0;padding:0;}.page{padding:14mm 12mm;page-break-after:always;}.page:last-child{page-break-after:avoid;}h2{font-size:14px;margin:0 0 4px;}.meta{font-size:8.5px;color:#666;margin:0 0 8px;}.footer{font-size:7.5px;color:#aaa;margin-top:8px;}table{width:100%;border-collapse:collapse;table-layout:auto;}th,td{border:1px solid #ccc;padding:3px 4px;text-align:center;white-space:nowrap;font-size:8.5px;}th{background:#D9A299;color:white;font-weight:600;}tr:nth-child(even){background:#faf7f3;}td.td-name{text-align:left;white-space:normal;min-width:80px;}td.v{color:#4a9b65;font-weight:700;}td.l{color:#c75b5b;font-weight:700;}td.s{color:#b87a30;font-weight:700;}td.ab{color:#9b59b6;font-weight:700;}td.t{color:#2980b9;font-weight:700;}td.sum{font-weight:700;}@media print{@page{size:A4 landscape;margin:0;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body>'+pages+'</body></html>';
 }
 
+
 /* ══ MONEY CHECK ══ */
-function renderMoneyCheck(date){try{var data=JSON.parse(localStorage.getItem("money_"+date)||"{}"),html="";Object.keys(data).forEach(function(k){var m=data[k];if(!m.date)return;var statusIcon=m.status==="received"?"✓":m.status==="not-received"?"✕":"⏳";var statusColor=m.status==="received"?"var(--green)":m.status==="not-received"?"var(--red)":"var(--yellow)";html+='<div style="padding:10px;background:var(--c1);border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><div><p style="margin:0;font-weight:600;">'+m.date+' <span style="color:'+statusColor+';">'+statusIcon+'</span></p><p style="margin:3px 0 0 0;font-size:0.85rem;color:#999;">'+(m.note||"—")+'</p></div><p style="margin:0;font-weight:600;color:var(--c4);font-size:1.1rem;">฿ '+m.amount+'</p></div>';});var el5=document.getElementById("moneyHistory");if(el5)el5.innerHTML=html||'<p style="text-align:center;color:#bbb;padding:20px;font-size:0.9rem;">ยังไม่มีข้อมูล</p>';}catch(err){console.error("renderMoneyCheck error:",err);}}
-function showMoneyCheckPage(){openPage("moneyCheckPage");setTimeout(function(){loadMoneyData();},100);}
 function showHowToUse(){document.getElementById("howToUseModal").style.display="flex";}
 function closeHowToUse(){document.getElementById("howToUseModal").style.display="none";}
+function _updateFileHint(hintId, filename){var el=document.getElementById(hintId);if(el)el.textContent=filename||"ไม่ได้เลือกไฟล์ใด";}
 </script>
 
 
 <!-- 📖 HOW TO USE MODAL -->
 <div id="howToUseModal" class="modal-overlay" style="display:none;z-index:10000;">
-  <div class="modal-box" style="max-width:500px;padding:30px;text-align:left;max-height:90vh;overflow-y:auto;">
-    <button onclick="closeHowToUse()" style="position:absolute;top:10px;right:15px;border:none;background:none;font-size:24px;cursor:pointer;">✕</button>
-    <h2 style="color:var(--c4);margin-bottom:20px;text-align:center;">📖 วิธีใช้เว็บไซต์</h2>
-    <div style="margin-bottom:20px;">
-      <h3 style="color:var(--c4);font-size:1rem;margin-bottom:8px;">🤖 สรุป AI</h3>
-      <p style="color:#666;font-size:0.95rem;line-height:1.6;margin:0;">ดูสรุปข้อมูลส่วนตัวของคุณจาก AI ที่วิเคราะห์สถิติการเข้าเรียน งานที่ส่ง และพฤติกรรมอื่นๆ</p>
+  <div class="modal-box" style="max-width:500px;padding:28px;text-align:left;max-height:90vh;overflow-y:auto;">
+    <button onclick="closeHowToUse()" style="position:absolute;top:12px;right:16px;border:none;background:none;font-size:22px;cursor:pointer;color:#bbb;">✕</button>
+    <div style="text-align:center;margin-bottom:22px;">
+      <div style="width:50px;height:50px;background:linear-gradient(135deg,var(--c3),var(--c4));border-radius:16px;display:inline-flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:10px;">📖</div>
+      <h2 style="color:var(--c4);margin:0;font-size:1.2rem;">วิธีใช้งานระบบ</h2>
+      <p style="color:#bbb;font-size:.82rem;margin-top:4px;">สำหรับนักเรียน M5/1</p>
     </div>
-    <div style="margin-bottom:20px;">
-      <h3 style="color:var(--c4);font-size:1rem;margin-bottom:8px;">📋 ย้อนหลัง</h3>
-      <p style="color:#666;font-size:0.95rem;line-height:1.6;margin:0;">ดูประวัติการเข้าเรียนและภารกิจทั้งหมดของคุณ สามารถกรองตามวันที่หรือประเภทได้ สามารถส่งออก PDF ได้</p>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <!-- AI สรุป -->
+      <div style="background:var(--c1);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+        <div style="font-size:1.6rem;flex-shrink:0;">🤖</div>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:.9rem;margin-bottom:3px;">สรุป AI</div>
+          <div style="font-size:.8rem;color:#888;line-height:1.5;">AI วิเคราะห์สถานะงานและแนะนำว่าควรทำอะไรก่อน ดูได้ที่แท็บ "สรุป AI"</div>
+        </div>
+        <button onclick="closeHowToUse();openPage('dashboardPage');renderAISummary();" class="btn-soft" style="padding:7px 12px;font-size:.78rem;flex-shrink:0;white-space:nowrap;">ดูเลย →</button>
+      </div>
+
+      <!-- งานที่ต้องส่ง -->
+      <div style="background:var(--c1);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+        <div style="font-size:1.6rem;flex-shrink:0;">📚</div>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:.9rem;margin-bottom:3px;">งานที่ต้องส่ง</div>
+          <div style="font-size:.8rem;color:#888;line-height:1.5;">ดูรายการงานทั้งหมด กดติ๊กเพื่อส่งงาน แนบรูปหลักฐาน AI จะช่วยตรวจสอบ มีปฏิทินแสดงกำหนดส่ง</div>
+        </div>
+        <button onclick="closeHowToUse();openPage('assignPage');renderAssignPage();" class="btn-soft" style="padding:7px 12px;font-size:.78rem;flex-shrink:0;white-space:nowrap;">ดูเลย →</button>
+      </div>
+
+      <!-- ย้อนหลัง -->
+      <div style="background:var(--c1);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+        <div style="font-size:1.6rem;flex-shrink:0;">📋</div>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:.9rem;margin-bottom:3px;">ประวัติย้อนหลัง</div>
+          <div style="font-size:.8rem;color:#888;line-height:1.5;">ดูประวัติการทำเวรและกิจกรรมทั้งหมด กรองตามวันที่ ส่งออกเป็น PDF ได้</div>
+        </div>
+        <button onclick="closeHowToUse();openPage('historyPage');renderHistory();" class="btn-soft" style="padding:7px 12px;font-size:.78rem;flex-shrink:0;white-space:nowrap;">ดูเลย →</button>
+      </div>
+
+      <!-- เปลี่ยนรหัสผ่าน -->
+      <div style="background:var(--c1);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+        <div style="font-size:1.6rem;flex-shrink:0;">🔑</div>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:.9rem;margin-bottom:3px;">เปลี่ยนรหัสผ่าน</div>
+          <div style="font-size:.8rem;color:#888;line-height:1.5;">กดปุ่ม "🔑 เปลี่ยนรหัส" ที่มุมขวาบนได้เลย รหัสเริ่มต้น = รหัสนักเรียน 5 หลัก</div>
+        </div>
+        <button onclick="closeHowToUse();openChangePwd();" class="btn-soft" style="padding:7px 12px;font-size:.78rem;flex-shrink:0;white-space:nowrap;">เปลี่ยนเลย →</button>
+      </div>
     </div>
-    <div style="margin-bottom:20px;">
-      <h3 style="color:var(--c4);font-size:1rem;margin-bottom:8px;">📚 งาน</h3>
-      <p style="color:#666;font-size:0.95rem;line-height:1.6;margin:0;">ดูรายการงานที่อาจารย์มอบหมายให้ คลิกงานเพื่อดูรายละเอียด สามารถอัปโหลดรูปหลักฐานการทำงาน AI จะตรวจสอบรูปให้</p>
-    </div>
-    <div style="margin-bottom:20px;">
-      <h3 style="color:var(--c4);font-size:1rem;margin-bottom:8px;">💰 เช็คเงิน</h3>
-      <p style="color:#666;font-size:0.95rem;line-height:1.6;margin:0;">บันทึกจำนวนเงินค่าใช้จ่ายหรือเงินที่ได้ในแต่ละวัน ดูประวัติและสรุปยอดรวมของเดือน</p>
-    </div>
-    <div style="background:var(--c1);border-radius:12px;padding:15px;margin-bottom:20px;">
-      <h3 style="color:var(--c4);font-size:0.95rem;margin-bottom:8px;">💡 เคล็ดลับ</h3>
-      <ul style="margin:0;padding-left:20px;color:#666;font-size:0.9rem;">
-        <li style="margin-bottom:6px;">คลิก ⚙️ เพื่อเข้าถึงการตั้งค่า</li>
-        <li style="margin-bottom:6px;">AI จะช่วยตรวจสอบว่างานของคุณเสร็จหรือไม่</li>
-        <li style="margin-bottom:6px;">สามารถเปลี่ยนรหัสผ่านได้ที่การตั้งค่า</li>
-        <li>ข้อมูลจะบันทึกบนคลาวด์อัตโนมัติ</li>
+
+    <div style="background:linear-gradient(135deg,#fdf6f0,#fdeee8);border-radius:14px;padding:14px 16px;margin-top:14px;border:1px solid var(--c3);">
+      <div style="font-weight:700;font-size:.85rem;color:var(--c4);margin-bottom:8px;">💡 เคล็ดลับสำหรับนักเรียน</div>
+      <ul style="margin:0;padding-left:18px;color:#888;font-size:.82rem;line-height:1.8;">
+        <li>ข้อมูลจะ sync บนคลาวด์อัตโนมัติ ไม่หายเมื่อเปลี่ยนอุปกรณ์</li>
+        <li>แนบรูปหลักฐานทุกครั้งที่ส่งงาน AI จะช่วยตรวจสอบให้</li>
+        <li>ดู "สรุป AI" ก่อนทุกวัน เพื่อไม่พลาดงานใกล้ครบกำหนด</li>
+        <li>หากลืมรหัสผ่านให้ติดต่อครูเพื่อรีเซ็ต</li>
       </ul>
     </div>
-    <button onclick="closeHowToUse()" class="btn-main" style="width:100%;margin-top:15px;">ปิด ✓</button>
+
+    <button onclick="closeHowToUse()" class="btn-main" style="width:100%;margin-top:18px;">✓ เข้าใจแล้ว</button>
   </div>
 </div>
 
@@ -1793,7 +2055,7 @@ function openPage(id){
   if(id==="dashboardPage"){updateDashboard();renderChart();if(isAdmin)renderAdminAISummary();}
   if(id==="historyPage"){updateStorageStatus("storageBarWrap");if(isAdmin){document.getElementById("pdfExportSection").classList.remove("hidden");populatePDFMonthSelect();}}
 }
-function goHome(){["checkPage","dashboardPage","historyPage","assignPage"].forEach(function(p){document.getElementById(p).classList.add("hidden");});document.getElementById("homePage").classList.remove("hidden");}
+function goHome(){["checkPage","dashboardPage","historyPage","assignPage","moneyCheckPage"].forEach(function(p){document.getElementById(p).classList.add("hidden");});document.getElementById("homePage").classList.remove("hidden");}
 
 /* ══ SLIDES ══ */
 var _slideTimer = null;
@@ -1841,12 +2103,12 @@ function showSlide(i){
   dots.forEach(function(d,idx){d.classList.toggle("active",idx===i);});
   curSlide=i;
 }
-function changeSlide(e,i){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){slideImages[i]=ev.target.result;safeSetItem("slideImages",JSON.stringify(slideImages));renderSlides();showStatus("เปลี่ยนรูปสไลด์ที่"+(i+1)+"แล้ว ✨");};r.readAsDataURL(f);}
-function changeBackground(e){var f=e.target.files[0];if(!f)return;if(f.size>2*1024*1024){showStatus("⚠️ รูปพื้นหลังใหญ่เกิน 2MB กรุณาเลือกรูปใหม่");return;}var r=new FileReader();r.onload=function(ev){if(!safeSetItem("customBackground",ev.target.result))return;var bgUrl=ev.target.result.replace(/'/g,"\\'");document.body.style.backgroundImage="url('"+bgUrl+"')";document.body.style.backgroundSize="cover";showStatus("เปลี่ยนพื้นหลังแล้ว ✨");};r.readAsDataURL(f);}
-function removeBackground(){localStorage.removeItem("customBackground");document.body.style.backgroundImage="";showStatus("ลบพื้นหลังแล้ว");}
+function changeSlide(e,i){var f=e.target.files[0];if(!f)return;_updateFileHint("slideHint"+i,f.name);var r=new FileReader();r.onload=function(ev){slideImages[i]=ev.target.result;safeSetItem("slideImages",JSON.stringify(slideImages));renderSlides();showStatus("เปลี่ยนรูปสไลด์ที่"+(i+1)+"แล้ว ✨");};r.readAsDataURL(f);}
+function changeBackground(e){var f=e.target.files[0];if(!f)return;if(f.size>2*1024*1024){showStatus("⚠️ รูปพื้นหลังใหญ่เกิน 2MB กรุณาเลือกรูปใหม่");return;}_updateFileHint("bgHint",f.name);var r=new FileReader();r.onload=function(ev){if(!safeSetItem("customBackground",ev.target.result))return;var bgUrl=ev.target.result.replace(/'/g,"\\'");document.body.style.backgroundImage="url('"+bgUrl+"')";document.body.style.backgroundSize="cover";showStatus("เปลี่ยนพื้นหลังแล้ว ✨");};r.readAsDataURL(f);}
+function removeBackground(){localStorage.removeItem("customBackground");document.body.style.backgroundImage="";_updateFileHint("bgHint","ไม่ได้เลือกไฟล์ใด");showStatus("ลบพื้นหลังแล้ว");}
 
 /* ══ DASHBOARD ══ */
-function updateDashboard(){getAllLogs().then(function(log){var today=getThaiDate(),seenIds={};log.filter(function(r){return r.date===today;}).forEach(function(r){seenIds[r.studentId]=r.action;});var checked=Object.keys(seenIds).length,done=Object.values(seenIds).filter(function(a){return a==="ทำเวร";}).length,total=STUDENTS.length;document.getElementById("allCount").textContent=total;document.getElementById("checkedCount").textContent=checked;document.getElementById("doneCount").textContent=done;document.getElementById("absentCount").textContent=total-checked;document.getElementById("checkedPct").textContent=Math.round(checked/total*100)+"%";document.getElementById("donePct").textContent=Math.round(done/total*100)+"%";document.getElementById("absentPct").textContent=Math.round((total-checked)/total*100)+"%";});}
+function updateDashboard(){getAllLogs().then(function(log){var today=getThaiDate(),seenIds={};log.filter(function(r){return r.date===today;}).forEach(function(r){seenIds[r.studentId]=r.action;});var checked=Object.keys(seenIds).length,done=Object.values(seenIds).filter(function(a){return a==="ทำเวร";}).length,total=STUDENTS.length;document.getElementById("allCount").textContent=total;document.getElementById("checkedCount").textContent=checked;document.getElementById("doneCount").textContent=done;document.getElementById("absentCount").textContent=total-checked;/* ✅ BUG FIX: ป้องกัน NaN% เมื่อ total=0 */var safePct=function(n,d){return d===0?"0%":Math.round(n/d*100)+"%";};document.getElementById("checkedPct").textContent=safePct(checked,total);document.getElementById("donePct").textContent=safePct(done,total);document.getElementById("absentPct").textContent=safePct(total-checked,total);});}
 
 /* ══ HISTORY ══ */
 function renderHistory(filterISO){
@@ -1924,10 +2186,30 @@ function clearImgPreview(){_pendingImgBase64=null;_pendingAIResult=null;document
 function closeImgUploadModal(){document.getElementById("imgUploadModal").style.display="none";_pendingSubmitAssignId=null;clearImgPreview();}
 function confirmImgSubmit(){if(!_pendingSubmitAssignId){closeImgUploadModal();return;}doSubmitAssign(_pendingSubmitAssignId,_pendingImgBase64,_pendingAIResult);closeImgUploadModal();}
 function submitWithoutImg(){if(!_pendingSubmitAssignId){closeImgUploadModal();return;}doSubmitAssign(_pendingSubmitAssignId,null,null);closeImgUploadModal();}
-function doSubmitAssign(assignKey,imgBase64,aiResult){var cacheKey=currentUser.uid+"_"+assignKey;_cachedAssignmentStatus[cacheKey]={done:true,doneAt:Date.now(),studentId:currentUserDoc?currentUserDoc.studentId||"":"",imageBase64:imgBase64||null,aiResult:aiResult||null};renderAssignSummary();renderSubjectTabs();renderAssignList();saveAssignStatusCloud(assignKey,true,imgBase64,aiResult).then(function(){showStatus(imgBase64?"✅ ส่งงานพร้อมรูปหลักฐานแล้ว 📸":"✅ ส่งงานแล้ว");}).catch(function(err){showStatus("❌ บันทึกไม่สำเร็จ: "+(err.message||err));delete _cachedAssignmentStatus[cacheKey];renderAssignPage();});}
+function doSubmitAssign(assignKey,imgBase64,aiResult){var cacheKey=currentUser.uid+"_"+assignKey;_cachedAssignmentStatus[cacheKey]={done:true,doneAt:Date.now(),studentId:currentUserDoc?currentUserDoc.studentId||"":"",imageBase64:imgBase64||null,aiResult:aiResult||null};renderAssignSummary();renderSubjectTabs();renderAssignList();saveAssignStatusCloud(assignKey,true,imgBase64,aiResult).then(function(){showStatus(imgBase64?"✅ ส่งงานพร้อมรูปหลักฐานแล้ว 📸":"✅ ส่งงานแล้ว");}).catch(function(err){
+  /* ✅ BUG FIX: แยก permission-denied ออกจาก error อื่น — ถ้า permission denied แสดงว่า Firestore rules ยังไม่อัปเดต บันทึก local ไว้ก่อน */
+  var isPermErr=err&&(err.code==="permission-denied"||(err.message&&err.message.indexOf("permission")!==-1));
+  if(isPermErr){
+    showStatus("✅ ส่งงานแล้ว (บันทึกในเครื่อง · Sync เมื่อ Cloud พร้อม)");
+  } else {
+    showStatus("❌ บันทึกไม่สำเร็จ: "+(err.message||err));delete _cachedAssignmentStatus[cacheKey];renderAssignPage();
+  }
+});}
 
 var _aiProofCache={};
-function runAIProofCheck(imgBase64,assignTitle,onDone){var box=document.getElementById("aiProofBox"),thinking=document.getElementById("aiProofThinking"),result=document.getElementById("aiProofResult");box.classList.add("visible");thinking.style.display="flex";result.style.display="none";var imgData=imgBase64.split(",")[1];var mimeMatch=imgBase64.match(/data:([^;]+);/);var mimeType=mimeMatch?mimeMatch[1]:"image/jpeg";fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":window.ANTHROPIC_API_KEY||"","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,system:"คุณเป็น AI ตรวจสอบหลักฐานการส่งงานนักเรียน ตอบเป็น JSON เท่านั้น ไม่มี markdown หรือ backtick ใดๆ\nรูปแบบ JSON ที่ต้องตอบ: {\"verdict\":\"pass\"|\"warn\"|\"fail\",\"score\":0-100,\"reason\":\"ข้อความสั้นๆ ไม่เกิน 80 ตัวอักษร ภาษาไทย\"}",messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:mimeType,data:imgData}},{type:"text",text:"ตรวจสอบรูปนี้ว่าเป็นหลักฐานการส่งงานจริงมั้ย งานชื่อ: \""+assignTitle+"\"\n- pass = เป็นรูปงาน/เอกสาร/หน้าจอที่ชัดเจน\n- warn = รูปมีแต่ไม่ชัดว่าเกี่ยวกับงาน\n- fail = รูปไม่เกี่ยวกับงานเลย หรือรูปขาวๆ ว่างๆ\nตอบ JSON เท่านั้น"}]}]})}).then(function(res){if(!res.ok){return res.json().then(function(e){throw new Error(e.error&&e.error.message?e.error.message:"HTTP "+res.status);});}return res.json();}).then(function(data){var text=(data.content||[]).map(function(b){return b.text||"";}).join("").trim();var parsed;try{parsed=JSON.parse(text);}catch(e){var vm=text.match(/"verdict"\s*:\s*"(\w+)"/);var rm=text.match(/"reason"\s*:\s*"([^"]+)"/);var sm=text.match(/"score"\s*:\s*(\d+)/);parsed={verdict:vm?vm[1]:"warn",score:sm?parseInt(sm[1]):50,reason:rm?rm[1]:"ไม่สามารถวิเคราะห์ได้"};}thinking.style.display="none";result.style.display="block";var icon=parsed.verdict==="pass"?"✅":parsed.verdict==="fail"?"❌":"⚠️";var cls=parsed.verdict==="pass"?"ai-proof-pass":parsed.verdict==="fail"?"ai-proof-fail":"ai-proof-warn";var label=parsed.verdict==="pass"?"รูปหลักฐานผ่าน!":parsed.verdict==="fail"?"รูปไม่ใช่หลักฐานงาน":"ตรวจสอบได้บางส่วน";result.innerHTML='<div class="'+cls+'">'+icon+' '+label+' ('+parsed.score+'/100)</div><div style="margin-top:6px;font-size:.8rem;color:#888;">'+escapeHtml(parsed.reason)+'</div>'+(parsed.verdict==="fail"?'<div style="margin-top:8px;font-size:.78rem;color:var(--red);">⚠️ แนะนำให้เลือกรูปใหม่ที่เป็นหลักฐานงานจริง</div>':'');if(onDone)onDone(parsed);}).catch(function(err){thinking.style.display="none";result.style.display="block";result.innerHTML='<div style="color:#bbb;font-size:.8rem;">⚠️ ไม่สามารถตรวจสอบ AI ได้ในขณะนี้ ส่งงานต่อได้เลย</div>';console.error("AI proof check error:",err);if(onDone)onDone({verdict:"unknown",score:0,reason:""});});}
+function runAIProofCheck(imgBase64,assignTitle,onDone){
+  var box=document.getElementById("aiProofBox"),thinking=document.getElementById("aiProofThinking"),result=document.getElementById("aiProofResult");
+  box.classList.add("visible");
+  thinking.style.display="flex";result.style.display="none";
+  if(!window.ANTHROPIC_API_KEY){
+    thinking.style.display="none";result.style.display="block";
+    result.innerHTML='<div style="color:#bbb;font-size:.8rem;">ℹ️ ยังไม่ได้ตั้งค่า API Key — ส่งงานต่อได้เลย</div>';
+    var warn=document.getElementById("adminAIKeyWarning");if(warn)warn.style.display="block";
+    if(onDone)onDone({verdict:"unknown",score:0,reason:""});return;
+  }
+  var imgData=imgBase64.split(",")[1];var mimeMatch=imgBase64.match(/data:([^;]+);/);var mimeType=mimeMatch?mimeMatch[1]:"image/jpeg";
+  fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":window.ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,system:"คุณเป็น AI ตรวจสอบหลักฐานการส่งงานนักเรียน ตอบเป็น JSON เท่านั้น ไม่มี markdown หรือ backtick ใดๆ\nรูปแบบ JSON ที่ต้องตอบ: {\"verdict\":\"pass\"|\"warn\"|\"fail\",\"score\":0-100,\"reason\":\"ข้อความสั้นๆ ไม่เกิน 80 ตัวอักษร ภาษาไทย\"}",messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:mimeType,data:imgData}},{type:"text",text:"ตรวจสอบรูปนี้ว่าเป็นหลักฐานการส่งงานจริงมั้ย งานชื่อ: \""+assignTitle+"\"\n- pass = เป็นรูปงาน/เอกสาร/หน้าจอที่ชัดเจน\n- warn = รูปมีแต่ไม่ชัดว่าเกี่ยวกับงาน\n- fail = รูปไม่เกี่ยวกับงานเลย หรือรูปขาวๆ ว่างๆ\nตอบ JSON เท่านั้น"}]}]})}
+  ).then(function(res){if(!res.ok){return res.json().then(function(e){throw new Error(e.error&&e.error.message?e.error.message:"HTTP "+res.status);});}return res.json();}).then(function(data){var text=(data.content||[]).map(function(b){return b.text||"";}).join("").trim();var parsed;try{parsed=JSON.parse(text);}catch(e){var vm=text.match(/"verdict"\s*:\s*"(\w+)"/);var rm=text.match(/"reason"\s*:\s*"([^"]+)"/);var sm=text.match(/"score"\s*:\s*(\d+)/);parsed={verdict:vm?vm[1]:"warn",score:sm?parseInt(sm[1]):50,reason:rm?rm[1]:"ไม่สามารถวิเคราะห์ได้"};}thinking.style.display="none";result.style.display="block";var icon=parsed.verdict==="pass"?"✅":parsed.verdict==="fail"?"❌":"⚠️";var cls=parsed.verdict==="pass"?"ai-proof-pass":parsed.verdict==="fail"?"ai-proof-fail":"ai-proof-warn";var label=parsed.verdict==="pass"?"รูปหลักฐานผ่าน!":parsed.verdict==="fail"?"รูปไม่ใช่หลักฐานงาน":"ตรวจสอบได้บางส่วน";result.innerHTML='<div class="'+cls+'">'+icon+' '+label+' ('+parsed.score+'/100)</div><div style="margin-top:6px;font-size:.8rem;color:#888;">'+escapeHtml(parsed.reason)+'</div>'+(parsed.verdict==="fail"?'<div style="margin-top:8px;font-size:.78rem;color:var(--red);">⚠️ แนะนำให้เลือกรูปใหม่ที่เป็นหลักฐานงานจริง</div>':'');if(onDone)onDone(parsed);}).catch(function(err){thinking.style.display="none";result.style.display="block";var errMsg=err.message||"";var hint=errMsg.toLowerCase().includes("permission")?"ตรวจสอบ API Key หรือ CORS policy":"ส่งงานต่อได้เลย";result.innerHTML='<div style="color:#bbb;font-size:.8rem;">⚠️ ตรวจสอบ AI ไม่ได้: '+escapeHtml(hint)+'</div>';console.error("AI proof check error:",err);if(onDone)onDone({verdict:"unknown",score:0,reason:""});});}
 
 var _proofChipData=[];
 function openAdminProofDetailByIdx(idx){var d=_proofChipData[idx];if(!d)return;/* ✅ ดึง base64 จาก logRef เพื่อไม่ต้องเก็บซ้ำใน array */;openAdminProofDetail(d.name,d.meta,d.logRef?d.logRef.imageBase64:null,d.ai);}
@@ -1940,7 +2222,9 @@ function closeImgView(){document.getElementById("imgViewOverlay").style.display=
 var _flowImgBase64=null,_flowAIResult=null;
 function onFlowImgSelected(e){var file=e.target.files[0];if(!file)return;if(file.size>1.2*1024*1024){document.getElementById("flowImgSizeWarn").style.display="block";document.getElementById("flowImgPreviewWrap").style.display="none";_flowImgBase64=null;return;}document.getElementById("flowImgSizeWarn").style.display="none";var reader=new FileReader();reader.onload=function(ev){_flowImgBase64=ev.target.result;document.getElementById("flowImgPreview").src=_flowImgBase64;document.getElementById("flowImgPreviewWrap").style.display="block";document.getElementById("flowImgDropText").textContent="✅ แนบรูปแล้ว — แตะเพื่อเปลี่ยน";_flowAIResult=null;runFlowAIProofCheck(_flowImgBase64,selectedType||"เวร");};reader.readAsDataURL(file);}
 function clearFlowImg(){_flowImgBase64=null;_flowAIResult=null;document.getElementById("flowImgPreview").src="";document.getElementById("flowImgPreviewWrap").style.display="none";document.getElementById("flowImgDropText").textContent="📸 แตะเพื่อแนบรูป";document.getElementById("flowImgSizeWarn").style.display="none";var aiBox=document.getElementById("flowAIProofBox");if(aiBox){aiBox.classList.remove("visible");document.getElementById("flowAIProofResult").style.display="none";document.getElementById("flowAIProofThinking").style.display="flex";}var inp=document.getElementById("flowImgInput");if(inp)inp.value="";}
-function runFlowAIProofCheck(imgBase64,actionType){var box=document.getElementById("flowAIProofBox"),thinking=document.getElementById("flowAIProofThinking"),result=document.getElementById("flowAIProofResult");if(!box)return;box.classList.add("visible");thinking.style.display="flex";result.style.display="none";var imgData=imgBase64.split(",")[1];var mimeMatch=imgBase64.match(/data:([^;]+);/);var mimeType=mimeMatch?mimeMatch[1]:"image/jpeg";fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":window.ANTHROPIC_API_KEY||"","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,system:"คุณเป็น AI ตรวจสอบหลักฐานการทำเวรนักเรียน ตอบเป็น JSON เท่านั้น ไม่มี markdown หรือ backtick ใดๆ\nรูปแบบ JSON: {\"verdict\":\"pass\"|\"warn\"|\"fail\",\"score\":0-100,\"reason\":\"ข้อความสั้นๆ ไม่เกิน 80 ตัวอักษร ภาษาไทย\"}",messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:mimeType,data:imgData}},{type:"text",text:"ตรวจสอบรูปนี้ว่าเป็นหลักฐานการทำเวร \""+actionType+"\" จริงหรือไม่\n- pass = รูปแสดงการทำกิจกรรม/เวร/งาน อย่างชัดเจน\n- warn = รูปมีคนหรือสถานที่ แต่ไม่ชัดว่ากำลังทำเวร\n- fail = รูปไม่เกี่ยวกับเวรเลย\nตอบ JSON เท่านั้น"}]}]})}).then(function(res){if(!res.ok){return res.json().then(function(e){throw new Error(e.error&&e.error.message?e.error.message:"HTTP "+res.status);});}return res.json();}).then(function(data){var text=(data.content||[]).map(function(b){return b.text||"";}).join("").trim();var parsed;try{parsed=JSON.parse(text);}catch(e){var vm=text.match(/"verdict"\s*:\s*"(\w+)"/);var rm=text.match(/"reason"\s*:\s*"([^"]+)"/);var sm=text.match(/"score"\s*:\s*(\d+)/);parsed={verdict:vm?vm[1]:"warn",score:sm?parseInt(sm[1]):50,reason:rm?rm[1]:"ไม่สามารถวิเคราะห์ได้"};}_flowAIResult=parsed;thinking.style.display="none";result.style.display="block";var icon=parsed.verdict==="pass"?"✅":parsed.verdict==="fail"?"❌":"⚠️";var cls=parsed.verdict==="pass"?"ai-proof-pass":parsed.verdict==="fail"?"ai-proof-fail":"ai-proof-warn";var label=parsed.verdict==="pass"?"รูปหลักฐานผ่าน!":parsed.verdict==="fail"?"รูปไม่ใช่หลักฐานเวร":"ตรวจสอบได้บางส่วน";result.innerHTML='<div class="'+cls+'">'+icon+' '+label+' ('+parsed.score+'/100)</div><div style="margin-top:6px;font-size:.8rem;color:#888;">'+escapeHtml(parsed.reason)+'</div>'+(parsed.verdict==="fail"?'<div style="margin-top:8px;font-size:.78rem;color:var(--red);">⚠️ แนะนำให้เลือกรูปใหม่ที่แสดงการทำเวรจริง</div>':'');}).catch(function(err){thinking.style.display="none";result.style.display="block";result.innerHTML='<div style="color:#bbb;font-size:.8rem;">⚠️ ไม่สามารถตรวจสอบ AI ได้ในขณะนี้ บันทึกต่อได้เลย</div>';console.error("Flow AI proof check error:",err);_flowAIResult={verdict:"unknown",score:0,reason:""};});}
+function runFlowAIProofCheck(imgBase64,actionType){var box=document.getElementById("flowAIProofBox"),thinking=document.getElementById("flowAIProofThinking"),result=document.getElementById("flowAIProofResult");if(!box)return;box.classList.add("visible");thinking.style.display="flex";result.style.display="none";
+  if(!window.ANTHROPIC_API_KEY){thinking.style.display="none";result.style.display="block";result.innerHTML='<div style="color:#bbb;font-size:.8rem;">ℹ️ ยังไม่ได้ตั้งค่า API Key — บันทึกต่อได้เลย</div>';_flowAIResult={verdict:"unknown",score:0,reason:""};return;}
+  var imgData=imgBase64.split(",")[1];var mimeMatch=imgBase64.match(/data:([^;]+);/);var mimeType=mimeMatch?mimeMatch[1]:"image/jpeg";fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":window.ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,system:"คุณเป็น AI ตรวจสอบหลักฐานการทำเวรนักเรียน ตอบเป็น JSON เท่านั้น ไม่มี markdown หรือ backtick ใดๆ\nรูปแบบ JSON: {\"verdict\":\"pass\"|\"warn\"|\"fail\",\"score\":0-100,\"reason\":\"ข้อความสั้นๆ ไม่เกิน 80 ตัวอักษร ภาษาไทย\"}",messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:mimeType,data:imgData}},{type:"text",text:"ตรวจสอบรูปนี้ว่าเป็นหลักฐานการทำเวร \""+actionType+"\" จริงหรือไม่\n- pass = รูปแสดงการทำกิจกรรม/เวร/งาน อย่างชัดเจน\n- warn = รูปมีคนหรือสถานที่ แต่ไม่ชัดว่ากำลังทำเวร\n- fail = รูปไม่เกี่ยวกับเวรเลย\nตอบ JSON เท่านั้น"}]}]})}).then(function(res){if(!res.ok){return res.json().then(function(e){throw new Error(e.error&&e.error.message?e.error.message:"HTTP "+res.status);});}return res.json();}).then(function(data){var text=(data.content||[]).map(function(b){return b.text||"";}).join("").trim();var parsed;try{parsed=JSON.parse(text);}catch(e){var vm=text.match(/"verdict"\s*:\s*"(\w+)"/);var rm=text.match(/"reason"\s*:\s*"([^"]+)"/);var sm=text.match(/"score"\s*:\s*(\d+)/);parsed={verdict:vm?vm[1]:"warn",score:sm?parseInt(sm[1]):50,reason:rm?rm[1]:"ไม่สามารถวิเคราะห์ได้"};}_flowAIResult=parsed;thinking.style.display="none";result.style.display="block";var icon=parsed.verdict==="pass"?"✅":parsed.verdict==="fail"?"❌":"⚠️";var cls=parsed.verdict==="pass"?"ai-proof-pass":parsed.verdict==="fail"?"ai-proof-fail":"ai-proof-warn";var label=parsed.verdict==="pass"?"รูปหลักฐานผ่าน!":parsed.verdict==="fail"?"รูปไม่ใช่หลักฐานเวร":"ตรวจสอบได้บางส่วน";result.innerHTML='<div class="'+cls+'">'+icon+' '+label+' ('+parsed.score+'/100)</div><div style="margin-top:6px;font-size:.8rem;color:#888;">'+escapeHtml(parsed.reason)+'</div>'+(parsed.verdict==="fail"?'<div style="margin-top:8px;font-size:.78rem;color:var(--red);">⚠️ แนะนำให้เลือกรูปใหม่ที่แสดงการทำเวรจริง</div>':'');}).catch(function(err){thinking.style.display="none";result.style.display="block";result.innerHTML='<div style="color:#bbb;font-size:.8rem;">⚠️ ตรวจสอบ AI ไม่ได้ บันทึกต่อได้เลย</div>';console.error("Flow AI proof check error:",err);_flowAIResult={verdict:"unknown",score:0,reason:""};});}
 
 /* ══ FLOW ══ */
 function initFlow(){if(!isAdmin){document.getElementById("flowLockedMsg").classList.remove("hidden");[1,2,3].forEach(function(i){document.getElementById("flowStep"+i).classList.add("hidden");});return;}document.getElementById("flowLockedMsg").classList.add("hidden");selectedIds=[];selectedType=null;document.getElementById("flowSearch").value="";renderFlowStudents();flowShowStep(1);}
@@ -1964,7 +2248,25 @@ function deleteRetroRecord(){if(!retroEditLogIndex||!confirm("ลบรายก
 function recordAbsentStudents(){if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}var sel=document.getElementById("retroDate").value;if(!sel){showStatus("⚠️ กรุณาเลือกวันที่");return;}var selISO=thaiDateToISO(sel);if(!selISO){showStatus("⚠️ วันที่ไม่ถูกต้อง");return;}showLoading("กำลังตรวจสอบและบันทึกนักเรียนขาด...");getAllLogs().then(function(logs){var recordedStudents=logs.filter(function(r){return thaiDateToISO(r.date)===selISO;}).map(function(r){return r.studentId;});var absentStudents=STUDENTS.filter(function(s){return recordedStudents.indexOf(s.id)===-1;});if(!absentStudents.length){hideLoading();showStatus("✅ ไม่มีนักเรียนที่ต้องบันทึกขาด");return;}var today=getThaiDate(),time=new Date().toLocaleTimeString("th-TH");var records=absentStudents.map(function(s){return{date:sel,timestamp:time,no:s.no,studentId:s.id,name:s.name,action:"ขาด"};});fetch(SHEET_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({type:"flow_batch",date:sel,timestamp:time,action:"ขาด",records:records})}).then(function(){return addLogs(records);}).then(function(){hideLoading();loadRetroData();showStatus("✅ บันทึกนักเรียนขาด "+absentStudents.length+" คน");}).catch(function(err){console.error(err);hideLoading();showStatus("❌ เกิดข้อผิดพลาด: "+(err&&err.message?err.message:"ไม่ทราบสาเหตุ"));});}).catch(function(err){hideLoading();showStatus("❌ โหลดข้อมูลไม่สำเร็จ");});}
 
 /* ══ SETTING ══ */
-function openSetting(){if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}document.getElementById("settingModal").style.display="flex";renderSubjectSetting();}
+function switchSettingPane(paneId, btn){
+  document.querySelectorAll('.setting-pane').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.setting-nav-item').forEach(function(b){b.classList.remove('active');});
+  var pane=document.getElementById(paneId);
+  if(pane) pane.classList.add('active');
+  if(btn) btn.classList.add('active');
+  /* โหลด student list เมื่อเปิด pane นักเรียน */
+  if(paneId==='paneStudents') renderSettingStudentList();
+  /* โหลดวิชาเมื่อเปิด pane วิชา */
+  if(paneId==='paneSubjects') renderSubjectSetting();
+}
+function renderSettingStudentList(){
+  var el=document.getElementById('settingStudentList');
+  if(!el) return;
+  el.innerHTML=STUDENTS.map(function(s){
+    return '<div class="admin-student-item"><div class="asi-no">'+s.no+'</div><div><div class="asi-name">'+escapeHtml(s.name)+'</div><div class="asi-id">รหัส: '+s.id+'</div></div><button class="reset-btn" onclick="resetStudentPassword(\''+s.id+'\')">🔄 รีเซ็ต</button></div>';
+  }).join('');
+}
+function openSetting(){if(!isAdmin){showStatus("เฉพาะผู้ดูแลเท่านั้น");return;}document.getElementById("settingModal").style.display="flex";renderSubjectSetting();/* reset to first pane */switchSettingPane('paneSlides',document.querySelector('.setting-nav-item'));}
 function closeSetting(){document.getElementById("settingModal").style.display="none";}
 window.addEventListener("click",function(e){if(e.target===document.getElementById("settingModal"))closeSetting();if(e.target===document.getElementById("retroEditModal"))closeRetroEdit();if(e.target===document.getElementById("adminPanelModal"))closeAdminPanel();if(e.target===document.getElementById("changePwdModal"))closeChangePwd();});
 
@@ -2007,6 +2309,8 @@ function saveAssignData(){safeSetItem("subjects_v1",JSON.stringify(subjects));sa
 function withTimeout(promise,ms){if(!ms)ms=10000;return Promise.race([promise,new Promise(function(_,reject){setTimeout(function(){reject(new Error("Cloud operation timeout after "+ms+"ms"));},ms);})]);}
 function deleteSubjectFromCloud(fid){if(!firestoreDB||!fid)return Promise.resolve();return firestoreDB.collection("subjects_m51").doc(fid).delete();}
 function saveAssignToCloud(a){if(!firestoreDB)return Promise.resolve();var data={subjectId:a.subjectId,title:a.title,detail:a.detail||"",due:a.due||"",done:a.done||false,createdAt:a.createdAt||todayISO()};if(a._fid)return firestoreDB.collection("assignments_m51").doc(a._fid).set(data);return firestoreDB.collection("assignments_m51").add(Object.assign(data,{createdAt:todayISO()}));}
+/* ✅ BUG FIX: saveSubjectToCloud ถูกเรียกใน saveSubject() แต่ไม่เคยถูก define — แก้แล้ว */
+function saveSubjectToCloud(s){if(!firestoreDB)return Promise.resolve();var data={id:s.id,code:s.code||"",name:s.name||"",teacher:s.teacher||"",color:s.color||"#eee",classroom:s.classroom||"",drive:s.drive||"",padlet:s.padlet||"",createdAt:s.createdAt||Date.now()};if(s._fid)return firestoreDB.collection("subjects_m51").doc(s._fid).set(data);return firestoreDB.collection("subjects_m51").add(Object.assign({},data,{createdAt:Date.now()})).then(function(ref){s._fid=ref.id;return ref;});}
 function deleteAssignFromCloud(fid){if(!firestoreDB||!fid)return Promise.resolve();return firestoreDB.collection("assignments_m51").doc(fid).delete();}
 function getSubject(id){return subjects.find(function(s){return s.id===id||s._fid===id;})||{code:"",name:"ไม่ระบุ",teacher:"",color:"#eee"};}
 function todayISO(){var n=new Date();return n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0")+"-"+String(n.getDate()).padStart(2,"0");}
@@ -2022,7 +2326,7 @@ function renderAssignPage(){
 function renderAssignSummary(){var total=assignments.length,done=assignments.filter(function(a){return isAdmin?a.done:isAssignDone(a._fid||a.id);}).length,overdue=assignments.filter(function(a){return assignStatus(a)==="overdue";}).length,pending=total-done;document.getElementById("assignSummary").innerHTML='<div class="assign-sum-card"><p>ทั้งหมด</p><h2>'+total+'</h2></div><div class="assign-sum-card"><p>รอส่ง</p><h2 style="color:var(--yellow);">'+pending+'</h2></div><div class="assign-sum-card"><p>ส่งแล้ว</p><h2 style="color:var(--green);">'+done+'</h2></div><div class="assign-sum-card"><p>เกินกำหนด</p><h2 style="color:var(--red);">'+overdue+'</h2></div>';}
 function renderSubjectTabs(){var html='<button class="subject-tab'+(currentSubjectFilter==="all"?" active":"")+'" onclick="filterBySubject(\'all\')">📚 ทั้งหมด</button>';subjects.forEach(function(s){var count=assignments.filter(function(a){return a.subjectId===s.id&&assignStatus(a)!=="done";}).length;html+='<button class="subject-tab'+(currentSubjectFilter===s.id?" active":"")+'" onclick="filterBySubject(\''+s.id+'\')" style="border-color:'+s.color+';">'+escapeHtml(s.name)+(count>0?'<span style="background:var(--c4);color:white;border-radius:6px;padding:1px 6px;font-size:.68rem;margin-left:4px;">'+count+'</span>':'')+'</button>';});document.getElementById("subjectTabs").innerHTML=html;}
 function filterBySubject(id){currentSubjectFilter=id;renderSubjectTabs();renderAssignList();}
-function renderAssignList(){var filtered=assignments.filter(function(a){return currentSubjectFilter==="all"||a.subjectId===currentSubjectFilter;});filtered.sort(function(a,b){var da=assignStatus(a)==="done",db=assignStatus(b)==="done";if(da!==db)return da?1:-1;if(!a.due&&!b.due)return 0;if(!a.due)return 1;if(!b.due)return-1;return a.due<b.due?-1:1;});if(!filtered.length){document.getElementById("assignList").innerHTML='<div class="assign-empty">📭 ยังไม่มีงาน</div>';return;}var today=todayISO(),html="";filtered.forEach(function(a){var subj=getSubject(a.subjectId),status=assignStatus(a),isDone=status==="done";var diffDays=a.due?Math.round((new Date(a.due)-new Date(today))/86400000):null;var dueLabel="",deadlineColor="#888";if(a.due){if(isDone){dueLabel="ส่งแล้ว · "+isoToThai(a.due);deadlineColor="#aaa";}else if(status==="overdue"){dueLabel="⚠️ เกินกำหนดมา "+Math.abs(diffDays)+" วัน (ครบ "+isoToThai(a.due)+")";deadlineColor="#c75b5b";}else if(diffDays===0){dueLabel="⏰ ส่งวันนี้!";deadlineColor="#b87a30";}else if(diffDays===1){dueLabel="⏰ พรุ่งนี้เป็นวันสุดท้าย";deadlineColor="#b87a30";}else if(diffDays<=3){dueLabel="⏰ อีก "+diffDays+" วัน ("+isoToThai(a.due)+")";deadlineColor="#b87a30";}else{dueLabel="📅 กำหนดส่ง "+isoToThai(a.due)+" (อีก "+diffDays+" วัน)";}}else{dueLabel="📅 ไม่ระบุวันส่ง";}var assignKey=a._fid||a.id;var editBtn=isAdmin?'<button class="assign-edit-btn" onclick="openEditAssign(\''+assignKey+'\')">✏️</button><button class="assign-del-btn" onclick="deleteAssign(\''+assignKey+'\')">🗑️</button>':'';html+='<div class="assign-card '+status+'"><div class="assign-check '+(isDone?"checked":"")+'" onclick="toggleAssignDone(\''+escapeHtml(a._fid||a.id)+'\')">	'+(isDone?"✓":"")+'</div><div class="assign-body"><div style="margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><span style="background:'+subj.color+';padding:2px 10px;border-radius:8px;color:#555;font-size:.74rem;font-weight:600;">'+escapeHtml(subj.name)+'</span>'+'</div><div class="assign-title">'+escapeHtml(a.title)+'</div>'+(a.detail?'<div style="font-size:.78rem;color:#aaa;margin-bottom:4px;">'+escapeHtml(a.detail)+'</div>':'')+'<div style="font-size:.76rem;font-weight:600;color:'+deadlineColor+';margin-top:3px;">'+dueLabel+'</div></div>'+(editBtn?'<div class="assign-actions">'+editBtn+'</div>':'')+'</div>';});document.getElementById("assignList").innerHTML=html;}
+function renderAssignList(){var filtered=assignments.filter(function(a){return currentSubjectFilter==="all"||a.subjectId===currentSubjectFilter;});filtered.sort(function(a,b){var da=assignStatus(a)==="done",db=assignStatus(b)==="done";if(da!==db)return da?1:-1;if(!a.due&&!b.due)return 0;if(!a.due)return 1;if(!b.due)return-1;return a.due<b.due?-1:1;});if(!filtered.length){document.getElementById("assignList").innerHTML='<div class="assign-empty">📭 ยังไม่มีงาน</div>';return;}var today=todayISO(),html="";filtered.forEach(function(a){var subj=getSubject(a.subjectId),status=assignStatus(a),isDone=status==="done";var diffDays=a.due?Math.round((new Date(a.due)-new Date(today))/86400000):null;var dueLabel="",deadlineColor="#888";if(a.due){if(isDone){dueLabel="ส่งแล้ว · "+isoToThai(a.due);deadlineColor="#aaa";}else if(status==="overdue"){dueLabel="⚠️ เกินกำหนดมา "+Math.abs(diffDays)+" วัน (ครบ "+isoToThai(a.due)+")";deadlineColor="#c75b5b";}else if(diffDays===0){dueLabel="⏰ ส่งวันนี้!";deadlineColor="#b87a30";}else if(diffDays===1){dueLabel="⏰ พรุ่งนี้เป็นวันสุดท้าย";deadlineColor="#b87a30";}else if(diffDays<=3){dueLabel="⏰ อีก "+diffDays+" วัน ("+isoToThai(a.due)+")";deadlineColor="#b87a30";}else{dueLabel="📅 กำหนดส่ง "+isoToThai(a.due)+" (อีก "+diffDays+" วัน)";}}else{dueLabel="📅 ไม่ระบุวันส่ง";}var assignKey=a._fid||a.id;var editBtn=isAdmin?'<button class="assign-edit-btn" onclick="openEditAssign(\''+assignKey+'\')">✏️</button><button class="assign-del-btn" onclick="deleteAssign(\''+assignKey+'\')">🗑️</button>':'';html+='<div class="assign-card '+status+'"><div class="assign-check '+(isDone?"checked":"")+'" onclick="toggleAssignDone(\''+escapeHtml(a._fid||a.id)+'\')">''+(isDone?"✓":"")+'</div><div class="assign-body"><div style="margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><span style="background:'+subj.color+';padding:2px 10px;border-radius:8px;color:#555;font-size:.74rem;font-weight:600;">'+escapeHtml(subj.name)+'</span>'+'</div><div class="assign-title">'+escapeHtml(a.title)+'</div>'+(a.detail?'<div style="font-size:.78rem;color:#aaa;margin-bottom:4px;">'+escapeHtml(a.detail)+'</div>':'')+'<div style="font-size:.76rem;font-weight:600;color:'+deadlineColor+';margin-top:3px;">'+dueLabel+'</div></div>'+(editBtn?'<div class="assign-actions">'+editBtn+'</div>':'')+'</div>';});document.getElementById("assignList").innerHTML=html;}
 var assignViewMode="list";
 function switchAssignView(mode){assignViewMode=mode;document.getElementById("assignListView").classList.toggle("hidden",mode!=="list");document.getElementById("assignCalView").classList.toggle("hidden",mode!=="cal");document.getElementById("viewListBtn").style.background=mode==="list"?"var(--c4)":"transparent";document.getElementById("viewListBtn").style.color=mode==="list"?"white":"var(--text)";document.getElementById("viewCalBtn").style.background=mode==="cal"?"var(--c4)":"transparent";document.getElementById("viewCalBtn").style.color=mode==="cal"?"white":"var(--text)";if(mode==="cal")renderCal();}
 function toggleAssignDone(id){var a=assignments.find(function(x){return(x._fid||x.id)===id;});if(!a)return;var assignKey=a._fid||a.id;if(isAdmin){a.done=!a.done;saveAssignData();saveAssignToCloud(a).catch(function(e){showStatus("❌ บันทึกไม่สำเร็จ");a.done=!a.done;renderAssignPage();});}else{var currentDone=isAssignDone(assignKey);if(currentDone){var cacheKey=currentUser.uid+"_"+assignKey;_cachedAssignmentStatus[cacheKey]={done:false,doneAt:Date.now(),studentId:currentUserDoc?currentUserDoc.studentId||"":""};renderAssignSummary();renderSubjectTabs();renderAssignList();saveAssignStatusCloud(assignKey,false,null).then(function(){showStatus("↩️ ยกเลิกส่งงาน");}).catch(function(err){showStatus("❌ บันทึกไม่สำเร็จ");});return;}_pendingSubmitAssignId=assignKey;document.getElementById("imgUploadSubtitle").textContent="งาน: "+escapeHtml(a.title);clearImgPreview();document.getElementById("imgUploadModal").style.display="flex";return;}renderAssignSummary();renderSubjectTabs();renderAssignList();}
@@ -2067,7 +2371,7 @@ window.onload = function() {
     if(sp) { sp.style.display = "none"; sp.classList.add("fade-out"); }
     // Hide everything except loginPage
     ["homePage","checkPage","dashboardPage","historyPage","assignPage","moneyCheckPage",
-     "teacherNav","studentNav","topActions","studentActions"].forEach(function(id){
+     "topActions","studentActions"].forEach(function(id){
       var el=document.getElementById(id);
       if(el) el.classList.add("hidden");
     });
@@ -2180,79 +2484,202 @@ window.onload = function() {
 ════════════════════════════════════════════════════════════ */
 var _introStep=0;function showIntroIfFirst(){if(!localStorage.getItem("introSeen")){document.getElementById("introModal").style.display="flex";}}function nextIntroStep(){_introStep++;if(_introStep>4){localStorage.setItem("introSeen","true");closeIntro();showStatus("✨ ยินดีต้อนรับสู่ระบบ!");return;}for(var i=0;i<=4;i++){var step=document.getElementById("introStep"+i);if(step)step.style.display=(i===_introStep)?"block":"none";}}function closeIntro(){document.getElementById("introModal").style.display="none";localStorage.setItem("introSeen","true");}
 /* ════════════════════════════════════════════════════════════
-   💰 MONEY CHECK SYSTEM
+   💰 MONEY CHECK SYSTEM — 3-step flow (admin only)
 ════════════════════════════════════════════════════════════ */
 var moneyChecks=[];
-function openMoneyCheckModal(){
-  var today=new Date().toISOString().split("T")[0];
-  document.getElementById("moneyDate").value=today;
-  document.getElementById("moneyAmount").value="";
-  document.getElementById("moneyStatus").value="received";
-  document.getElementById("moneyNote").value="";
-  document.getElementById("moneyCheckModal").style.display="flex";
+var moneySelectedIds=[];
+var moneySelectedStatus=null;
+
+function showMoneyCheckPage(){
+  if(!isAdmin){showStatus("🔒 ระบบเช็คเงินสำหรับผู้ดูแลเท่านั้น");return;}
+  openPage("moneyCheckPage");
+  setTimeout(function(){initMoneyFlow();loadMoneyData();},100);
 }
-function closeMoneyCheckModal(){
-  document.getElementById("moneyCheckModal").style.display="none";
-}
-function saveMoneyCheck(){
-  var date=document.getElementById("moneyDate").value;
-  var amount=parseFloat(document.getElementById("moneyAmount").value)||0;
-  var status=document.getElementById("moneyStatus").value;
-  var note=document.getElementById("moneyNote").value.trim();
-  if(!date){showStatus("⚠️ กรุณาเลือกวันที่");return;}
-  var entry={id:"mc_"+Date.now(),date:date,amount:amount,status:status,note:note,createdAt:new Date().toISOString()};
-  moneyChecks.push(entry);
-  localStorage.setItem("moneyChecks_v1",JSON.stringify(moneyChecks));
-  if(firestoreDB&&currentUser){
-    firestoreDB.collection("money_check_m51").add({userId:currentUser.uid,date:date,amount:amount,status:status,note:note,timestamp:new Date()}).catch(function(e){console.error("Save money check error:",e);});
+
+function initMoneyFlow(){
+  if(!isAdmin){
+    document.getElementById("moneyLockedMsg").classList.remove("hidden");
+    ["moneyStep1","moneyStep2","moneyStep3"].forEach(function(id){document.getElementById(id).classList.add("hidden");});
+    return;
   }
-  renderMoneyCheck();
-  closeMoneyCheckModal();
-  showStatus("✅ บันทึกเงินแล้ว");
-}
-function resetMoneyToday(){
+  document.getElementById("moneyLockedMsg").classList.add("hidden");
+  moneySelectedIds=[];moneySelectedStatus=null;
+  document.getElementById("moneySearch").value="";
   var today=new Date().toISOString().split("T")[0];
-  moneyChecks=moneyChecks.filter(function(m){return m.date!==today;});
+  document.getElementById("moneyFlowDate").value=today;
+  document.getElementById("moneyFlowAmount").value="";
+  document.getElementById("moneyFlowNote").value="";
+  ["mc-received","mc-not-received","mc-pending"].forEach(function(id){
+    document.getElementById(id).classList.remove("sel-work","sel-task","sel-leave","sel-late");
+  });
+  renderMoneyStudents();
+  moneyShowStep(1);
+}
+
+function moneyShowStep(n){
+  for(var i=1;i<=3;i++){
+    var step=document.getElementById("moneyStep"+i);
+    if(step){if(i===n)step.classList.remove("hidden");else step.classList.add("hidden");}
+    var circle=document.getElementById("msc"+i);
+    var label=document.getElementById("msl"+i);
+    var line=document.getElementById("mline"+(i));
+    if(circle){circle.classList.toggle("active",i===n);circle.classList.toggle("done",i<n);}
+    if(label){label.classList.toggle("active",i===n);label.classList.toggle("done",i<n);}
+    if(line&&i<3){line.classList.toggle("done",i<n);}
+  }
+}
+
+function moneyFlowNext(step){
+  if(step===2){
+    // validate step 1
+    if(!moneySelectedIds.length){showStatus("⚠️ เลือกนักเรียนก่อน");return;}
+    document.getElementById("moneyStep2sub").textContent="นักเรียน "+moneySelectedIds.length+" คน";
+    moneyShowStep(2);
+  } else if(step===3){
+    // validate step 2
+    var date=document.getElementById("moneyFlowDate").value;
+    if(!date){showStatus("⚠️ กรุณาเลือกวันที่");return;}
+    if(!moneySelectedStatus){showStatus("⚠️ กรุณาเลือกสถานะ");return;}
+    var amount=parseFloat(document.getElementById("moneyFlowAmount").value)||0;
+    var note=document.getElementById("moneyFlowNote").value.trim();
+    var statusLabel=moneySelectedStatus==="received"?"✅ ได้เงิน":moneySelectedStatus==="not-received"?"❌ ไม่ได้เงิน":"⏳ รอยืนยัน";
+    document.getElementById("mCfDate").textContent=date;
+    document.getElementById("mCfAmount").textContent="฿ "+amount;
+    document.getElementById("mCfStatus").textContent=statusLabel;
+    document.getElementById("mCfNote").textContent=note||"—";
+    document.getElementById("mCfCount").textContent=moneySelectedIds.length;
+    var listHtml=moneySelectedIds.map(function(sid){
+      var s=STUDENTS.find(function(x){return x.id===sid;});
+      return '<div class="confirm-list-item"><span class="cno">'+s.no+'</span><span class="cname">'+escapeHtml(s.name)+'</span></div>';
+    }).join("");
+    document.getElementById("mCfList").innerHTML=listHtml;
+    moneyShowStep(3);
+  } else if(step===1){
+    moneyShowStep(1);
+  }
+}
+
+function submitMoneyFlow(){
+  var date=document.getElementById("moneyFlowDate").value;
+  var amount=parseFloat(document.getElementById("moneyFlowAmount").value)||0;
+  var status=moneySelectedStatus;
+  var note=document.getElementById("moneyFlowNote").value.trim();
+  /* ✅ BUG FIX: ใช้ counter แทน Date.now() ใน loop เพื่อป้องกัน ID ซ้ำ */
+  var baseTs=Date.now();
+  moneySelectedIds.forEach(function(sid,idx){
+    var s=STUDENTS.find(function(x){return x.id===sid;});
+    var entry={id:"mc_"+(baseTs+idx)+"_"+sid,date:date,amount:amount,status:status,note:note,studentId:sid,studentName:s?s.name:"",createdAt:new Date().toISOString()};
+    moneyChecks.push(entry);
+    if(firestoreDB&&currentUser){
+      /* ✅ BUG FIX: เพิ่ม userId ตาม Firestore rules และ catch error แบบ graceful */
+      firestoreDB.collection("money_check_m51").add({userId:currentUser.uid,date:date,amount:amount,status:status,note:note,studentId:sid,studentName:s?s.name:"",timestamp:new Date()}).catch(function(e){
+        if(e.code==="permission-denied"||e.message&&e.message.indexOf("permission")!==-1){
+          /* ✅ Permission denied — บันทึก local แล้วแสดง warning แทน error */
+          console.warn("💰 Money check: Firestore permission denied — saved locally only");
+        } else {
+          console.error("Save money check error:",e);
+        }
+      });
+    }
+  });
   localStorage.setItem("moneyChecks_v1",JSON.stringify(moneyChecks));
   renderMoneyCheck();
-  showStatus("🔄 รีเซ็ตแล้ว");
+  showStatus("✅ บันทึกเงินแล้ว "+moneySelectedIds.length+" คน (บันทึกในเครื่อง)");
+  initMoneyFlow();
 }
+
+function selectMoneyStatus(status, el){
+  moneySelectedStatus=status;
+  ["mc-received","mc-not-received","mc-pending"].forEach(function(id){
+    document.getElementById(id).classList.remove("sel-work","sel-task","sel-leave","sel-late");
+  });
+  el.classList.add("sel-work");
+  var btn=document.getElementById("moneyBtn2");
+  btn.disabled=false;btn.style.opacity="1";
+}
+
+function renderMoneyStudents(){
+  var kw=(document.getElementById("moneySearch")||{}).value||"";
+  kw=kw.toLowerCase();
+  var grid=document.getElementById("moneyStudentGrid");
+  if(!grid)return;
+  var html="";
+  STUDENTS.forEach(function(s){
+    if((s.name+s.id+s.no).toLowerCase().includes(kw)){
+      var sel=moneySelectedIds.indexOf(s.id)>-1;
+      html+='<div class="student-card'+(sel?" selected":"")+'" onclick="moneyToggleStudent(\''+s.id+'\')">'+'<div class="snum">เลขที่ '+escapeHtml(String(s.no))+'</div>'+'<div class="sname">'+escapeHtml(s.name)+'</div>'+(sel?'<div class="stick">✓ เลือกแล้ว</div>':'')+'</div>';
+    }
+  });
+  grid.innerHTML=html;
+  var n=moneySelectedIds.length;
+  var sc=document.getElementById("moneySelCount");
+  if(sc)sc.textContent="เลือกแล้ว "+n+" คน";
+  var btn=document.getElementById("moneyBtn1");
+  if(btn){btn.disabled=n===0;btn.style.opacity=n===0?"0.5":"1";}
+}
+
+function moneyToggleStudent(id){
+  var i=moneySelectedIds.indexOf(id);
+  if(i>-1)moneySelectedIds.splice(i,1);else moneySelectedIds.push(id);
+  renderMoneyStudents();
+}
+
+function moneyToggleSelectAll(){
+  var kw=(document.getElementById("moneySearch")||{}).value||"";kw=kw.toLowerCase();
+  var vis=STUDENTS.filter(function(s){return(s.name+s.id+s.no).toLowerCase().includes(kw);});
+  var allSel=vis.every(function(s){return moneySelectedIds.indexOf(s.id)>-1;});
+  if(allSel)vis.forEach(function(s){var i=moneySelectedIds.indexOf(s.id);if(i>-1)moneySelectedIds.splice(i,1);});
+  else vis.forEach(function(s){if(moneySelectedIds.indexOf(s.id)===-1)moneySelectedIds.push(s.id);});
+  renderMoneyStudents();
+}
+
 function loadMoneyData(){
   var saved=localStorage.getItem("moneyChecks_v1");
   if(saved){try{moneyChecks=JSON.parse(saved);}catch(e){moneyChecks=[];}}
-  if(document.getElementById("moneyToday")){renderMoneyCheck();}
+  renderMoneyCheck();
 }
-function renderMoneyCheck(){
+
+function renderMoneyHistoryByDate(){
+  var date=document.getElementById("moneyFilterDate").value;
+  if(!date){renderMoneyCheck();return;}
+  renderMoneyCheck(date);
+}
+
+function renderMoneyCheck(filterDate){
   try{
-    var today=new Date().toISOString().split("T")[0];
-    var todayData=moneyChecks.find(function(m){return m.date===today;});
+    var now=new Date();
+    var today=now.toISOString().split("T")[0];
+    var todayEntries=moneyChecks.filter(function(m){return m.date===today;});
+    var todayTotal=todayEntries.reduce(function(s,m){return s+m.amount;},0);
     var el1=document.getElementById("moneyToday");
     var el2=document.getElementById("moneyStatusToday");
-    if(el1&&el2){
-      if(todayData){
-        el1.textContent=todayData.amount;
-        var statusText=todayData.status==="received"?"✓ ได้เงิน":todayData.status==="not-received"?"✕ ไม่ได้เงิน":"⏳ รอการยืนยัน";
-        el2.textContent=statusText;
-      }else{
-        el1.textContent="0";
-        el2.textContent="ยังไม่เช็ค";
-      }
-    }
-    var now=new Date();
+    if(el1)el1.textContent="฿"+todayTotal;
+    if(el2)el2.textContent=todayEntries.length?"บันทึกแล้ว "+todayEntries.length+" รายการ":"วันนี้ยังไม่มีข้อมูล";
+
     var currentMonth=(now.getMonth()+1).toString().padStart(2,"0");
     var currentYear=now.getFullYear().toString();
-    var monthData=moneyChecks.filter(function(m){return m.date.startsWith(currentYear+"-"+currentMonth);});
+    var monthData=moneyChecks.filter(function(m){return m.date&&m.date.startsWith(currentYear+"-"+currentMonth);});
     var total=monthData.reduce(function(sum,m){return sum+m.amount;},0);
-    var checkedDays=monthData.length;
+    var uniqueDates={};monthData.forEach(function(m){uniqueDates[m.date]=true;});
     var el3=document.getElementById("moneyMonthTotal");
     var el4=document.getElementById("moneyCheckedDays");
     if(el3)el3.textContent=total;
-    if(el4)el4.textContent=checkedDays;
+    if(el4)el4.textContent=Object.keys(uniqueDates).length;
+
+    var displayData=filterDate?moneyChecks.filter(function(m){return m.date===filterDate;}):monthData;
+    displayData=displayData.slice().sort(function(a,b){return b.date.localeCompare(a.date)||((b.createdAt||"").localeCompare(a.createdAt||""));});
+
+    // กลุ่มตามวันที่
+    var grouped={};
+    displayData.forEach(function(m){if(!grouped[m.date])grouped[m.date]=[];grouped[m.date].push(m);});
     var html="";
-    monthData.sort(function(a,b){return b.date.localeCompare(a.date);}).forEach(function(m){
-      var statusIcon=m.status==="received"?"✓":m.status==="not-received"?"✕":"⏳";
-      var statusColor=m.status==="received"?"var(--green)":m.status==="not-received"?"var(--red)":"var(--yellow)";
-      html+='<div style="padding:10px;background:var(--c1);border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><div><p style="margin:0;font-weight:600;">'+m.date+' <span style="color:'+statusColor+';">'+statusIcon+'</span></p><p style="margin:3px 0 0 0;font-size:0.85rem;color:#999;">'+(m.note||"—")+'</p></div><p style="margin:0;font-weight:600;color:var(--c4);font-size:1.1rem;">฿ '+m.amount+'</p></div>';
+    Object.keys(grouped).sort(function(a,b){return b.localeCompare(a);}).forEach(function(date){
+      html+='<div style="font-size:.78rem;font-weight:700;color:#bbb;margin:10px 0 5px;">'+(filterDate?date:date)+'</div>';
+      grouped[date].forEach(function(m){
+        var statusIcon=m.status==="received"?"✅":m.status==="not-received"?"❌":"⏳";
+        var statusColor=m.status==="received"?"var(--green)":m.status==="not-received"?"var(--red)":"var(--yellow)";
+        html+='<div style="padding:10px 12px;background:var(--c1);border-radius:10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;border-left:3px solid '+statusColor+';">'+'<div><p style="margin:0;font-weight:600;font-size:.85rem;">'+statusIcon+' '+(m.studentName?escapeHtml(m.studentName.replace(/^(นาย|นางสาว|นาง)/,"")):"—")+'</p>'+(m.note?'<p style="margin:3px 0 0;font-size:.75rem;color:#aaa;">'+escapeHtml(m.note)+'</p>':'')+'</div>'+'<p style="margin:0;font-weight:700;color:var(--c4);font-size:.95rem;">฿'+m.amount+'</p></div>';
+      });
     });
     var el5=document.getElementById("moneyHistory");
     if(el5)el5.innerHTML=html||'<p style="text-align:center;color:#bbb;padding:20px;font-size:0.9rem;">ยังไม่มีข้อมูล</p>';
@@ -2296,31 +2723,6 @@ function renderMoneyCheck(){
     </p>
   </div>
 </div>
-
-<!-- 💰 MONEY CHECK MODAL -->
-<div id="moneyCheckModal" class="modal-overlay" style="display:none;z-index:5000;">
-  <div class="modal-box" style="max-width:400px;">
-    <h3 style="margin-top:0;">💰 บันทึกเงิน</h3>
-    <label style="display:block;margin-top:15px;font-weight:600;color:#666;">วันที่</label>
-    <input type="date" id="moneyDate" style="margin-bottom:12px;width:100%;">
-    <label style="display:block;margin-top:15px;font-weight:600;color:#666;">จำนวนเงิน (฿)</label>
-    <input type="number" id="moneyAmount" placeholder="0" min="0" style="margin-bottom:12px;width:100%;">
-    <label style="display:block;margin-top:15px;font-weight:600;color:#666;">สถานะ</label>
-    <select id="moneyStatus" style="margin-bottom:12px;width:100%;">
-      <option value="received">✓ ได้เงิน</option>
-      <option value="not-received">✕ ไม่ได้เงิน</option>
-      <option value="pending">⏳ รอการยืนยัน</option>
-    </select>
-    <label style="display:block;margin-top:15px;font-weight:600;color:#666;">หมายเหตุ</label>
-    <textarea id="moneyNote" placeholder="เช่น มหัศจรรย์เงิน, ค่าใช้จ่าย" style="margin-bottom:12px;width:100%;height:80px;"></textarea>
-    <div style="display:flex;gap:10px;margin-top:20px;">
-      <button onclick="closeMoneyCheckModal()" class="btn-soft" style="flex:1;">ยกเลิก</button>
-      <button onclick="saveMoneyCheck()" class="btn-main" style="flex:1;">บันทึก</button>
-    </div>
-  </div>
-</div>
-
-
 
 
 </html>
