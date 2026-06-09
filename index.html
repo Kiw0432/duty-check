@@ -1721,6 +1721,30 @@ function loadStudentAssignmentStatus() {
     trackRead(snapshot.size);
     _cachedAssignmentStatus = {};
     snapshot.forEach(function(doc){ _cachedAssignmentStatus[doc.id]=doc.data(); });
+
+    /* ✅ BUG FIX: merge localStorage pending assigns ที่ยังไม่ได้ sync ขึ้น Cloud
+       onSnapshot ล้าง cache ทุกครั้ง → ต้อง merge pending กลับเข้าไปเสมอ */
+    var prefix = "pending_assign_"+currentUser.uid+"_";
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf(prefix) === 0) {
+          var assignId = k.replace(prefix, "");
+          var cacheKey = currentUser.uid+"_"+assignId;
+          /* ถ้า Cloud ยังไม่มีข้อมูลนี้ ให้ใช้ local แทน */
+          if (!_cachedAssignmentStatus[cacheKey]) {
+            try {
+              var pending = JSON.parse(localStorage.getItem(k));
+              if (pending) _cachedAssignmentStatus[cacheKey] = pending;
+            } catch(e) {}
+          } else {
+            /* Cloud มีแล้ว → ลบ pending ออก */
+            _clearPendingAssign(currentUser.uid, assignId);
+          }
+        }
+      }
+    } catch(e) {}
+
     var ap=document.getElementById("assignPage");
     if(ap&&!ap.classList.contains("hidden")) renderAssignPage();
   },function(err){console.error("status sync err:",err);});
