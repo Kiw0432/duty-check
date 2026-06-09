@@ -725,30 +725,68 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 
   <!-- HISTORY -->
   <div id="historyPage" class="hidden">
-    <div class="card">
-      <div style="font-size:1.05rem;font-weight:600;margin-bottom:12px;" id="todayDate"></div>
-      <div class="filter-bar">
-        <input type="date" id="historyDate" onchange="filterHistoryDate()">
-        <button class="btn-soft" onclick="clearHistoryFilter()" style="padding:10px 14px;font-size:.85rem;white-space:nowrap;">แสดงทั้งหมด</button>
+    <div style="font-size:1.05rem;font-weight:600;margin-bottom:12px;" id="todayDate"></div>
+
+    <!-- Side-by-side layout: Red=เช็คชื่อ | Green=เช็คเงิน -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;">
+
+      <!-- LEFT: เช็คชื่อ (แดง) -->
+      <div id="histPaneAttend" style="background:white;border-radius:24px;padding:16px;box-shadow:0 4px 16px rgba(0,0,0,.05);border:3px solid #e55555;">
+        <div style="font-size:.95rem;font-weight:700;color:#e55555;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+          📋 ย้อนหลังเช็คชื่อ
+        </div>
+        <div class="filter-bar" style="flex-direction:column;gap:6px;">
+          <input type="date" id="historyDate" onchange="filterHistoryDate()" style="font-size:.8rem;padding:7px 10px;margin-bottom:0;">
+          <button class="btn-soft" onclick="clearHistoryFilter()" style="padding:7px 10px;font-size:.8rem;white-space:nowrap;">แสดงทั้งหมด</button>
+        </div>
+        <div id="pdfExportSection" class="hidden" style="background:var(--c1);border-radius:16px;padding:10px;margin-bottom:10px;">
+          <div style="font-size:.8rem;font-weight:600;color:#e55555;margin-bottom:8px;">📄 ส่งออก PDF รายเดือน</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <select id="pdfMonthSelect" style="margin-bottom:0;padding:8px 10px;border-radius:10px;background:white;border:none;font-size:.82rem;font-family:inherit;">
+              <option value="">-- เลือกเดือน --</option>
+            </select>
+            <button class="btn-main" onclick="exportMonthlyPDF()" style="padding:8px 10px;font-size:.8rem;">🖨️ พิมพ์ / Save PDF</button>
+            <button class="btn-soft" onclick="exportAllMonthsPDF()" style="padding:8px 10px;font-size:.8rem;">📦 ทุกเดือน</button>
+          </div>
+        </div>
+        <div class="storage-bar-wrap" id="storageBarWrap"></div>
+        <div style="overflow-x:auto;border-radius:12px;-webkit-overflow-scrolling:touch;">
+          <table style="min-width:unset;width:100%;">
+            <thead><tr><th style="font-size:.72rem;padding:7px 5px;">วันที่</th><th style="font-size:.72rem;padding:7px 5px;">เลขที่</th><th class="td-name" style="text-align:left;font-size:.72rem;padding:7px 5px;">ชื่อ</th><th style="font-size:.72rem;padding:7px 5px;">ประเภท</th><th id="editColHeader" class="hidden" style="font-size:.72rem;padding:7px 5px;">แก้ไข</th></tr></thead>
+            <tbody id="historyTable"></tbody>
+          </table>
+        </div>
+        <div class="history-cards" id="historyCards"></div>
       </div>
-      <div id="pdfExportSection" class="hidden" style="background:var(--c1);border-radius:16px;padding:14px;margin-bottom:14px;">
-        <div style="font-size:.85rem;font-weight:600;color:var(--c4);margin-bottom:10px;">📄 ส่งออก PDF รายเดือน</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-          <select id="pdfMonthSelect" style="flex:1;min-width:140px;margin-bottom:0;padding:10px 12px;border-radius:12px;background:white;border:none;font-size:.88rem;font-family:inherit;">
-            <option value="">-- เลือกเดือน --</option>
-          </select>
-          <button class="btn-main" onclick="exportMonthlyPDF()" style="padding:10px 16px;font-size:.85rem;white-space:nowrap;">🖨️ พิมพ์ / Save PDF</button>
-          <button class="btn-soft" onclick="exportAllMonthsPDF()" style="padding:10px 12px;font-size:.85rem;white-space:nowrap;">📦 ทุกเดือน</button>
+
+      <!-- RIGHT: เช็คเงิน (เขียว) -->
+      <div id="histPaneMoney" style="background:white;border-radius:24px;padding:16px;box-shadow:0 4px 16px rgba(0,0,0,.05);border:3px solid #4a9b65;">
+        <div style="font-size:.95rem;font-weight:700;color:#4a9b65;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+          💰 ย้อนหลังเช็คเงิน
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+          <input type="date" id="histMoneyFilterDate" onchange="filterHistMoneyDate()" style="padding:7px 10px;font-size:.8rem;border:none;background:var(--c1);border-radius:10px;margin-bottom:0;">
+          <button class="btn-soft" onclick="document.getElementById('histMoneyFilterDate').value='';renderHistMoneyAll();" style="padding:7px 10px;font-size:.8rem;">ทั้งหมด</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;">
+          <div style="background:var(--c1);padding:8px 5px;border-radius:10px;text-align:center;">
+            <div style="font-size:.95rem;font-weight:700;color:var(--green);">฿<span id="histMoneyTotal">0</span></div>
+            <div style="font-size:.65rem;color:#bbb;">รวมทั้งหมด</div>
+          </div>
+          <div style="background:var(--c1);padding:8px 5px;border-radius:10px;text-align:center;">
+            <div style="font-size:.95rem;font-weight:700;color:var(--blue);"><span id="histMoneyDays">0</span></div>
+            <div style="font-size:.65rem;color:#bbb;">วันที่บันทึก</div>
+          </div>
+          <div style="background:var(--c1);padding:8px 5px;border-radius:10px;text-align:center;">
+            <div style="font-size:.95rem;font-weight:700;color:var(--c4);" id="histMoneyToday">฿0</div>
+            <div style="font-size:.65rem;color:#bbb;">วันนี้</div>
+          </div>
+        </div>
+        <div id="histMoneyList" style="max-height:60vh;overflow-y:auto;">
+          <p style="text-align:center;color:#bbb;padding:20px;font-size:.85rem;">ยังไม่มีข้อมูล</p>
         </div>
       </div>
-      <div class="storage-bar-wrap" id="storageBarWrap"></div>
-      <div class="table-wrapper">
-        <table>
-          <thead><tr><th>วันที่</th><th>เลขที่</th><th class="td-name" style="text-align:left;">ชื่อ</th><th>ประเภท</th><th id="editColHeader" class="hidden">แก้ไข</th></tr></thead>
-          <tbody id="historyTable"></tbody>
-        </table>
-      </div>
-      <div class="history-cards" id="historyCards"></div>
+
     </div>
   </div>
 
@@ -1362,7 +1400,7 @@ function loginAdmin() {
   showLoading("กำลังเข้าสู่ระบบ...");
   firebaseAuth.signInWithEmailAndPassword(email, pass)
     .then(function(cred){ return checkUserRole(cred.user); })
-    .catch(function(e){ hideLoading(); showLoginError("❌ Email หรือรหัสผ่านไม่ถูกต้อง"); });
+    .catch(function(e){ hideLoading(); showLoginError("❌ Email หรือรหัสผ่านไม่ถูกต้อง: " + (e.message||'')); });
 }
 function loginStudent() {
   var code = document.getElementById("studentCode").value.trim();
@@ -1383,7 +1421,7 @@ function loginStudent() {
 function checkUserRole(user) {
   currentUser = user;
   var timeoutPromise = new Promise(function(_, reject){
-    setTimeout(function(){ reject(new Error("FIRESTORE_TIMEOUT")); }, 8000);
+    setTimeout(function(){ reject(new Error("FIRESTORE_TIMEOUT")); }, 5000); // ลดเหลือ 5 วิ
   });
   return Promise.race([
     firestoreDB.collection("users").doc(user.uid).get(),
@@ -1418,11 +1456,17 @@ function checkUserRole(user) {
     })
     .catch(function(e) {
       if (e.message === "FIRESTORE_TIMEOUT") {
-        console.warn("⚠️ Firestore timeout — logging out for safety");
-        hideLoading();
-        return firebaseAuth.signOut().then(function(){
-          showLoginError("⚠️ เชื่อมต่อฐานข้อมูลช้าเกินไป กรุณา login ใหม่อีกครั้ง");
-        });
+        console.warn("⚠️ Firestore timeout — fallback by email");
+        var studentIdT = user.email ? user.email.replace(STUDENT_DOMAIN, "") : "";
+        var sT = STUDENTS.find(function(x){ return x.id === studentIdT; });
+        if (sT) {
+          currentUserDoc = { role:"student", studentId:studentIdT, name:sT.name, no:sT.no };
+          isAdmin = false;
+        } else {
+          currentUserDoc = { role:"admin", email: user.email };
+          isAdmin = true;
+        }
+        return; // fallback ต่อได้ ไม่ต้อง logout
       }
       if (e.code === "permission-denied" || (e.message && e.message.indexOf("permission") !== -1)) {
         /* ✅ Firestore rules deny — ถ้า email ไม่ใช่ student domain ให้เป็น admin */
@@ -1441,11 +1485,20 @@ function checkUserRole(user) {
       throw e;
     })
     .then(function(){
+      hideLoading(); // ✅ hideLoading เสมอ ไม่ว่าจะสำเร็จหรือ fallback
       if (currentUserDoc) {
-        hideLoading();
         startSystem();
         if(!isAdmin) setTimeout(showIntroIfFirst, 500);
+      } else {
+        showLoginError("⚠️ ไม่สามารถโหลดข้อมูลผู้ใช้ได้ กรุณา login ใหม่");
+        firebaseAuth.signOut().catch(function(){});
       }
+    })
+    .catch(function(finalErr){
+      hideLoading(); // ✅ safety - กัน loading ค้างเสมอ
+      console.error("checkUserRole final error:", finalErr);
+      showLoginError("❌ เกิดข้อผิดพลาด: " + (finalErr.message || "ไม่ทราบสาเหตุ"));
+      firebaseAuth.signOut().catch(function(){});
     });
 }
 function logout() {
@@ -2068,7 +2121,7 @@ function openPage(id){
   ["homePage","checkPage","dashboardPage","historyPage","assignPage","moneyCheckPage"].forEach(function(p){document.getElementById(p).classList.add("hidden");});
   document.getElementById(id).classList.remove("hidden");
   if(id==="dashboardPage"){updateDashboard();renderChart();if(isAdmin)renderAdminAISummary();}
-  if(id==="historyPage"){updateStorageStatus("storageBarWrap");if(isAdmin){document.getElementById("pdfExportSection").classList.remove("hidden");populatePDFMonthSelect();}}
+  if(id==="historyPage"){updateStorageStatus("storageBarWrap");if(isAdmin){document.getElementById("pdfExportSection").classList.remove("hidden");populatePDFMonthSelect();}renderHistMoneyAll();}
 }
 function goHome(){["checkPage","dashboardPage","historyPage","assignPage","moneyCheckPage"].forEach(function(p){document.getElementById(p).classList.add("hidden");});document.getElementById("homePage").classList.remove("hidden");}
 
@@ -2691,6 +2744,64 @@ function loadMoneyData(){
   var saved=localStorage.getItem("moneyChecks_v1");
   if(saved){try{moneyChecks=JSON.parse(saved);}catch(e){moneyChecks=[];}}
   renderMoneyCheck();
+}
+
+/* ══ HISTORY PAGE TABS ══ (side-by-side: both always visible) */
+function switchHistoryTab(tab){
+  // Both panes shown side-by-side; just refresh data
+  renderHistMoneyAll();
+}
+
+function filterHistMoneyDate(){
+  var date = document.getElementById('histMoneyFilterDate').value;
+  renderHistMoneyAll(date || null);
+}
+
+function renderHistMoneyAll(filterDate){
+  try{
+    var today = new Date().toISOString().split('T')[0];
+    var todayEntries = moneyChecks.filter(function(m){ return m.date === today; });
+    var todayTotal   = todayEntries.reduce(function(s,m){ return s + m.amount; }, 0);
+    var el = document.getElementById('histMoneyToday');
+    if(el) el.textContent = '฿' + todayTotal;
+
+    var displayData = filterDate
+      ? moneyChecks.filter(function(m){ return m.date === filterDate; })
+      : moneyChecks.slice();
+
+    displayData = displayData.sort(function(a,b){
+      return b.date.localeCompare(a.date) || ((b.createdAt||'').localeCompare(a.createdAt||''));
+    });
+
+    var grandTotal = displayData.reduce(function(s,m){ return s + m.amount; }, 0);
+    var uniqueDates = {}; displayData.forEach(function(m){ uniqueDates[m.date] = true; });
+    var elT = document.getElementById('histMoneyTotal');
+    var elD = document.getElementById('histMoneyDays');
+    if(elT) elT.textContent = grandTotal;
+    if(elD) elD.textContent = Object.keys(uniqueDates).length;
+
+    var grouped = {};
+    displayData.forEach(function(m){ if(!grouped[m.date]) grouped[m.date]=[]; grouped[m.date].push(m); });
+
+    var html = '';
+    Object.keys(grouped).sort(function(a,b){ return b.localeCompare(a); }).forEach(function(date){
+      var dayTotal = grouped[date].reduce(function(s,m){ return s + m.amount; }, 0);
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;font-size:.78rem;font-weight:700;color:#bbb;margin:10px 0 5px;">'
+            + '<span>' + date + '</span><span style="color:var(--green);">฿' + dayTotal + '</span></div>';
+      grouped[date].forEach(function(m){
+        var icon  = m.status==='received' ? '✅' : m.status==='not-received' ? '❌' : '⏳';
+        var color = m.status==='received' ? 'var(--green)' : m.status==='not-received' ? 'var(--red)' : 'var(--yellow)';
+        html += '<div style="padding:10px 12px;background:var(--c1);border-radius:10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;border-left:3px solid '+color+';">'
+              + '<div><p style="margin:0;font-weight:600;font-size:.85rem;">' + icon + ' ' + escapeHtml((m.studentName||'—').replace(/^(นาย|นางสาว|นาง)/,'')) + '</p>'
+              + (m.note ? '<p style="margin:3px 0 0;font-size:.75rem;color:#aaa;">' + escapeHtml(m.note) + '</p>' : '')
+              + '</div>'
+              + '<p style="margin:0;font-weight:700;color:var(--c4);font-size:.95rem;">฿' + m.amount + '</p></div>';
+      });
+    });
+
+    var el5 = document.getElementById('histMoneyList');
+    if(el5) el5.innerHTML = html || '<p style="text-align:center;color:#bbb;padding:20px;font-size:.9rem;">ยังไม่มีข้อมูล</p>';
+  } catch(err){ console.error('renderHistMoneyAll error:', err); }
 }
 
 function renderMoneyHistoryByDate(){
