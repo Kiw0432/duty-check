@@ -1559,6 +1559,7 @@ function startSystem() {
   loadAssignDataFromCloud();
   if(isAdmin) setTimeout(renderAdminAISummary, 1000);
   loadStudentAssignmentStatus();
+  if(!isAdmin) setTimeout(_retryPendingAssigns, 3000); /* retry pending local assigns */
   updateStorageStatus("storageBarWrap");
 }
 
@@ -1711,7 +1712,7 @@ function pruneLogsOlderThan(months) {
 }
 
 /* ══ FIRESTORE: ASSIGNMENT STATUS ══ */
-function assignStatusCol(){ return firestoreDB.collection("assignment_status"); }
+function assignStatusCol(){ return firestoreDB.collection("assignment_status_m51"); }
 
 function loadStudentAssignmentStatus() {
   if (!currentUser||isAdmin) return;
@@ -1738,7 +1739,14 @@ function saveAssignStatusCloud(assignId, done, imageBase64, aiResult) {
 function isAssignDone(assignId) {
   if (!currentUser) return false;
   var key = currentUser.uid+"_"+assignId;
-  return _cachedAssignmentStatus[key] ? _cachedAssignmentStatus[key].done : false;
+  if (_cachedAssignmentStatus[key]) return _cachedAssignmentStatus[key].done;
+  /* fallback: ดึงจาก localStorage ถ้ายังไม่ได้ sync */
+  var pending = _loadPendingAssign(currentUser.uid, assignId);
+  if (pending && pending.done) {
+    _cachedAssignmentStatus[key] = pending; /* load เข้า cache */
+    return true;
+  }
+  return false;
 }
 
 /* ══ CHANGE PASSWORD ══ */
@@ -2311,15 +2319,47 @@ function clearImgPreview(){_pendingImgBase64=null;_pendingAIResult=null;document
 function closeImgUploadModal(){document.getElementById("imgUploadModal").style.display="none";_pendingSubmitAssignId=null;clearImgPreview();}
 function confirmImgSubmit(){if(!_pendingSubmitAssignId){closeImgUploadModal();return;}doSubmitAssign(_pendingSubmitAssignId,_pendingImgBase64,_pendingAIResult);closeImgUploadModal();}
 function submitWithoutImg(){if(!_pendingSubmitAssignId){closeImgUploadModal();return;}doSubmitAssign(_pendingSubmitAssignId,null,null);closeImgUploadModal();}
-function doSubmitAssign(assignKey,imgBase64,aiResult){var cacheKey=currentUser.uid+"_"+assignKey;_cachedAssignmentStatus[cacheKey]={done:true,doneAt:Date.now(),studentId:currentUserDoc?currentUserDoc.studentId||"":"",imageBase64:imgBase64||null,aiResult:aiResult||null};renderAssignSummary();renderSubjectTabs();renderAssignList();saveAssignStatusCloud(assignKey,true,imgBase64,aiResult).then(function(){showStatus(imgBase64?"✅ ส่งงานพร้อมรูปหลักฐานแล้ว 📸":"✅ ส่งงานแล้ว");}).catch(function(err){
-  /* ✅ BUG FIX: แยก permission-denied ออกจาก error อื่น — ถ้า permission denied แสดงว่า Firestore rules ยังไม่อัปเดต บันทึก local ไว้ก่อน */
-  var isPermErr=err&&(err.code==="permission-denied"||(err.message&&err.message.indexOf("permission")!==-1));
-  if(isPermErr){
-    showStatus("✅ ส่งงานแล้ว (บันทึกในเครื่อง · Sync เมื่อ Cloud พร้อม)");
-  } else {
-    showStatus("❌ บันทึกไม่สำเร็จ: "+(err.message||err));delete _cachedAssignmentStatus[cacheKey];renderAssignPage();
-  }
-});}
+/* ── LocalStorage fallback helpers ── */
+function _lsAssignKey(uid,assignId){ return "pending_assign_"+uid+"_"+assignId; }
+function _savePendingAssign(uid,assignKey,data){
+  try{ localStorage.setItem(_lsAssignKey(uid,assignKey), JSON.stringify(data)); }catch(e){}
+}
+function _loadPendingAssign(uid,assignKey){
+  try{ var v=localStorage.getItem(_lsAssignKey(uid,assignKey)); return v?JSON.parse(v):null; }catch(e){ return null; }
+}
+function _clearPendingAssign(uid,assignKey){
+  try{ localStorage.removeItem(_lsAssignKey(uid,assignKey)); }catch(e){}
+}
+function _retryPendingAssigns(){
+  if(!currentUser||isAdmin)return;
+  var prefix="pending_assign_"+currentUser.uid+"_";
+  var keys=[];
+  try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(k&&k.indexOf(prefix)===0) keys.push(k); } }catch(e){ return; }
+  keys.forEach(function(k){
+    try{
+      var data=JSON.parse(localStorage.getItem(k));
+      var assignId=k.replace(prefix,"");
+      saveAssignStatusCloud(assignId,data.done,data.imageBase64||null,data.aiResult||null)
+        .then(function(){ _clearPendingAssign(currentUser.uid,assignId); console.log("✅ Synced pending assign:",assignId); })
+        .catch(function(){});
+    }catch(e){}
+  });
+}
+
+function doSubmitAssign(assignKey,imgBase64,aiResult){
+  var cacheKey=currentUser.uid+"_"+assignKey;
+  var statusData={done:true,doneAt:Date.now(),studentId:currentUserDoc?currentUserDoc.studentId||"":"",imageBase64:imgBase64||null,aiResult:aiResult||null};
+  _cachedAssignmentStatus[cacheKey]=statusData;
+  renderAssignSummary();renderSubjectTabs();renderAssignList();
+  saveAssignStatusCloud(assignKey,true,imgBase64,aiResult).then(function(){
+    _clearPendingAssign(currentUser.uid,assignKey);
+    showStatus(imgBase64?"✅ ส่งงานพร้อมรูปหลักฐานแล้ว 📸":"✅ ส่งงานแล้ว");
+  }).catch(function(err){
+    /* บันทึก localStorage ไว้ก่อน แล้ว retry อัตโนมัติตอน Cloud พร้อม */
+    _savePendingAssign(currentUser.uid,assignKey,statusData);
+    showStatus("✅ ส่งงานแล้ว (บันทึกในเครื่อง · Sync อัตโนมัติเมื่อ Cloud พร้อม)");
+  });
+}
 
 var _aiProofCache={};
 function runAIProofCheck(imgBase64,assignTitle,onDone){
