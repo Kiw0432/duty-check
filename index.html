@@ -2448,16 +2448,22 @@ function loadAssignData(){subjects=JSON.parse(localStorage.getItem("subjects_v1"
 function loadAssignDataFromCloud(){
   if(!firestoreDB)return;
   /* ✅ ใช้ get() แทน onSnapshot สำหรับ subjects (ไม่ค่อยเปลี่ยน) */
-  firestoreDB.collection("subjects_m51").orderBy("createdAt").get().then(function(snap){
+  firestoreDB.collection("subjects_m51").get().then(function(snap){
     trackRead(snap.size);
-    if(!snap.empty){subjects=[];var seenFids={};snap.forEach(function(doc){if(seenFids[doc.id])return;seenFids[doc.id]=true;var d=doc.data();d._fid=doc.id;if(!d.id)d.id=doc.id;subjects.push(d);});safeSetItem("subjects_v1",JSON.stringify(subjects));}
+    if(!snap.empty){subjects=[];var seenFids={};snap.forEach(function(doc){if(seenFids[doc.id])return;seenFids[doc.id]=true;var d=doc.data();d._fid=doc.id;if(!d.id)d.id=doc.id;subjects.push(d);});
+    subjects.sort(function(a,b){return (a.createdAt||"").toString().localeCompare((b.createdAt||"").toString());});
+    safeSetItem("subjects_v1",JSON.stringify(subjects));}
   }).catch(function(e){console.error("subjects load error:",e);});
   /* ✅ assignments ยังใช้ onSnapshot เพราะเปลี่ยนบ่อย แต่ track reads */
   var _assignRenderTimer=null;
   if(assignUnsubscribe){try{assignUnsubscribe();}catch(e){}assignUnsubscribe=null;}
-  assignUnsubscribe = firestoreDB.collection("assignments_m51").orderBy("createdAt").onSnapshot(function(snap){
+  assignUnsubscribe = firestoreDB.collection("assignments_m51").onSnapshot(function(snap){
     trackRead(snap.size);
+    /* ✅ BUG FIX: อย่าทับ localStorage ถ้า Firestore คืนค่าว่าง — อาจเป็น network glitch */
+    if(snap.empty) return;
     assignments=[];snap.forEach(function(doc){var d=doc.data();d._fid=doc.id;assignments.push(d);});
+    /* เรียงวันที่ฝั่ง client แทน orderBy เพื่อให้ได้เอกสารทุกรายการแม้ไม่มี createdAt */
+    assignments.sort(function(a,b){return (a.createdAt||"").localeCompare(b.createdAt||"");});
     safeSetItem("assignments_v1",JSON.stringify(assignments));
     var aat=document.getElementById("adminAssignTable");if(aat)aat.dataset.loaded="1";
     /* ✅ Debounce — snapshot อาจยิงหลายครั้งต่อเนื่อง */
