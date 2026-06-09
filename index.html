@@ -723,72 +723,96 @@ td.td-name{white-space:normal;text-align:left;min-width:120px;}
 
   </div>
 
-  <!-- HISTORY -->
+  <!-- HISTORY: หน้าเลือก 2 ปุ่ม -->
   <div id="historyPage" class="hidden">
-    <div style="font-size:1.05rem;font-weight:600;margin-bottom:12px;" id="todayDate"></div>
+    <div class="card">
+      <div style="font-size:1.05rem;font-weight:600;margin-bottom:16px;" id="todayDate"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
 
-    <!-- Side-by-side layout: Red=เช็คชื่อ | Green=เช็คเงิน -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;">
+        <!-- ปุ่มซ้าย: เช็คชื่อ (แดง) -->
+        <button onclick="openHistModal('attend')"
+          style="background:white;border:3px solid #e55555;border-radius:22px;padding:28px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(229,85,85,.15);transition:.2s;">
+          <span style="font-size:2.4rem;">📋</span>
+          <span style="font-size:.95rem;font-weight:700;color:#e55555;">ย้อนหลัง<br>เช็คชื่อ</span>
+        </button>
 
-      <!-- LEFT: เช็คชื่อ (แดง) -->
-      <div id="histPaneAttend" style="background:white;border-radius:24px;padding:16px;box-shadow:0 4px 16px rgba(0,0,0,.05);border:3px solid #e55555;">
-        <div style="font-size:.95rem;font-weight:700;color:#e55555;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-          📋 ย้อนหลังเช็คชื่อ
-        </div>
-        <div class="filter-bar" style="flex-direction:column;gap:6px;">
-          <input type="date" id="historyDate" onchange="filterHistoryDate()" style="font-size:.8rem;padding:7px 10px;margin-bottom:0;">
-          <button class="btn-soft" onclick="clearHistoryFilter()" style="padding:7px 10px;font-size:.8rem;white-space:nowrap;">แสดงทั้งหมด</button>
-        </div>
-        <div id="pdfExportSection" class="hidden" style="background:var(--c1);border-radius:16px;padding:10px;margin-bottom:10px;">
-          <div style="font-size:.8rem;font-weight:600;color:#e55555;margin-bottom:8px;">📄 ส่งออก PDF รายเดือน</div>
-          <div style="display:flex;flex-direction:column;gap:6px;">
-            <select id="pdfMonthSelect" style="margin-bottom:0;padding:8px 10px;border-radius:10px;background:white;border:none;font-size:.82rem;font-family:inherit;">
-              <option value="">-- เลือกเดือน --</option>
-            </select>
-            <button class="btn-main" onclick="exportMonthlyPDF()" style="padding:8px 10px;font-size:.8rem;">🖨️ พิมพ์ / Save PDF</button>
-            <button class="btn-soft" onclick="exportAllMonthsPDF()" style="padding:8px 10px;font-size:.8rem;">📦 ทุกเดือน</button>
-          </div>
-        </div>
-        <div class="storage-bar-wrap" id="storageBarWrap"></div>
-        <div style="overflow-x:auto;border-radius:12px;-webkit-overflow-scrolling:touch;">
-          <table style="min-width:unset;width:100%;">
-            <thead><tr><th style="font-size:.72rem;padding:7px 5px;">วันที่</th><th style="font-size:.72rem;padding:7px 5px;">เลขที่</th><th class="td-name" style="text-align:left;font-size:.72rem;padding:7px 5px;">ชื่อ</th><th style="font-size:.72rem;padding:7px 5px;">ประเภท</th><th id="editColHeader" class="hidden" style="font-size:.72rem;padding:7px 5px;">แก้ไข</th></tr></thead>
-            <tbody id="historyTable"></tbody>
-          </table>
-        </div>
-        <div class="history-cards" id="historyCards"></div>
+        <!-- ปุ่มขวา: เช็คเงิน (เขียว) -->
+        <button onclick="openHistModal('money')"
+          style="background:white;border:3px solid #4a9b65;border-radius:22px;padding:28px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(74,155,101,.15);transition:.2s;">
+          <span style="font-size:2.4rem;">💰</span>
+          <span style="font-size:.95rem;font-weight:700;color:#4a9b65;">ย้อนหลัง<br>เช็คเงิน</span>
+        </button>
+
       </div>
-
-      <!-- RIGHT: เช็คเงิน (เขียว) -->
-      <div id="histPaneMoney" style="background:white;border-radius:24px;padding:16px;box-shadow:0 4px 16px rgba(0,0,0,.05);border:3px solid #4a9b65;">
-        <div style="font-size:.95rem;font-weight:700;color:#4a9b65;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-          💰 ย้อนหลังเช็คเงิน
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
-          <input type="date" id="histMoneyFilterDate" onchange="filterHistMoneyDate()" style="padding:7px 10px;font-size:.8rem;border:none;background:var(--c1);border-radius:10px;margin-bottom:0;">
-          <button class="btn-soft" onclick="document.getElementById('histMoneyFilterDate').value='';renderHistMoneyAll();" style="padding:7px 10px;font-size:.8rem;">ทั้งหมด</button>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;">
-          <div style="background:var(--c1);padding:8px 5px;border-radius:10px;text-align:center;">
-            <div style="font-size:.95rem;font-weight:700;color:var(--green);">฿<span id="histMoneyTotal">0</span></div>
-            <div style="font-size:.65rem;color:#bbb;">รวมทั้งหมด</div>
-          </div>
-          <div style="background:var(--c1);padding:8px 5px;border-radius:10px;text-align:center;">
-            <div style="font-size:.95rem;font-weight:700;color:var(--blue);"><span id="histMoneyDays">0</span></div>
-            <div style="font-size:.65rem;color:#bbb;">วันที่บันทึก</div>
-          </div>
-          <div style="background:var(--c1);padding:8px 5px;border-radius:10px;text-align:center;">
-            <div style="font-size:.95rem;font-weight:700;color:var(--c4);" id="histMoneyToday">฿0</div>
-            <div style="font-size:.65rem;color:#bbb;">วันนี้</div>
-          </div>
-        </div>
-        <div id="histMoneyList" style="max-height:60vh;overflow-y:auto;">
-          <p style="text-align:center;color:#bbb;padding:20px;font-size:.85rem;">ยังไม่มีข้อมูล</p>
-        </div>
-      </div>
-
     </div>
   </div>
+
+  <!-- MODAL: ย้อนหลังเช็คชื่อ (แดง) -->
+  <div id="histAttendModal" class="modal-wrap" style="display:none;">
+    <div class="modal-box" style="max-width:600px;border-top:5px solid #e55555;padding:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <span style="font-size:1rem;font-weight:700;color:#e55555;">📋 ย้อนหลังเช็คชื่อ</span>
+        <button onclick="closeHistModal('attend')" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#bbb;">✕</button>
+      </div>
+      <div class="filter-bar" style="margin-bottom:10px;">
+        <input type="date" id="historyDate" onchange="filterHistoryDate()" style="font-size:.85rem;padding:8px 10px;margin-bottom:0;flex:1;">
+        <button class="btn-soft" onclick="clearHistoryFilter()" style="padding:8px 12px;font-size:.85rem;white-space:nowrap;">ทั้งหมด</button>
+      </div>
+      <div id="pdfExportSection" class="hidden" style="background:var(--c1);border-radius:14px;padding:12px;margin-bottom:10px;">
+        <div style="font-size:.82rem;font-weight:600;color:#e55555;margin-bottom:8px;">📄 ส่งออก PDF รายเดือน</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <select id="pdfMonthSelect" style="flex:1;min-width:130px;margin-bottom:0;padding:8px 10px;border-radius:10px;background:white;border:none;font-size:.85rem;font-family:inherit;">
+            <option value="">-- เลือกเดือน --</option>
+          </select>
+          <button class="btn-main" onclick="exportMonthlyPDF()" style="padding:8px 12px;font-size:.82rem;white-space:nowrap;">🖨️ พิมพ์ / Save PDF</button>
+          <button class="btn-soft" onclick="exportAllMonthsPDF()" style="padding:8px 10px;font-size:.82rem;white-space:nowrap;">📦 ทุกเดือน</button>
+        </div>
+      </div>
+      <div class="storage-bar-wrap" id="storageBarWrap"></div>
+      <div style="overflow-x:auto;border-radius:12px;-webkit-overflow-scrolling:touch;max-height:55vh;overflow-y:auto;">
+        <table style="width:100%;">
+          <thead><tr><th>วันที่</th><th>เลขที่</th><th class="td-name" style="text-align:left;">ชื่อ</th><th>ประเภท</th><th id="editColHeader" class="hidden">แก้ไข</th></tr></thead>
+          <tbody id="historyTable"></tbody>
+        </table>
+      </div>
+      <div class="history-cards" id="historyCards"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: ย้อนหลังเช็คเงิน (เขียว) -->
+  <div id="histMoneyModal" class="modal-wrap" style="display:none;">
+    <div class="modal-box" style="max-width:500px;border-top:5px solid #4a9b65;padding:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <span style="font-size:1rem;font-weight:700;color:#4a9b65;">💰 ย้อนหลังเช็คเงิน</span>
+        <button onclick="closeHistModal('money')" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#bbb;">✕</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <input type="date" id="histMoneyFilterDate" onchange="filterHistMoneyDate()" style="flex:1;padding:8px 10px;font-size:.85rem;border:none;background:var(--c1);border-radius:10px;margin-bottom:0;">
+        <button class="btn-soft" onclick="document.getElementById('histMoneyFilterDate').value='';renderHistMoneyAll();" style="padding:8px 12px;font-size:.85rem;white-space:nowrap;">ทั้งหมด</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
+        <div style="background:var(--c1);padding:10px 8px;border-radius:12px;text-align:center;">
+          <div style="font-size:1.05rem;font-weight:700;color:var(--green);">฿<span id="histMoneyTotal">0</span></div>
+          <div style="font-size:.68rem;color:#bbb;">รวมทั้งหมด</div>
+        </div>
+        <div style="background:var(--c1);padding:10px 8px;border-radius:12px;text-align:center;">
+          <div style="font-size:1.05rem;font-weight:700;color:var(--blue);"><span id="histMoneyDays">0</span></div>
+          <div style="font-size:.68rem;color:#bbb;">วันที่บันทึก</div>
+        </div>
+        <div style="background:var(--c1);padding:10px 8px;border-radius:12px;text-align:center;">
+          <div style="font-size:1.05rem;font-weight:700;color:var(--c4);" id="histMoneyToday">฿0</div>
+          <div style="font-size:.68rem;color:#bbb;">วันนี้</div>
+        </div>
+      </div>
+      <div id="histMoneyList" style="max-height:55vh;overflow-y:auto;">
+        <p style="text-align:center;color:#bbb;padding:20px;font-size:.9rem;">ยังไม่มีข้อมูล</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- hidden panes kept for JS compatibility -->
+  <div id="histPaneAttend" style="display:none;"></div>
+  <div id="histPaneMoney" style="display:none;"></div>
 
   <!-- ASSIGNMENT -->
   <div id="assignPage" class="hidden">
@@ -2121,7 +2145,7 @@ function openPage(id){
   ["homePage","checkPage","dashboardPage","historyPage","assignPage","moneyCheckPage"].forEach(function(p){document.getElementById(p).classList.add("hidden");});
   document.getElementById(id).classList.remove("hidden");
   if(id==="dashboardPage"){updateDashboard();renderChart();if(isAdmin)renderAdminAISummary();}
-  if(id==="historyPage"){updateStorageStatus("storageBarWrap");if(isAdmin){document.getElementById("pdfExportSection").classList.remove("hidden");populatePDFMonthSelect();}renderHistMoneyAll();}
+  if(id==="historyPage"){var td=document.getElementById("todayDate");if(td)td.textContent="📅 "+new Date().toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric"});}
 }
 function goHome(){["checkPage","dashboardPage","historyPage","assignPage","moneyCheckPage"].forEach(function(p){document.getElementById(p).classList.add("hidden");});document.getElementById("homePage").classList.remove("hidden");}
 
@@ -2746,15 +2770,28 @@ function loadMoneyData(){
   renderMoneyCheck();
 }
 
-/* ══ HISTORY PAGE TABS ══ (side-by-side: both always visible) */
-function switchHistoryTab(tab){
-  // Both panes shown side-by-side; just refresh data
-  renderHistMoneyAll();
+/* ══ HISTORY MODALS ══ */
+function openHistModal(type) {
+  if (type === 'attend') {
+    document.getElementById('histAttendModal').style.display = 'flex';
+    renderHistory();
+    if (isAdmin) {
+      document.getElementById('pdfExportSection').classList.remove('hidden');
+      populatePDFMonthSelect();
+      document.getElementById('editColHeader').classList.remove('hidden');
+    }
+    updateStorageStatus('storageBarWrap');
+  } else {
+    document.getElementById('histMoneyModal').style.display = 'flex';
+    renderHistMoneyAll();
+  }
 }
-
-function filterHistMoneyDate(){
-  var date = document.getElementById('histMoneyFilterDate').value;
-  renderHistMoneyAll(date || null);
+function closeHistModal(type) {
+  if (type === 'attend') {
+    document.getElementById('histAttendModal').style.display = 'none';
+  } else {
+    document.getElementById('histMoneyModal').style.display = 'none';
+  }
 }
 
 function renderHistMoneyAll(filterDate){
