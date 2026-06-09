@@ -1311,7 +1311,9 @@ function initFirebase() {
 
 /* ══ FIREBASE READY CHECK ══ */
 function checkFirebaseReady(callback, timeout) {
-  timeout = timeout || 6000;
+  /* ✅ ถ้า local file ใช้ timeout 2 วินาที */
+  var _isLocal = (location.protocol === 'file:' || location.protocol === 'content:');
+  timeout = timeout || (_isLocal ? 2000 : 6000);
   var startTime = Date.now();
   
   function check() {
@@ -2045,6 +2047,18 @@ function monthKeyToLabel(k){var p=k.split("/");return THAI_MONTHS[parseInt(p[0])
 function actionIcon(a){return a==="ทำเวร"?"🧹":a==="ลา"?"📋":a==="มาสาย"?"⏰":a==="ทำภารกิจ"?"🎯":a==="ขาด"?"❌":"❓";}
 function actionBadgeClass(a){return a==="ทำเวร"?"badge-work":a==="ลา"?"badge-leave":a==="มาสาย"?"badge-late":a==="ทำภารกิจ"?"badge-task":a==="ขาด"?"badge-absent":"badge-late";}
 function showLoginError(msg){var el=document.getElementById("loginError");el.textContent=msg;el.style.display="block";}
+/* ✅ แสดง note เมื่อเปิดจาก local file */
+function showLocalFileNote(){
+  var isLocal=(location.protocol==="file:"||location.protocol==="content:");
+  if(!isLocal)return;
+  var el=document.getElementById("loginError");
+  if(el&&el.style.display==="none"||el&&!el.textContent){
+    el.textContent="📱 เปิดจาก local file — Firebase อาจเชื่อมต่อไม่ได้ ถ้า login ไม่สำเร็จให้อัปโหลดไฟล์ไปที่ server ก่อน";
+    el.style.display="block";
+    el.style.background="#fff8e8";
+    el.style.color="#b87a30";
+  }
+}
 function safeSetItem(k,v){try{localStorage.setItem(k,v);return true;}catch(e){showStatus("⚠️ พื้นที่เต็ม");return false;}}
 function updateStorageStatus(id){updateQuotaBadge();}
 
@@ -2362,14 +2376,22 @@ function renderCalDayDetail(iso){var items=assignments.filter(function(a){return
 window.onload = function() {
   console.log("🚀 Page load starting...");
   
-  // Safety timeout to hide splash after 10 seconds no matter what
+  /* ✅ BUG FIX: ถ้าเปิดจาก local file (content:// หรือ file://) Firebase CDN โหลดไม่ได้
+     ให้ตั้ง offline flag ทันที */
+  var isLocalFile = (location.protocol === "file:" || location.protocol === "content:");
+  if(isLocalFile) {
+    console.warn("⚠️ Local file detected — skipping Firebase wait");
+    window._skipFirebaseFlag = true;
+    window._firebaseLoadError = true;
+  }
+
+  // Safety timeout: local file = 3s, online = 10s
   var splashSafetyTimeout = setTimeout(function() {
     console.warn("⏰ Safety timeout - forcing splash to hide");
     var mc = document.getElementById("mainContainer");
     if(mc){ mc.style.cssText = ""; mc.style.display = "block"; }
     var sp = document.getElementById("splashPage");
     if(sp) { sp.style.display = "none"; sp.classList.add("fade-out"); }
-    // Hide everything except loginPage
     ["homePage","checkPage","dashboardPage","historyPage","assignPage","moneyCheckPage",
      "topActions","studentActions"].forEach(function(id){
       var el=document.getElementById(id);
@@ -2378,9 +2400,13 @@ window.onload = function() {
     var loginPage = document.getElementById("loginPage");
     if(loginPage) loginPage.classList.remove("hidden");
     hideLoading();
-  }, 10000);
+  }, isLocalFile ? 3000 : 10000);
   
-  var splashMsgs=["กำลังเชื่อมต่อ Firebase...","ตรวจสอบสิทธิ์ผู้ใช้...","โหลดข้อมูลห้องเรียน...","เตรียมระบบ AI..."];
+  /* ✅ ถ้าเปิดจาก local file ให้แสดงข้อความที่เหมาะสม */
+  var _isLocalOpen = (location.protocol === "file:" || location.protocol === "content:");
+  var splashMsgs = _isLocalOpen
+    ? ["กำลังเริ่มระบบ...","โหลดข้อมูล...","เตรียมหน้า login...","พร้อมแล้ว..."]
+    : ["กำลังเชื่อมต่อ Firebase...","ตรวจสอบสิทธิ์ผู้ใช้...","โหลดข้อมูลห้องเรียน...","เตรียมระบบ AI..."];
   var _smIdx=0,_smEl=document.getElementById("splashMsg");
   var _smTimer=setInterval(function(){_smIdx=(_smIdx+1)%splashMsgs.length;if(_smEl)_smEl.textContent=splashMsgs[_smIdx];},900);
   
@@ -2417,6 +2443,8 @@ window.onload = function() {
     return;
   }
   
+  /* ✅ ถ้า local file ให้ timeout 2 วินาที แทน 6 วินาที */
+  var _fbReadyTimeout = isLocalFile ? 2000 : 6000;
   console.log("⏳ Waiting for Firebase to be ready...");
   checkFirebaseReady(function(isReady){
     console.log("📊 Firebase ready check result:", isReady);
