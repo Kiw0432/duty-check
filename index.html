@@ -2232,13 +2232,19 @@ function renderHistory(filterISO){
 function filterHistoryDate(){
   var s=document.getElementById("historyDate").value;
   if(!s){renderHistory(null);return;}
-  /* ตรวจว่า date ที่เลือกอยู่ใน cache หรือเปล่า */
   var cached=_cachedLogs.filter(function(r){return thaiDateToISO(r.date)===s;});
   if(cached.length>0){renderHistory(s);return;}
-  /* ถ้าไม่มีใน cache — query เฉพาะวันที่นั้นด้วย where("date","==") แทนดึงทั้ง collection */
-  var thaiDate=isoToThai(s); /* แปลง YYYY-MM-DD → DD/MM/YYYY+543 */
-  showLoading("กำลังโหลดข้อมูลวันที่เลือก...");
+  var thaiDate=isoToThai(s);
+  showLoading("กำลังโหลด...");
+  var done=false;
+  var timer=setTimeout(function(){
+    if(done)return; done=true;
+    hideLoading();
+    showStatus("โหลดช้า — แสดงข้อมูลที่มีแทน");
+    renderHistory(null);
+  }, 5000);
   logsCol().where("date","==",thaiDate).get().then(function(snap){
+    if(done)return; done=true; clearTimeout(timer);
     hideLoading();
     trackRead(snap.size);
     var found=[];
@@ -2248,12 +2254,14 @@ function filterHistoryDate(){
       var cards=document.getElementById("historyCards");if(cards)cards.innerHTML='<p style="text-align:center;color:#bbb;padding:20px;">ไม่มีข้อมูล</p>';
       return;
     }
-    /* merge เข้า cache แล้ว render */
-    var existingIds={}; _cachedLogs.forEach(function(r){if(r._firestoreId)existingIds[r._firestoreId]=true;});
+    var existingIds={};_cachedLogs.forEach(function(r){if(r._firestoreId)existingIds[r._firestoreId]=true;});
     var newOnes=found.filter(function(r){return!existingIds[r._firestoreId];});
     if(newOnes.length>0){_cachedLogs=_cachedLogs.concat(newOnes);saveLogsCache(_cachedLogs);}
     renderHistory(s);
-  }).catch(function(e){hideLoading();showStatus("❌ โหลดไม่สำเร็จ: "+e.message);});
+  }).catch(function(e){
+    if(done)return; done=true; clearTimeout(timer);
+    hideLoading(); showStatus("❌ โหลดไม่สำเร็จ: "+e.message);
+  });
 }
 function clearHistoryFilter(){document.getElementById("historyDate").value="";renderHistory();}
 function clearHistory(){if(!confirm("ลบประวัติทั้งหมด?"))return;showLoading("กำลังลบ...");clearAllLogs().then(function(){hideLoading();localStorage.removeItem("logs_cache");renderHistory();renderChart();updateDashboard();showStatus("ลบแล้ว 🗑️");}).catch(function(e){hideLoading();showStatus("❌ ลบไม่สำเร็จ");});}
@@ -2774,13 +2782,22 @@ function loadMoneyData(){
 function openHistModal(type) {
   if (type === 'attend') {
     document.getElementById('histAttendModal').style.display = 'flex';
-    renderHistory();
     if (isAdmin) {
       document.getElementById('pdfExportSection').classList.remove('hidden');
-      populatePDFMonthSelect();
       document.getElementById('editColHeader').classList.remove('hidden');
+      populatePDFMonthSelect();
     }
     updateStorageStatus('storageBarWrap');
+    if (_cachedLogs.length > 0) {
+      renderHistory();
+    } else {
+      var tbody = document.getElementById('historyTable');
+      if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="color:#bbb;padding:20px;text-align:center;">⏳ กำลังโหลด...</td></tr>';
+      localStorage.removeItem('logs_cache');
+      getAllLogs().then(function(){ renderHistory(); }).catch(function(){
+        if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="color:#e55555;padding:20px;text-align:center;">❌ โหลดไม่สำเร็จ กรุณาลองใหม่</td></tr>';
+      });
+    }
   } else {
     document.getElementById('histMoneyModal').style.display = 'flex';
     renderHistMoneyAll();
