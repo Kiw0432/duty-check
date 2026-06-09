@@ -1205,10 +1205,10 @@ var STUDENT_DOMAIN = "@m51.school";
 ══════════════════════════════════════════════════ */
 var _quotaKey   = "fs_quota_" + new Date().toISOString().slice(0,10); // reset ทุกวัน
 var _quotaCount = parseInt(localStorage.getItem(_quotaKey)||"0");
-var QUOTA_WARN  = 35000;  // เตือนเมื่อเกิน 35K
-var QUOTA_LIMIT = 48000;  // หยุด onSnapshot เมื่อเกิน 48K
+var QUOTA_WARN  = 25000;  // เตือนเมื่อเกิน 25K (ลดจาก 35K)
+var QUOTA_LIMIT = 40000;  // หยุด onSnapshot เมื่อเกิน 40K (ลดจาก 48K)
 var _lastSnapshotTime = 0;
-var _SNAPSHOT_THROTTLE_MS = 10 * 60 * 1000; // 10 นาที
+var _SNAPSHOT_THROTTLE_MS = 30 * 60 * 1000; // 30 นาที (เพิ่มจาก 10 → 30 ประหยัด re-subscribe)
 
 function trackRead(n){
   _quotaCount += (n||1);
@@ -1273,7 +1273,7 @@ var _allStudentStatuses = {};
 /* ✅ OPTIMIZATION: cache สำหรับ assignment_status (admin) — ป้องกันดึงซ้ำหลายรอบ */
 var _adminStatusCache = null;      // snapshot data
 var _adminStatusCacheTs = 0;       // เวลาที่ cache ครั้งล่าสุด
-var _ADMIN_STATUS_TTL = 5 * 60 * 1000; // TTL 5 นาที
+var _ADMIN_STATUS_TTL = 30 * 60 * 1000; // TTL 30 นาที (เพิ่มจาก 5 → 30)
 function _invalidateAdminStatusCache(){ _adminStatusCache = null; _adminStatusCacheTs = 0; }
 function _getAdminStatusCached(){
   if(_adminStatusCache && (Date.now() - _adminStatusCacheTs) < _ADMIN_STATUS_TTL)
@@ -1303,7 +1303,7 @@ function _getAdminStatusCached(){
    Key: "logs_cache" → { ts: timestamp, data: [...] }
    ใช้แทนการ fetch ทุกครั้ง — refresh เมื่อ onSnapshot ส่งมาเท่านั้น
 */
-var _CACHE_TTL_MS = 5 * 60 * 1000; // 5 นาที
+var _CACHE_TTL_MS = 30 * 60 * 1000; // 30 นาที (เพิ่มจาก 5 → 30 ลด re-fetch)
 function saveLogsCache(logs){
   try{ localStorage.setItem("logs_cache", JSON.stringify({ts:Date.now(), v:3, data:logs})); }catch(e){}
 }
@@ -1590,52 +1590,33 @@ function startRealtimeSync() {
 
   /* ✅ OPTIMIZATION 2: Tab visibility — pause listener เมื่อ tab hidden */
   function startListener(){
-    /* ✅ OPTIMIZATION 3: จำกัดเฉพาะ 90 วันล่าสุด ใช้ createdAt (epoch) แทน date string */
-    var cutoffTs = Date.now() - (365 * 24 * 60 * 60 * 1000);
+    /* 🛑 หยุดถ้า quota ใกล้เต็ม */
+    if(_quotaCount >= QUOTA_LIMIT){
+      console.warn("⛔ Quota limit reached — ไม่เปิด realtime listener");
+      showStatus("⚠️ Reads ใกล้เต็ม — ใช้ข้อมูล cache");
+      return;
+    }
+    var cutoffTs = Date.now() - (90 * 24 * 60 * 60 * 1000);
     realtimeUnsubscribe = logsCol()
       .where("createdAt", ">=", cutoffTs)
       .onSnapshot(function(snapshot) {
-        trackRead(snapshot.size); /* นับ reads จริง */
+        trackRead(snapshot.size);
         var newLogs = [];
         snapshot.forEach(function(doc){ var d=doc.data(); d._firestoreId=doc.id; newLogs.push(d); });
         newLogs.sort(function(a,b){ return (a.createdAt||0)-(b.createdAt||0); });
 
-        /* ✅ BUG FIX: รวม legacy records (ที่มี string createdAt หรือไม่มี) เข้ากับ new logs */
+        /* รวม legacy records จาก cache (ไม่มี createdAt หรือเก่ากว่า 90 วัน) */
         var legacyLogs = _cachedLogs.filter(function(r){ return typeof r.createdAt !== "number" || r.createdAt < cutoffTs; });
         var merged = legacyLogs.concat(newLogs);
-        /* dedup by _firestoreId */
         var seen = {}; var deduped = [];
         merged.forEach(function(r){ var k=r._firestoreId||r.date+"_"+r.studentId; if(!seen[k]){seen[k]=true;deduped.push(r);} });
         deduped.sort(function(a,b){ return (a.createdAt||0)-(b.createdAt||0); });
         _cachedLogs = deduped;
-        saveLogsCache(_cachedLogs); /* บันทึก cache */
+        saveLogsCache(_cachedLogs);
         renderHistory(); updateDashboard(); renderChart();
       }, function(err){ console.error("Realtime error:", err); showStatus("⚠️ การเชื่อมต่อ real-time ขัดข้อง"); });
     _lastSnapshotTime = Date.now();
-
-    /* Fetch ALL records ที่อยู่นอก window (ไม่มี createdAt หรือเก่ากว่า 365 วัน) แบบ one-time */
-    logsCol().get().then(function(fullSnap){
-      trackRead(fullSnap.size);
-      var legacyFound = [];
-      fullSnap.forEach(function(doc){
-        var d = doc.data();
-        /* รวม: ไม่มี createdAt, createdAt ไม่ใช่ number, หรือ createdAt < cutoff */
-        if(typeof d.createdAt !== "number" || d.createdAt < cutoffTs){
-          d._firestoreId = doc.id;
-          legacyFound.push(d);
-        }
-      });
-      if(legacyFound.length > 0){
-        var existingIds = {}; _cachedLogs.forEach(function(r){ if(r._firestoreId) existingIds[r._firestoreId]=true; });
-        var newLegacy = legacyFound.filter(function(r){ return !existingIds[r._firestoreId]; });
-        if(newLegacy.length > 0){
-          _cachedLogs = _cachedLogs.concat(newLegacy);
-          _cachedLogs.sort(function(a,b){ return (a.createdAt||0)-(b.createdAt||0); });
-          saveLogsCache(_cachedLogs);
-          renderHistory(); updateDashboard(); renderChart();
-        }
-      }
-    }).catch(function(e){ console.warn("Legacy fetch error:", e); });
+    /* ❌ ลบ logsCol().get() ออก — นี่คือสาเหตุหลักที่กิน reads ทั้ง collection ทุกครั้ง login */
   }
 
   startListener();
@@ -1671,8 +1652,8 @@ function getAllLogs(){
   /* ถ้ายังไม่มี ดูใน localStorage ก่อน */
   var cached = loadLogsCache();
   if(cached){ _cachedLogs = cached; return Promise.resolve(cached.slice()); }
-  /* Last resort: query Firestore — ดึงทั้ง 365 วัน + docs เก่าที่ไม่มี createdAt */
-  var cutoffTs = Date.now() - (365 * 24 * 60 * 60 * 1000);
+  /* Last resort: query Firestore — ดึงแค่ 90 วัน */
+  var cutoffTs = Date.now() - (90 * 24 * 60 * 60 * 1000);
   var qNew = logsCol().where("createdAt",">=",cutoffTs).get();
   var qLegacy = logsCol().where("createdAt","==",null).get().catch(function(){ return {forEach:function(){},size:0}; });
   return Promise.all([qNew, qLegacy]).then(function(results){
