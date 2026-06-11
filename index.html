@@ -1272,6 +1272,7 @@ var assignUnsubscribe = null;
 var firestoreDB = null, firebaseAuth = null;
 var _allStudentStatuses = {};
 var _startListenerFn = null; /* ✅ module-level ref to startListener เพื่อให้ visibility handler เข้าถึงได้ */
+var _logsPollTimer = null; /* ✅ FIX: timer สำหรับ poll attendance logs แทน onSnapshot */
 /* ✅ FIX #4: Lazy load flag — ไม่โหลด assignments ตอน login ทันที ประหยัด reads */
 var _assignDataLoaded = false;
 /* ✅ OPTIMIZATION: cache สำหรับ assignment_status (admin) — ป้องกันดึงซ้ำหลายรอบ */
@@ -1654,15 +1655,18 @@ function startRealtimeSync() {
     /* ✅ FIX #2: ลด window จาก 90 → 30 วัน ลด reads ครั้งแรกลง ~67%
        ข้อมูลเก่ากว่า 30 วันยังอยู่ใน localStorage cache */
     var cutoffTs = Date.now() - (30 * 24 * 60 * 60 * 1000);
-    realtimeUnsubscribe = logsCol()
-      .where("createdAt", ">=", cutoffTs)
-      .onSnapshot(function(snapshot) {
+    /* ✅ FIX: เปลี่ยนจาก onSnapshot (live listener) → .get() ครั้งเดียว + poll ทุก 10 นาที
+       เหตุผล: onSnapshot ค้างเปิดตลอดวัน x 21 คน = ทุกครั้งที่มีใครเขียนข้อมูล
+       client ทุกตัวที่เปิด listener จะได้รับ snapshot ใหม่ทั้งก้อนและนับ read ซ้ำ
+       การ poll เป็นช่วงๆ ลด reads ลงได้หลายสิบเท่าเมื่อมีผู้ใช้พร้อมกันจำนวนมาก */
+    function _pollLogs(){
+      logsCol().where("createdAt", ">=", cutoffTs).get().then(function(snapshot){
         trackRead(snapshot.size);
         var newLogs = [];
         snapshot.forEach(function(doc){ var d=doc.data(); d._firestoreId=doc.id; newLogs.push(d); });
         newLogs.sort(function(a,b){ return (a.createdAt||0)-(b.createdAt||0); });
 
-        /* รวม legacy records จาก cache (ไม่มี createdAt หรือเก่ากว่า 90 วัน) */
+        /* รวม legacy records จาก cache (ไม่มี createdAt หรือเก่ากว่า 30 วัน) */
         var legacyLogs = _cachedLogs.filter(function(r){ return typeof r.createdAt !== "number" || r.createdAt < cutoffTs; });
         var merged = legacyLogs.concat(newLogs);
         var seen = {}; var deduped = [];
@@ -1671,7 +1675,15 @@ function startRealtimeSync() {
         _cachedLogs = deduped;
         saveLogsCache(_cachedLogs);
         renderHistory(); updateDashboard(); renderChart();
-      }, function(err){ console.error("Realtime error:", err); showStatus("⚠️ การเชื่อมต่อ real-time ขัดข้อง"); });
+      }, function(err){ console.error("Poll error:", err); showStatus("⚠️ การเชื่อมต่อขัดข้อง"); });
+    }
+    _pollLogs();
+    if(_logsPollTimer) clearInterval(_logsPollTimer);
+    /* ✅ poll ทุก 10 นาที เฉพาะตอน tab ไม่ hidden (ดู _setupVisibilityHandler) */
+    _logsPollTimer = setInterval(function(){
+      if(!document.hidden && _quotaCount < QUOTA_LIMIT) _pollLogs();
+    }, 10 * 60 * 1000);
+    realtimeUnsubscribe = function(){ if(_logsPollTimer){ clearInterval(_logsPollTimer); _logsPollTimer = null; } };
     _lastSnapshotTime = Date.now();
     /* ❌ ลบ logsCol().get() ออก — นี่คือสาเหตุหลักที่กิน reads ทั้ง collection ทุกครั้ง login */
   }
@@ -2550,6 +2562,9 @@ var subjects=[],assignments=[],currentSubjectFilter="all",editingAssignId=null,e
 function loadAssignData(){subjects=JSON.parse(localStorage.getItem("subjects_v1")||JSON.stringify(DEFAULT_SUBJECTS));assignments=JSON.parse(localStorage.getItem("assignments_v1")||"[]");}
 function loadAssignDataFromCloud(){
   if(!firestoreDB)return;
+  /* ✅ FIX: pre-warm admin status cache ทันที (background) — ไม่ต้องรอจนกว่าจะกดเปิดหน้า "เช็คผลงาน"
+     ทำให้หน้านั้นแสดงผลทันทีจาก cache แทนที่จะค้าง spinner รอ query */
+  if(isAdmin) _getAdminStatusCached().catch(function(){});
   /* ✅ ใช้ get() แทน onSnapshot สำหรับ subjects (ไม่ค่อยเปลี่ยน) */
   firestoreDB.collection("subjects_m51").get().then(function(snap){
     trackRead(snap.size);
