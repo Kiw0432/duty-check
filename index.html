@@ -1287,14 +1287,12 @@ function _invalidateAdminStatusCache(){
     _invalidateCacheTimer = null;
   }, 10000);
 }
-/* ✅ helper: สร้าง map uid → studentId จาก STUDENTS (email-based) + doc.studentId */
-var _uidToSidPermanent = {}; /* เก็บสะสมข้ามการ query */
+
+/* ✅ helper: จำ uid→studentId ข้ามการ query */
+var _uidToSidPermanent = {};
 function _resolveSid(uid, docStudentId) {
-  /* 1. ถ้า doc มี studentId ตรงๆ ให้ใช้เลย */
   if (docStudentId) { _uidToSidPermanent[uid] = docStudentId; return docStudentId; }
-  /* 2. เคย resolve แล้วใน session นี้ */
   if (_uidToSidPermanent[uid]) return _uidToSidPermanent[uid];
-  /* 3. ไม่รู้ — return "" (จะถูก skip ใน studentDoneMap) */
   return "";
 }
 
@@ -1302,20 +1300,19 @@ function _getAdminStatusCached(){
   if(_adminStatusCache && (Date.now() - _adminStatusCacheTs) < _ADMIN_STATUS_TTL)
     return Promise.resolve(_adminStatusCache);
   return assignStatusCol().where("done","==",true).get().then(function(snapshot){
-    /* ✅ FIX #5: where("done","==",true) — ลด reads ~50% เพราะ skip records ที่ done=false */
     trackRead(snapshot.size);
-    var statusMap={};
+    var studentDoneMap={};
     snapshot.forEach(function(doc){
       var d=doc.data();
-      /* ✅ BUG FIX: ใช้ _resolveSid เพื่อ fallback uid→studentId กรณี field หาย */
+      /* ✅ BUG FIX: map ตรง sid→assignId ในครั้งเดียว + fallback uid lookup */
       var sid = _resolveSid(d.uid, d.studentId||"");
-      if(!sid) return; /* ข้ามถ้าหา studentId ไม่ได้จริงๆ */
-      if(!statusMap[sid]) statusMap[sid]={};
-      if(d.done) statusMap[sid][d.assignId]=true;
+      if(!sid) return;
+      if(!studentDoneMap[sid]) studentDoneMap[sid]={};
+      if(d.done) studentDoneMap[sid][d.assignId]=true;
     });
-    _adminStatusCache = statusMap;
+    _adminStatusCache = studentDoneMap;
     _adminStatusCacheTs = Date.now();
-    return statusMap;
+    return studentDoneMap;
   });
 }
 
@@ -1588,7 +1585,7 @@ function startSystem() {
     _safeShow("studentMenuGrid"); _safeHide("adminMenuGrid");
     var _pn=_safeEl("profileName"); if(_pn) _pn.textContent = currentUserDoc.name || "";
     var _pi=_safeEl("profileId");   if(_pi) _pi.textContent = "รหัส " + (currentUserDoc.studentId || "");
-    /* ✅ BUG FIX: เก็บ uid→studentId ไว้ให้ admin ใช้ resolve ได้แม้ doc เก่าไม่มี studentId field */
+    /* ✅ BUG FIX: เก็บ uid→studentId ให้ admin ใช้ resolve doc เก่าที่ไม่มี field studentId */
     if(currentUser && currentUserDoc.studentId) _uidToSidPermanent[currentUser.uid] = currentUserDoc.studentId;
   }
   showStatus("🔥 เชื่อมต่อ Cloud สำเร็จ ✅");
@@ -1789,11 +1786,14 @@ function loadStudentAssignmentStatus() {
   /* ✅ ใช้ where("uid") เพื่อดึงเฉพาะของตัวเอง ไม่ดึงทั้ง collection */
   assignStatusCol().where("uid","==",currentUser.uid).onSnapshot(function(snapshot){
     trackRead(snapshot.size);
-    _cachedAssignmentStatus = {};
-    snapshot.forEach(function(doc){ _cachedAssignmentStatus[doc.id]=doc.data(); });
+    var fromCloud = {};
+    snapshot.forEach(function(doc){ fromCloud[doc.id]=doc.data(); });
 
-    /* ✅ BUG FIX: merge localStorage pending assigns ที่ยังไม่ได้ sync ขึ้น Cloud
-       onSnapshot ล้าง cache ทุกครั้ง → ต้อง merge pending กลับเข้าไปเสมอ */
+    /* ✅ BUG FIX: อย่าล้าง cache ทิ้งแล้ว rebuild ใหม่ทั้งหมด
+       ให้ merge Cloud เข้า cache เดิม — ป้องกันติ๊กหายเมื่อ onSnapshot ยิงก่อน Cloud write เสร็จ */
+    Object.keys(fromCloud).forEach(function(k){ _cachedAssignmentStatus[k] = fromCloud[k]; });
+
+    /* merge localStorage pending assigns ที่ยังไม่ได้ sync ขึ้น Cloud */
     var prefix = "pending_assign_"+currentUser.uid+"_";
     try {
       for (var i = 0; i < localStorage.length; i++) {
@@ -1801,16 +1801,17 @@ function loadStudentAssignmentStatus() {
         if (k && k.indexOf(prefix) === 0) {
           var assignId = k.replace(prefix, "");
           var cacheKey = currentUser.uid+"_"+assignId;
-          /* ถ้า Cloud ยังไม่มีข้อมูลนี้ ให้ใช้ local แทน */
           if (!_cachedAssignmentStatus[cacheKey]) {
+            /* Cloud ยังไม่มีข้อมูลนี้ → ใช้ local แทน */
             try {
               var pending = JSON.parse(localStorage.getItem(k));
               if (pending) _cachedAssignmentStatus[cacheKey] = pending;
             } catch(e) {}
-          } else {
-            /* Cloud มีแล้ว → ลบ pending ออก */
+          } else if (_cachedAssignmentStatus[cacheKey].done) {
+            /* ✅ Cloud มีและ done=true แล้ว → safe to clear pending */
             _clearPendingAssign(currentUser.uid, assignId);
           }
+          /* ถ้า Cloud มีแต่ done=false → อย่าลบ pending เพราะอาจเป็น stale snapshot */
         }
       }
     } catch(e) {}
@@ -2573,7 +2574,13 @@ function loadAssignDataFromCloud(){
     _assignRenderTimer=setTimeout(function(){
       renderAssignPage();
       var dashPage=document.getElementById("dashboardPage");
-      if(dashPage&&!dashPage.classList.contains("hidden")){if(isAdmin)renderAdminAssignTable();else renderAISummary();}
+      if(dashPage&&!dashPage.classList.contains("hidden")){
+        if(isAdmin){
+          /* ✅ BUG FIX: refresh ตาราง AI ถ้ากำลังแสดงอยู่ (ป้องกันค้างที่ spinner) */
+          if(_adminTab==="assign") renderAdminAssignTable();
+          else renderAdminAISummary();
+        } else renderAISummary();
+      }
     },200);
   });
 }
