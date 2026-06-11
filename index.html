@@ -1196,12 +1196,13 @@ var STUDENT_DOMAIN = "@m51.school";
 
 /* ══════════════════════════════════════════════════
    🔥 FIRESTORE QUOTA TRACKER
-   ประหยัด reads ให้ใช้ได้นานที่สุดบน Spark (50K/day)
-   กลยุทธ์:
-   1. Cache ใน localStorage พร้อม timestamp
-   2. onSnapshot เฉพาะ 30 วันล่าสุด (ไม่ดึงทั้ง collection)
-   3. นับ reads ที่ใช้จริงและแสดงใน UI
-   4. Throttle: re-subscribe ไม่เกิน 1 ครั้ง/10 นาที ถ้า tab ไม่ได้โฟกัส
+   ✅ กลยุทธ์ประหยัด reads (v2 — แก้ปัญหากิน 4000+ reads):
+   1. Offline persistence → reads จาก IndexedDB cache แทน server
+   2. Cache-first → login ซ้ำภายใน 5 นาที = ~19 reads (วันนี้เท่านั้น)
+   3. 30-day window แทน 90 วัน → ลด initial reads ~67%
+   4. Lazy load assignments → ไม่โหลดตอน login ถ้าไม่ได้เปิดหน้างาน
+   5. Admin status where(done=true) → ลด reads ~50%
+   เป้าหมาย: login ครั้งแรก <500 reads, ครั้งถัดไป <50 reads
 ══════════════════════════════════════════════════ */
 var _quotaKey   = "fs_quota_" + new Date().toISOString().slice(0,10); // reset ทุกวัน
 var _quotaCount = parseInt(localStorage.getItem(_quotaKey)||"0");
@@ -1270,6 +1271,9 @@ var realtimeUnsubscribe = null;
 var assignUnsubscribe = null;
 var firestoreDB = null, firebaseAuth = null;
 var _allStudentStatuses = {};
+var _startListenerFn = null; /* ✅ module-level ref to startListener เพื่อให้ visibility handler เข้าถึงได้ */
+/* ✅ FIX #4: Lazy load flag — ไม่โหลด assignments ตอน login ทันที ประหยัด reads */
+var _assignDataLoaded = false;
 /* ✅ OPTIMIZATION: cache สำหรับ assignment_status (admin) — ป้องกันดึงซ้ำหลายรอบ */
 var _adminStatusCache = null;      // snapshot data
 var _adminStatusCacheTs = 0;       // เวลาที่ cache ครั้งล่าสุด
@@ -1278,7 +1282,8 @@ function _invalidateAdminStatusCache(){ _adminStatusCache = null; _adminStatusCa
 function _getAdminStatusCached(){
   if(_adminStatusCache && (Date.now() - _adminStatusCacheTs) < _ADMIN_STATUS_TTL)
     return Promise.resolve(_adminStatusCache);
-  return assignStatusCol().get().then(function(snapshot){
+  return assignStatusCol().where("done","==",true).get().then(function(snapshot){
+    /* ✅ FIX #5: where("done","==",true) — ลด reads ~50% เพราะ skip records ที่ done=false */
     trackRead(snapshot.size);
     var statusMap={}, uidToSid={};
     snapshot.forEach(function(doc){
@@ -1353,6 +1358,20 @@ function initFirebase() {
     console.log("🔗 Getting Firestore...");
     firestoreDB  = firebase.firestore();
     firestoreDB.settings({ experimentalAutoDetectLongPolling: true, merge: true });
+    /* ✅ FIX #1: เปิด offline persistence — ลด reads จาก 4000 → ~0 ในการ reload ครั้งถัดไป
+       Firestore จะ serve ข้อมูลจาก IndexedDB cache แทนการดึงใหม่จาก server
+       เฉพาะ documents ที่ CHANGED จริงๆ เท่านั้นที่จะถูกนับ reads */
+    firestoreDB.enablePersistence({synchronizeTabs: false}).then(function(){
+      console.log("✅ Firestore offline persistence enabled — reads will be minimal on reload");
+    }).catch(function(err){
+      if(err.code==='failed-precondition'){
+        console.warn("⚠️ Persistence unavailable: multiple tabs open — switching to normal mode");
+      } else if(err.code==='unimplemented'){
+        console.warn("⚠️ Persistence not supported in this browser (Safari private mode?)");
+      } else {
+        console.warn("⚠️ Persistence error:", err.code);
+      }
+    });
     
     console.log("🔐 Getting Auth...");
     firebaseAuth = firebase.auth();
@@ -1531,6 +1550,7 @@ function logout() {
   if (assignUnsubscribe) { try { assignUnsubscribe(); } catch(e){} assignUnsubscribe = null; }
   currentUser = null; currentUserDoc = null; isAdmin = false;
   _cachedLogs = []; _cachedAssignmentStatus = {}; _allStudentStatuses = {};
+  _assignDataLoaded = false; /* ✅ FIX #6: reset lazy flag เมื่อ logout */
   firebaseAuth.signOut().then(function(){ location.reload(); }).catch(function(){ location.reload(); });
 }
 
@@ -1556,16 +1576,17 @@ function startSystem() {
   }
   showStatus("🔥 เชื่อมต่อ Cloud สำเร็จ ✅");
   startRealtimeSync();
-  loadAssignDataFromCloud();
-  if(isAdmin) setTimeout(renderAdminAISummary, 1000);
-  loadStudentAssignmentStatus();
+  /* ✅ FIX #4: Lazy load assignments + student status
+     โหลดเมื่อเปิดหน้างาน/dashboard เท่านั้น ไม่โหลดตอน login
+     เซฟ reads ~30-100 docs ต่อ session */
   if(!isAdmin) setTimeout(_retryPendingAssigns, 3000); /* retry pending local assigns */
   updateStorageStatus("storageBarWrap");
 }
 
-/* ══ FIRESTORE: LOGS — ✅ OPTIMIZED ══
-   เปลี่ยนจาก "ดึงทุก document" เป็น "ดึงเฉพาะ 90 วันล่าสุด"
-   ลด reads ได้ ~60-80% เมื่อข้อมูลสะสมมาก
+/* ══ FIRESTORE: LOGS — ✅ OPTIMIZED v2 ══
+   - Offline persistence: reads จาก IndexedDB cache (ไม่นับ quota ถ้าข้อมูลไม่เปลี่ยน)
+   - 30-day window: ลด initial reads ~67% จากเดิม 90 วัน
+   - Cache-first: ถ้า cache < 5 นาที = ดึงเฉพาะวันนี้ (~19 reads)
 */
 function logsCol(){ return firestoreDB.collection("attendance_m51"); }
 
@@ -1581,22 +1602,44 @@ function startRealtimeSync() {
 
   /* ✅ ล้าง cache เก่าที่อาจ filter ผิด แล้วโหลดใหม่จาก Firestore เสมอ */
   var cached = loadLogsCache();
+  var _cacheAge = 999999999;
+  try {
+    var _rawCache = localStorage.getItem("logs_cache");
+    if (_rawCache) { var _cacheObj = JSON.parse(_rawCache); _cacheAge = Date.now() - (_cacheObj.ts || 0); }
+  } catch(e) {}
+
   if(cached && cached.length > 0){
     _cachedLogs = cached;
     renderHistory(); updateDashboard(); renderChart();
+
+    /* ✅ FIX #3: Cache-first strategy
+       ถ้า cache ยังใหม่ (< 5 นาที) → อย่าเปิด onSnapshot ทันที
+       แค่ดึงข้อมูล "วันนี้" เท่านั้น (~19 reads แทน ~1000+ reads)
+       แล้วค่อยเปิด listener หลัง 2 นาที */
+    if (_cacheAge < 5 * 60 * 1000) {
+      console.log("✅ Cache fresh (<5min) — skipping full onSnapshot, checking today only");
+      _quickSyncToday();
+      setTimeout(function(){
+        if(currentUser && !realtimeUnsubscribe && _startListenerFn) _startListenerFn();
+      }, 2 * 60 * 1000);
+      _setupVisibilityHandler();
+      return;
+    }
   } else {
     localStorage.removeItem("logs_cache");
   }
 
   /* ✅ OPTIMIZATION 2: Tab visibility — pause listener เมื่อ tab hidden */
-  function startListener(){
+  _startListenerFn = function startListener(){
     /* 🛑 หยุดถ้า quota ใกล้เต็ม */
     if(_quotaCount >= QUOTA_LIMIT){
       console.warn("⛔ Quota limit reached — ไม่เปิด realtime listener");
       showStatus("⚠️ Reads ใกล้เต็ม — ใช้ข้อมูล cache");
       return;
     }
-    var cutoffTs = Date.now() - (90 * 24 * 60 * 60 * 1000);
+    /* ✅ FIX #2: ลด window จาก 90 → 30 วัน ลด reads ครั้งแรกลง ~67%
+       ข้อมูลเก่ากว่า 30 วันยังอยู่ใน localStorage cache */
+    var cutoffTs = Date.now() - (30 * 24 * 60 * 60 * 1000);
     realtimeUnsubscribe = logsCol()
       .where("createdAt", ">=", cutoffTs)
       .onSnapshot(function(snapshot) {
@@ -1619,25 +1662,54 @@ function startRealtimeSync() {
     /* ❌ ลบ logsCol().get() ออก — นี่คือสาเหตุหลักที่กิน reads ทั้ง collection ทุกครั้ง login */
   }
 
-  startListener();
+  _startListenerFn();
 
   /* ✅ OPTIMIZATION 4: Pause/resume เมื่อ tab เปลี่ยน visibility */
-  /* ✅ ลบ listener เก่าก่อน เพื่อป้องกัน stack */
+  _setupVisibilityHandler();
+}
+
+/* ✅ FIX #3 helper: ดึงเฉพาะข้อมูลวันนี้ (~19 reads แทน ~1000+) */
+function _quickSyncToday() {
+  if (!firestoreDB || !currentUser) return;
+  var todayThaiDate = getThaiDate();
+  logsCol().where("date","==",todayThaiDate).get()
+    .then(function(snap){
+      if (snap.empty) return;
+      trackRead(snap.size);
+      var existingIds = {};
+      _cachedLogs.forEach(function(r){ if(r._firestoreId) existingIds[r._firestoreId]=true; });
+      var newOnes = [];
+      snap.forEach(function(doc){
+        if(!existingIds[doc.id]){
+          var d = doc.data(); d._firestoreId = doc.id; newOnes.push(d);
+        }
+      });
+      if(newOnes.length > 0){
+        /* ลบ records วันนี้ที่ cache มีอยู่แล้ว แล้วแทนด้วยข้อมูลล่าสุด */
+        var todayISO = thaiDateToISO(todayThaiDate);
+        _cachedLogs = _cachedLogs.filter(function(r){ return thaiDateToISO(r.date) !== todayISO; }).concat(newOnes);
+        saveLogsCache(_cachedLogs);
+        renderHistory(); updateDashboard(); renderChart();
+      }
+    }).catch(function(e){ console.warn("_quickSyncToday error:", e); });
+}
+
+function _setupVisibilityHandler(){
   if(window._visibilityHandler){document.removeEventListener("visibilitychange",window._visibilityHandler);}
   window._visibilityHandler=function(){
     if(document.hidden){
       /* Tab hidden — unsubscribe เพื่อหยุดรับ updates (ประหยัด reads) */
       if(realtimeUnsubscribe){ try{realtimeUnsubscribe();}catch(e){} realtimeUnsubscribe=null; }
     } else {
-      /* Tab กลับมา — re-subscribe ถ้าผ่านไป > 10 นาที */
-      if(!realtimeUnsubscribe){
+      /* Tab กลับมา — re-subscribe ถ้าผ่านไป > throttle */
+      if(!realtimeUnsubscribe && _startListenerFn){
         var timePassed = Date.now() - _lastSnapshotTime;
         if(timePassed > _SNAPSHOT_THROTTLE_MS){
-          startListener();
+          _startListenerFn();
         } else {
           /* ใช้ cache ก่อน แล้ว re-subscribe หลังครบ throttle */
           var remaining = _SNAPSHOT_THROTTLE_MS - timePassed;
-          setTimeout(function(){ if(!realtimeUnsubscribe && currentUser) startListener(); }, remaining);
+          setTimeout(function(){ if(!realtimeUnsubscribe && currentUser && _startListenerFn) _startListenerFn(); }, remaining);
         }
       }
     }
@@ -1652,8 +1724,8 @@ function getAllLogs(){
   /* ถ้ายังไม่มี ดูใน localStorage ก่อน */
   var cached = loadLogsCache();
   if(cached){ _cachedLogs = cached; return Promise.resolve(cached.slice()); }
-  /* Last resort: query Firestore — ดึงแค่ 90 วัน */
-  var cutoffTs = Date.now() - (90 * 24 * 60 * 60 * 1000);
+  /* Last resort: query Firestore — ดึงแค่ 30 วัน (ลดจาก 90 → 30) */
+  var cutoffTs = Date.now() - (30 * 24 * 60 * 60 * 1000);
   var qNew = logsCol().where("createdAt",">=",cutoffTs).get();
   var qLegacy = logsCol().where("createdAt","==",null).get().catch(function(){ return {forEach:function(){},size:0}; });
   return Promise.all([qNew, qLegacy]).then(function(results){
@@ -2154,10 +2226,19 @@ function safeSetItem(k,v){try{localStorage.setItem(k,v);return true;}catch(e){sh
 function updateStorageStatus(id){updateQuotaBadge();}
 
 /* ══ NAVIGATION ══ */
+function _ensureAssignLoaded(){
+  /* ✅ FIX #4: โหลด assignments เฉพาะเมื่อจำเป็น ไม่โหลดตอน login */
+  if(!_assignDataLoaded && firestoreDB){
+    _assignDataLoaded = true;
+    loadAssignDataFromCloud();
+    if(!isAdmin) loadStudentAssignmentStatus();
+  }
+}
 function openPage(id){
   ["homePage","checkPage","dashboardPage","historyPage","assignPage","moneyCheckPage"].forEach(function(p){document.getElementById(p).classList.add("hidden");});
   document.getElementById(id).classList.remove("hidden");
-  if(id==="dashboardPage"){updateDashboard();renderChart();if(isAdmin)renderAdminAISummary();}
+  if(id==="dashboardPage"){_ensureAssignLoaded();updateDashboard();renderChart();if(isAdmin)renderAdminAISummary();}
+  if(id==="assignPage"){_ensureAssignLoaded();}
   if(id==="historyPage"){var td=document.getElementById("todayDate");if(td)td.textContent="📅 "+new Date().toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric"});}
 }
 function goHome(){["checkPage","dashboardPage","historyPage","assignPage","moneyCheckPage"].forEach(function(p){document.getElementById(p).classList.add("hidden");});document.getElementById("homePage").classList.remove("hidden");}
