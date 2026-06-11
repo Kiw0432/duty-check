@@ -1278,29 +1278,44 @@ var _assignDataLoaded = false;
 var _adminStatusCache = null;      // snapshot data
 var _adminStatusCacheTs = 0;       // เวลาที่ cache ครั้งล่าสุด
 var _ADMIN_STATUS_TTL = 30 * 60 * 1000; // TTL 30 นาที (เพิ่มจาก 5 → 30)
-function _invalidateAdminStatusCache(){ _adminStatusCache = null; _adminStatusCacheTs = 0; }
+var _invalidateCacheTimer = null;
+function _invalidateAdminStatusCache(){
+  /* ✅ Debounce 10 วินาที — กัน invalidate ซ้ำถี่เกินไป */
+  if(_invalidateCacheTimer) clearTimeout(_invalidateCacheTimer);
+  _invalidateCacheTimer = setTimeout(function(){
+    _adminStatusCache = null; _adminStatusCacheTs = 0;
+    _invalidateCacheTimer = null;
+  }, 10000);
+}
+/* ✅ helper: สร้าง map uid → studentId จาก STUDENTS (email-based) + doc.studentId */
+var _uidToSidPermanent = {}; /* เก็บสะสมข้ามการ query */
+function _resolveSid(uid, docStudentId) {
+  /* 1. ถ้า doc มี studentId ตรงๆ ให้ใช้เลย */
+  if (docStudentId) { _uidToSidPermanent[uid] = docStudentId; return docStudentId; }
+  /* 2. เคย resolve แล้วใน session นี้ */
+  if (_uidToSidPermanent[uid]) return _uidToSidPermanent[uid];
+  /* 3. ไม่รู้ — return "" (จะถูก skip ใน studentDoneMap) */
+  return "";
+}
+
 function _getAdminStatusCached(){
   if(_adminStatusCache && (Date.now() - _adminStatusCacheTs) < _ADMIN_STATUS_TTL)
     return Promise.resolve(_adminStatusCache);
   return assignStatusCol().where("done","==",true).get().then(function(snapshot){
     /* ✅ FIX #5: where("done","==",true) — ลด reads ~50% เพราะ skip records ที่ done=false */
     trackRead(snapshot.size);
-    var statusMap={}, uidToSid={};
+    var statusMap={};
     snapshot.forEach(function(doc){
       var d=doc.data();
-      if(!statusMap[d.uid]) statusMap[d.uid]={};
-      uidToSid[d.uid]=d.studentId||"";
-      if(d.done) statusMap[d.uid][d.assignId]=true;
+      /* ✅ BUG FIX: ใช้ _resolveSid เพื่อ fallback uid→studentId กรณี field หาย */
+      var sid = _resolveSid(d.uid, d.studentId||"");
+      if(!sid) return; /* ข้ามถ้าหา studentId ไม่ได้จริงๆ */
+      if(!statusMap[sid]) statusMap[sid]={};
+      if(d.done) statusMap[sid][d.assignId]=true;
     });
-    var studentDoneMap={};
-    Object.keys(statusMap).forEach(function(uid){
-      var sid=uidToSid[uid]; if(!sid) return;
-      if(!studentDoneMap[sid]) studentDoneMap[sid]={};
-      Object.keys(statusMap[uid]).forEach(function(aid){ studentDoneMap[sid][aid]=true; });
-    });
-    _adminStatusCache = studentDoneMap;
+    _adminStatusCache = statusMap;
     _adminStatusCacheTs = Date.now();
-    return studentDoneMap;
+    return statusMap;
   });
 }
 
@@ -1573,6 +1588,8 @@ function startSystem() {
     _safeShow("studentMenuGrid"); _safeHide("adminMenuGrid");
     var _pn=_safeEl("profileName"); if(_pn) _pn.textContent = currentUserDoc.name || "";
     var _pi=_safeEl("profileId");   if(_pi) _pi.textContent = "รหัส " + (currentUserDoc.studentId || "");
+    /* ✅ BUG FIX: เก็บ uid→studentId ไว้ให้ admin ใช้ resolve ได้แม้ doc เก่าไม่มี studentId field */
+    if(currentUser && currentUserDoc.studentId) _uidToSidPermanent[currentUser.uid] = currentUserDoc.studentId;
   }
   showStatus("🔥 เชื่อมต่อ Cloud สำเร็จ ✅");
   startRealtimeSync();
