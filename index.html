@@ -2560,6 +2560,28 @@ var DEFAULT_SUBJECTS=[{id:"s1",code:"30201",name:"คณิตศาสตร์
 var SUBJECT_COLORS=["#e8c4c4","#c4e8c9","#c4d8e8","#e8dfc4","#d4c4e8","#e8c4dc","#c4e8e4","#f0e8c4","#dce8c4","#e8e4c4"];
 var subjects=[],assignments=[],currentSubjectFilter="all",editingAssignId=null,editingSubjId=null;
 function loadAssignData(){subjects=JSON.parse(localStorage.getItem("subjects_v1")||JSON.stringify(DEFAULT_SUBJECTS));assignments=JSON.parse(localStorage.getItem("assignments_v1")||"[]");}
+var _assignPollTimer = null;
+function _pollAssignments(){
+  if(!firestoreDB)return Promise.resolve();
+  return firestoreDB.collection("assignments_m51").get().then(function(snap){
+    trackRead(snap.size);
+    /* ✅ BUG FIX: อย่าทับ localStorage ถ้า Firestore คืนค่าว่าง — อาจเป็น network glitch */
+    if(snap.empty) return;
+    assignments=[];snap.forEach(function(doc){var d=doc.data();d._fid=doc.id;assignments.push(d);});
+    /* เรียงวันที่ฝั่ง client แทน orderBy เพื่อให้ได้เอกสารทุกรายการแม้ไม่มี createdAt */
+    assignments.sort(function(a,b){return (a.createdAt||"").localeCompare(b.createdAt||"");});
+    safeSetItem("assignments_v1",JSON.stringify(assignments));
+    var aat=document.getElementById("adminAssignTable");if(aat)aat.dataset.loaded="1";
+    renderAssignPage();
+    var dashPage=document.getElementById("dashboardPage");
+    if(dashPage&&!dashPage.classList.contains("hidden")){
+      if(isAdmin){
+        if(_adminTab==="assign") renderAdminAssignTable();
+        else renderAdminAISummary();
+      } else renderAISummary();
+    }
+  }).catch(function(e){console.error("assignments poll error:",e);});
+}
 function loadAssignDataFromCloud(){
   if(!firestoreDB)return;
   /* ✅ FIX: pre-warm admin status cache ทันที (background) — ไม่ต้องรอจนกว่าจะกดเปิดหน้า "เช็คผลงาน"
@@ -2572,32 +2594,19 @@ function loadAssignDataFromCloud(){
     subjects.sort(function(a,b){return (a.createdAt||"").toString().localeCompare((b.createdAt||"").toString());});
     safeSetItem("subjects_v1",JSON.stringify(subjects));}
   }).catch(function(e){console.error("subjects load error:",e);});
-  /* ✅ assignments ยังใช้ onSnapshot เพราะเปลี่ยนบ่อย แต่ track reads */
-  var _assignRenderTimer=null;
-  if(assignUnsubscribe){try{assignUnsubscribe();}catch(e){}assignUnsubscribe=null;}
-  assignUnsubscribe = firestoreDB.collection("assignments_m51").onSnapshot(function(snap){
-    trackRead(snap.size);
-    /* ✅ BUG FIX: อย่าทับ localStorage ถ้า Firestore คืนค่าว่าง — อาจเป็น network glitch */
-    if(snap.empty) return;
-    assignments=[];snap.forEach(function(doc){var d=doc.data();d._fid=doc.id;assignments.push(d);});
-    /* เรียงวันที่ฝั่ง client แทน orderBy เพื่อให้ได้เอกสารทุกรายการแม้ไม่มี createdAt */
-    assignments.sort(function(a,b){return (a.createdAt||"").localeCompare(b.createdAt||"");});
-    safeSetItem("assignments_v1",JSON.stringify(assignments));
-    var aat=document.getElementById("adminAssignTable");if(aat)aat.dataset.loaded="1";
-    /* ✅ Debounce — snapshot อาจยิงหลายครั้งต่อเนื่อง */
-    if(_assignRenderTimer){clearTimeout(_assignRenderTimer);_assignRenderTimer=null;}
-    _assignRenderTimer=setTimeout(function(){
-      renderAssignPage();
-      var dashPage=document.getElementById("dashboardPage");
-      if(dashPage&&!dashPage.classList.contains("hidden")){
-        if(isAdmin){
-          /* ✅ BUG FIX: refresh ตาราง AI ถ้ากำลังแสดงอยู่ (ป้องกันค้างที่ spinner) */
-          if(_adminTab==="assign") renderAdminAssignTable();
-          else renderAdminAISummary();
-        } else renderAISummary();
-      }
-    },200);
-  });
+  /* ✅ BUG FIX: เปลี่ยน assignments_m51 จาก onSnapshot (live listener) → poll ทุก 5 นาที
+     เหตุผลเดียวกับที่เคยแก้ไว้ใน attendance_m51 แล้ว (ดูคอมเมนต์ใน startRealtimeSync ด้านบน):
+     onSnapshot ค้างเปิดตลอดวันในทุกอุปกรณ์ (นักเรียน 26-28 คน) = ทุกครั้งที่ครูแก้ไข/เพิ่ม/ลบงานแม้แค่ 1 ครั้ง
+     client ทุกตัวที่เปิด listener ค้างไว้จะได้รับ snapshot เต็มทั้ง collection พร้อมกันหมด แล้วนับเป็น reads ซ้ำ
+     ตัวอย่างจริง: เขียน 28 ครั้ง × งาน 26 ชิ้น × นักเรียน ~28 คนที่เปิดแอปพร้อมกัน ≈ ใกล้เคียง 29,000 reads/วันที่เจอจริง
+     แก้เป็น poll (เหมือน attendance) ทำให้ reads ไม่ขยายตามจำนวนนักเรียนที่เปิดแอปพร้อมกันอีกต่อไป
+     ส่วนคนที่เพิ่ง add/edit/delete งานของตัวเอง จะเห็นผลทันทีอยู่แล้วเพราะ saveAssign/deleteAssign อัปเดต array ในเครื่องเลย */
+  _pollAssignments();
+  if(_assignPollTimer) clearInterval(_assignPollTimer);
+  _assignPollTimer = setInterval(function(){
+    if(!document.hidden) _pollAssignments();
+  }, 5 * 60 * 1000);
+  assignUnsubscribe = function(){ if(_assignPollTimer){ clearInterval(_assignPollTimer); _assignPollTimer = null; } };
 }
 function saveAssignData(){safeSetItem("subjects_v1",JSON.stringify(subjects));safeSetItem("assignments_v1",JSON.stringify(assignments));}
 /* ════ CLOUD TIMEOUT HELPER ════ */
